@@ -225,13 +225,7 @@
 		5525FE891C3727430081FB23 /* JWMixAudioScrubber */ = {
 			isa = PBXGroup;
 			children = (
-				5525FF3B1C3764870081FB23 /* clipRecording_aminor1.caf */,
-				5525FF3C1C3764870081FB23 /* clipRecording_killers1.caf */,
-				5525FF3D1C3764870081FB23 /* clipRecording_killers2.caf */,
-				5525FF371C3746280081FB23 /* AminorBackingtrackTrimmedMP3-45.m4a */,
-				5525FF381C3746280081FB23 /* TheKillersTrimmedMP3-30.m4a */,
-				5525FF331C372AC00081FB23 /* trimmedMP3-45.m4a */,
-				5525FF341C372AC00081FB23 /* trimmedMP3.m4a */,
+				5525FF691C37DD370081FB23 /* audiofiles */,
 				5525FEC71C3728D00081FB23 /* Common */,
 				5525FEC61C3728B00081FB23 /* AudioScrubber */,
 				5525FEC51C3728A40081FB23 /* Mixedit */,
@@ -317,25 +311,25 @@
 		5525FEC41C37289A0081FB23 /* Scrubber */ = {
 			isa = PBXGroup;
 			children = (
+				5525FEDE1C37295C0081FB23 /* JWScrubber.h */,
+				5525FEE11C37295C0081FB23 /* JWScrubberController.h */,
+				5525FEE21C37295C0081FB23 /* JWScrubberController.m */,
+				5525FEE71C37295C0081FB23 /* JWScrubberViewController.h */,
+				5525FEE81C37295C0081FB23 /* JWScrubberViewController.m */,
+				5525FEE51C37295C0081FB23 /* JWScrubberGradientLayer.h */,
+				5525FEE61C37295C0081FB23 /* JWScrubberGradientLayer.m */,
+				5525FEDF1C37295C0081FB23 /* JWScrubberClipEndsLayer.h */,
+				5525FEE01C37295C0081FB23 /* JWScrubberClipEndsLayer.m */,
+				5525FEE91C37295C0081FB23 /* JWVisualAudioBufferView.h */,
+				5525FEEA1C37295C0081FB23 /* JWVisualAudioBufferView.m */,
 				5525FED81C37295C0081FB23 /* JWBufferSampler.h */,
 				5525FED91C37295C0081FB23 /* JWBufferSampler.m */,
 				5525FEDA1C37295C0081FB23 /* JWPulseLightView.h */,
 				5525FEDB1C37295C0081FB23 /* JWPulseLightView.m */,
 				5525FEDC1C37295C0081FB23 /* JWScalingVisualAudioBufferView.h */,
 				5525FEDD1C37295C0081FB23 /* JWScalingVisualAudioBufferView.m */,
-				5525FEDE1C37295C0081FB23 /* JWScrubber.h */,
-				5525FEDF1C37295C0081FB23 /* JWScrubberClipEndsLayer.h */,
-				5525FEE01C37295C0081FB23 /* JWScrubberClipEndsLayer.m */,
-				5525FEE11C37295C0081FB23 /* JWScrubberController.h */,
-				5525FEE21C37295C0081FB23 /* JWScrubberController.m */,
 				5525FEE31C37295C0081FB23 /* JWScrubberDemoController.h */,
 				5525FEE41C37295C0081FB23 /* JWScrubberDemoController.m */,
-				5525FEE51C37295C0081FB23 /* JWScrubberGradientLayer.h */,
-				5525FEE61C37295C0081FB23 /* JWScrubberGradientLayer.m */,
-				5525FEE71C37295C0081FB23 /* JWScrubberViewController.h */,
-				5525FEE81C37295C0081FB23 /* JWScrubberViewController.m */,
-				5525FEE91C37295C0081FB23 /* JWVisualAudioBufferView.h */,
-				5525FEEA1C37295C0081FB23 /* JWVisualAudioBufferView.m */,
 			);
 			name = Scrubber;
 			sourceTree = "<group>";
@@ -384,6 +378,20 @@
 				5525FECB1C3728ED0081FB23 /* JWUITransportButton.m */,
 			);
 			name = Common;
+			sourceTree = "<group>";
+		};
+		5525FF691C37DD370081FB23 /* audiofiles */ = {
+			isa = PBXGroup;
+			children = (
+				5525FF3B1C3764870081FB23 /* clipRecording_aminor1.caf */,
+				5525FF3C1C3764870081FB23 /* clipRecording_killers1.caf */,
+				5525FF3D1C3764870081FB23 /* clipRecording_killers2.caf */,
+				5525FF371C3746280081FB23 /* AminorBackingtrackTrimmedMP3-45.m4a */,
+				5525FF381C3746280081FB23 /* TheKillersTrimmedMP3-30.m4a */,
+				5525FF331C372AC00081FB23 /* trimmedMP3-45.m4a */,
+				5525FF341C372AC00081FB23 /* trimmedMP3.m4a */,
+			);
+			name = audiofiles;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
