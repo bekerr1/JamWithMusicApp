@@ -14,10 +14,10 @@
 const int scMaxTracks = 10;
 
 @interface JWScrubberController () <ScrubberDelegate> {
-//    dispatch_queue_t _bufferReceivedQueue;
-//    dispatch_queue_t _bufferSampledQueue;
-//    dispatch_queue_t _bufferReceivedPerformanceQueue;
-//    dispatch_queue_t _bufferSampledPerformanceQueue;
+    dispatch_queue_t _bufferReceivedQueue;
+    dispatch_queue_t _bufferSampledQueue;
+    dispatch_queue_t _bufferReceivedPerformanceQueue;
+    dispatch_queue_t _bufferSampledPerformanceQueue;
     NSUInteger _buffersReceivedCount;
     NSUInteger _trackCount;
     NSMutableDictionary * _tracks;
@@ -38,10 +38,10 @@ const int scMaxTracks = 10;
 @property (nonatomic,strong)  NSMutableArray *pulseSamplesDurations;
 @property (nonatomic) float backlightValue;
 
-@property (nonatomic,strong)  dispatch_queue_t bufferReceivedQueue;
-@property (nonatomic,strong)  dispatch_queue_t bufferSampledQueue;
-@property (nonatomic,strong)  dispatch_queue_t bufferReceivedPerformanceQueue;
-@property (nonatomic,strong)  dispatch_queue_t bufferSampledPerformanceQueue;
+//@property (nonatomic,strong)  dispatch_queue_t bufferReceivedQueue;
+//@property (nonatomic,strong)  dispatch_queue_t bufferSampledQueue;
+//@property (nonatomic,strong)  dispatch_queue_t bufferReceivedPerformanceQueue;
+//@property (nonatomic,strong)  dispatch_queue_t bufferSampledPerformanceQueue;
 
 @end
 
@@ -70,26 +70,25 @@ const int scMaxTracks = 10;
 -(void)initBufferQueues {
     if (_bufferReceivedQueue == nil) {
         //_bufferReceivedQueue =
-        self.bufferReceivedQueue =
+        _bufferReceivedQueue =
         dispatch_queue_create("bufferReceived",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INITIATED, -1));
     }
     if (_bufferSampledQueue == nil) {
-        //_bufferSampledQueue =
-        self.bufferSampledQueue =
+        _bufferSampledQueue =
         dispatch_queue_create("bufferProcessing",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INITIATED, -1));
     }
     
     if (_bufferReceivedPerformanceQueue == nil) {
-        //_bufferReceivedPerformanceQueue =
-        self.bufferReceivedPerformanceQueue =
+        _bufferReceivedPerformanceQueue =
+//        self.bufferReceivedPerformanceQueue =
         dispatch_queue_create("bufferReceivedP",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, -1));
     }
     if (_bufferSampledPerformanceQueue == nil) {
-        //_bufferSampledPerformanceQueue =
-        self.bufferSampledPerformanceQueue =
+        _bufferSampledPerformanceQueue =
+//        self.bufferSampledPerformanceQueue =
         dispatch_queue_create("bufferProcessingP",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, -1));
     }
@@ -173,7 +172,9 @@ const int scMaxTracks = 10;
     }
     
     if (sid == nil) {
-        [_scrubber prepareToPlay:1];
+
+        [_scrubber prepareToPlay:1 atPosition:[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:nil]];
+//        [_scrubber prepareToPlay:1];
     }
 
     [self startPlayTimer];
@@ -205,20 +206,16 @@ const int scMaxTracks = 10;
     NSLog(@"%s",__func__);
     
     // Discard all work queued
-//    if (_bufferSampledQueue)
-//        dispatch_suspend(_bufferSampledQueue);
-//    if (_bufferReceivedQueue)
-//        dispatch_suspend(_bufferReceivedQueue);
-//    if (_bufferSampledPerformanceQueue)
-//        dispatch_suspend(_bufferSampledPerformanceQueue);
-//    if (_bufferReceivedPerformanceQueue)
-//        dispatch_suspend(_bufferReceivedPerformanceQueue);
+//    self.bufferSampledQueue = nil;
+//    self.bufferReceivedQueue = nil;
+//    self.bufferSampledPerformanceQueue = nil;
+//    self.bufferReceivedPerformanceQueue = nil;
 
-    self.bufferSampledQueue = nil;
-    self.bufferReceivedQueue = nil;
-    self.bufferSampledPerformanceQueue = nil;
-    self.bufferReceivedPerformanceQueue = nil;
-    
+    _bufferSampledQueue = nil;
+    _bufferReceivedQueue = nil;
+    _bufferSampledPerformanceQueue = nil;
+    _bufferReceivedPerformanceQueue = nil;
+
     [self initBufferQueues];
 
     _trackCount = 0;
@@ -236,16 +233,27 @@ const int scMaxTracks = 10;
 }
 
 
+-(void)setPulseBackLight:(BOOL)pulseBackLight {
+    _pulseBackLight = pulseBackLight;
+    
+    if (pulseBackLight) {
+        _pulseOn = YES;
+    }
+//    if (_scrubber) {
+//        [_scrubber setUsePulse: _pulseBackLight];
+//    }
+}
+
 -(void)setUseGradient:(BOOL)useGradient {
     _useGradient = useGradient;
     if (_scrubber) {
-        [_scrubber setUseGradient:_useGradient];
+        [_scrubber setUseGradient: _useGradient];
     }
 }
 -(void)setUseTrackGradient:(BOOL)useTrackGradient {
     _useTrackGradient = useTrackGradient;
     if (_scrubber) {
-        [_scrubber setUseTrackGradient:_useTrackGradient];
+        [_scrubber setUseTrackGradient: _useTrackGradient];
 
 //        [_scrubber setUseGradient:_useTrackGradient];
     }
@@ -1419,7 +1427,7 @@ EDITING PROTOCOL PUBLIC API
         // ERRR
     } else {
         
-        NSUInteger pulseType = 1;
+        NSUInteger pulseType = 2;
         
         NSArray *pulsData = _pulseSamples[indexOfBuffer];
 
@@ -1437,6 +1445,7 @@ EDITING PROTOCOL PUBLIC API
             }
 
         } else if (pulseType == 2) {
+            
             float startSampleValue = [pulsData[1] floatValue];  // as a fraction of duration
             float progressValue = [pulsData[0] floatValue];  // as a fraction of duration
             float endSampleValue = [pulsData[1] floatValue]; // the first sample value
@@ -1486,9 +1495,9 @@ EDITING PROTOCOL PUBLIC API
             if (remainder > 0.15 ) {
                 startSampleValue = endSampleValue; // the first sample value
                 endSampleValue = [pulsData[3] floatValue]; // the second sample value
-                //                    NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
-                //                          indexOfBuffer,buffersDuration,currentPosSeconds,
-                //                          pulseDataAvg,progressValue,endSampleValue);
+                                    NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
+                                          indexOfBuffer,buffersDuration,currentPosSeconds,
+                                          pulseDataAvg,progressValue,endSampleValue);
                 double delayInSecs = progressValue;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     // pulse anim 2 -  first point to second point
@@ -1683,8 +1692,8 @@ EDITING PROTOCOL PUBLIC API
     
     BOOL dc = options & SamplingOptionDualChannel;  // dual channel
     BOOL computeAverages  = ! (options & SamplingOptionNoAverages);
-    //BOOL collectPulseData = options & SamplingOptionCollectPulseData;
-    BOOL collectPulseData = NO; // editing
+    BOOL collectPulseData = options & SamplingOptionCollectPulseData;
+    //BOOL collectPulseData = NO; // editing
     
     if  (_pulseOn == NO  && collectPulseData)
         _pulseOn = YES;

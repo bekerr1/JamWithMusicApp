@@ -36,6 +36,8 @@
 @property (nonatomic) UIColor *trackGradientColor3;
 @property (nonatomic) UIColor *headerColor1;
 @property (nonatomic) UIColor *headerColor2;
+@property (nonatomic) BOOL pulseBackLight;
+
 
 - (void)prepareForTracks;
 - (void)refresh;
@@ -44,6 +46,8 @@
 - (void)rewindToBeginning;
 - (void)rewindToEnd;
 - (void)prepareToPlay:(NSUInteger)track;
+- (void)prepareToPlay:(NSUInteger)track atPosition:(CGFloat)position;
+
 - (void)setTrackStartPosition:(CGFloat)startPositionSeconds forTrack:(NSUInteger)track;
 
 // Play and RECORD

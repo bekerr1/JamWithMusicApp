@@ -49,6 +49,7 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @property (nonatomic) BOOL useTrackGradient;
 @property (nonatomic) UIColor *backLightColor;  // use as hue layer
 @property (nonatomic) BOOL darkBackground;
+@property (nonatomic) BOOL pulseBackLight;
 
 -(void)configureScrubberColors:(NSDictionary*)scrubberColors;
 

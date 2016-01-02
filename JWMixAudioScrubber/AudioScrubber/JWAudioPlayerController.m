@@ -224,7 +224,7 @@
 
       ];
     
-    playerNode[@"effects"] = effectsArray;
+//    playerNode[@"effects"] = effectsArray;
     
     return playerNode;
 
@@ -408,6 +408,7 @@
     
     _sc.useGradient = YES;
     _sc.useTrackGradient = NO;
+    _sc.pulseBackLight = NO;
 
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
     
@@ -443,6 +444,10 @@
         
         if (nodeType == JWMixerNodeTypePlayer) {
             
+            SamplingOptions so = SamplingOptionDualChannel ;
+            if (_sc.pulseBackLight) {
+                so = SamplingOptionDualChannel | SamplingOptionCollectPulseData;
+            }
             
             //If its a player node that has a file url that buffer info can be recieved
             if (fileURL) {
@@ -451,7 +456,7 @@
                 _scrubberTrackId =
                 [_sc prepareScrubberFileURL:fileURL
                              withSampleSize:ssz
-                                    options:SamplingOptionDualChannel
+                                    options:so
                                        type:kind
                                      layout:layout
                                      colors:nil
@@ -502,11 +507,18 @@
                     // use recorder
                     NSString *recorderTrackId =
                     [_sc prepareScrubberListenerSource:nil
-                                        withSampleSize:SampleSize10
+                                        withSampleSize:SampleSize8
                                                options:SamplingOptionDualChannel
                                                   type:VABOptionCenter
-                                                layout:VABLayoutOptionStackAverages | VABLayoutOptionShowAverageSamples
-                                                colors:nil
+                                                layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples
+                                                colors:
+                     @{
+                       JWColorScrubberTopPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
+                       JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+                       JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+                       JWColorScrubberBottomPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
+                       }
+
                                           onCompletion:nil];
                     
                     [_audioEngine registerController:_sc withTrackId:recorderTrackId forPlayerRecorderAtIndex:index];
@@ -638,13 +650,14 @@
     return [_audioEngine progressOfAudioFileForPlayerAtIndex:0];
 }
 -(CGFloat)durationInSecondsOfAudioFile:(JWScrubberController*)self forScrubberId:(NSString*)sid{
-    return 0.0;
+    return [_audioEngine durationInSecondsOfAudioFileForPlayerAtIndex:0];
 }
 -(CGFloat)remainingDurationInSecondsOfAudioFile:(JWScrubberController*)self forScrubberId:(NSString*)sid{
-    return 0.0;
+    return [_audioEngine remainingDurationInSecondsOfAudioFileForPlayerAtIndex:0];
 }
 -(CGFloat)currentPositionInSecondsOfAudioFile:(JWScrubberController*)self forScrubberId:(NSString*)sid{
-    return 0.0;
+
+    return [_audioEngine currentPositionInSecondsOfAudioFileForPlayerAtIndex:0];
 }
 -(NSString*)processingFormatStr:(JWScrubberController*)self forScrubberId:(NSString*)sid{
     //    return [_audioEngine processingFormatStr];

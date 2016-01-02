@@ -120,6 +120,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.delegate = self;
     self.view.backgroundColor = [UIColor whiteColor];
     self.scrollView.backgroundColor = [UIColor clearColor];
+    self.scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
+    self.scrollView.bounces = NO;
 }
 
 
@@ -503,6 +505,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
 }
 
+
+-(void)setPulseBackLight:(BOOL)pulseBackLight {
+    _pulseBackLight = pulseBackLight;
+}
+
+
 #pragma mark -
 
 -(void)prepareForTracks {
@@ -518,8 +526,20 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 // allows length to be set
 
+-(void)prepareToPlay:(NSUInteger)track atPosition:(CGFloat)position{
+
+    [self prepareToPlay:1];
+    
+    NSLog(@"%s pos %.2f",__func__,position);
+    _listenToScrolling = NO;
+    CGFloat pos = position * _uiPointsPerSecondLength;
+    CGPoint startOffest = CGPointMake( - self.scrollView.contentInset.left + pos,0);
+    [_scrollView setContentOffset:startOffest animated:NO];
+
+}
 -(void)prepareToPlay:(NSUInteger)track {
     _vTrackLength = _vTrackLengths[track];
+
 }
 
 
@@ -2206,10 +2226,14 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.view.backgroundColor = [UIColor colorWithWhite:value alpha:1.0];
 }
 
+/*
+ */
 -(void)pulseBackLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration {
     //    self.view.backgroundColor = [UIColor colorWithWhite:pulseStartValue alpha:1.0];
     
     if (_pulseBlocked == NO) {
+        
+        NSLog(@"PULSE value %.3f dur %.3f",endValue,duration);
         endValue *= _outputValue;  // OUTPUTValue is factored in
 
         self.view.backgroundColor = [UIColor colorWithWhite:endValue alpha:1.0];
