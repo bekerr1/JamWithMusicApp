@@ -1,9 +1,9 @@
 //
 //  MasterViewController.h
-//  JWMixAudioScrubber
+//  JWAudioScrubber
 //
-//  Created by JOSEPH KERR on 1/1/16.
-//  Copyright © 2016 JOSEPH KERR. All rights reserved.
+//  Created by brendan kerr on 12/25/15.
+//  Copyright © 2015 b3k3r. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
