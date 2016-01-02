@@ -198,7 +198,7 @@
 -(void)meteringTimerFired:(NSTimer*)timer {
     
     if (timer.valid) {
-        NSTimeInterval meteringInterval = 0.28;
+        NSTimeInterval meteringInterval = 0.33;
         /*
         The current peak power, in decibels, for the sound being recorded. 
          A return value of 0 dB indicates full scale, or maximum power; a return value of -160 dB indicates minimum power (that is, near silence).
@@ -208,33 +208,58 @@
         
         [self.audioRecorder updateMeters];
         
+        // 0 maximum power -160 near silence
+        
+        float subtractValue = 60;
+        
+        // reduce
+        // maxDB + avgSample   160 + (lowvalue) -158 = 2  , very low
+
+        // maxDB + avgSample   160 + (highvalue) -2 = 158  , very low
+
+        // maxDB + avgSample   160 + (midValue) -80 = 80  , very low
+
         float maxDB = 160.0f;
         float avgSample = 0.0f;
         float avgNormalizedValue = 0.0;// ratio 0 - 1.0
         float peakSample = 0.0f;
         float peakNormalizedValue = 0.0;// ratio 0 - 1.0
+        
         // Channel 1 index 0
         // AVERAGE POWER
         avgSample = [self.audioRecorder averagePowerForChannel:0];
-        avgSample -= 68;
-        if (avgSample > 0 )
+        NSLog(@"avgSample %.5f",avgSample);
+        if (avgSample > 0 ) {
             avgNormalizedValue = 1.00f;
-        else
+        } else {
+            // - 60   is quiet
+            if ((avgSample + maxDB) > subtractValue)
+                avgSample -= subtractValue;
+
             avgNormalizedValue = (maxDB + avgSample) / maxDB;
+        }
         [_meterSamples[0] addObject:@(avgNormalizedValue)];
         // PEAK POWER
         peakSample = [self.audioRecorder peakPowerForChannel:0];
-        peakSample -= 68;
-        if (peakSample > 0 )
+        NSLog(@"peakSample %.5f",peakSample);
+
+        if (peakSample > 0 ){
             peakNormalizedValue = 1.00f;
-        else
+        }else {
+            if ((peakSample + maxDB)  > subtractValue)
+                peakSample -= subtractValue;
+
+
+//            if (peakSample <  -subtractValue)
+//                peakSample += subtractValue;
             peakNormalizedValue = (maxDB + peakSample) / maxDB;
+        }
         [_meterPeakSamples[0] addObject:@(peakNormalizedValue)];
 
         // Channel 2 index 1
         // AVERAGE POWER
         avgSample = [self.audioRecorder averagePowerForChannel:1];
-        avgSample -= 68;
+        avgSample += 0;
         if (avgSample > 0 )
             avgNormalizedValue = 1.00f;
         else
@@ -242,13 +267,13 @@
         [_meterSamples[1] addObject:@(avgNormalizedValue)];
         // PEAK POWER
         peakSample = [self.audioRecorder peakPowerForChannel:1];
-        peakSample -= 68;
+        peakSample += subtractValue;
         if (peakSample > 0 )
             peakNormalizedValue = 1.00f;
         else
             peakNormalizedValue = (maxDB + peakSample) / maxDB;
         [_meterPeakSamples[1] addObject:@(peakNormalizedValue)];
-        
+//        NSLog(@"peak %@",[_meterPeakSamples[1] description]);
         
         NSTimeInterval timedMeter =  [_lastMeterTimeStamp timeIntervalSinceNow];
         
@@ -258,11 +283,14 @@
                                                             andDuration:-timedMeter
                                                              forTrackId:_scrubberTrackIds[@"recorder"] ];
 
+            NSLog(@"peakcount %ld avg %ld",[_meterPeakSamples[0] count],[_meterSamples[0] count]);
+
             // Whole new arrays as the other array objects were passed and being processed
             _meterSamples[0] = [@[] mutableCopy];
-            _meterSamples[1] = [@[] mutableCopy];
             _meterPeakSamples[0] = [@[] mutableCopy];
+            _meterSamples[1] = [@[] mutableCopy];
             _meterPeakSamples[1] = [@[] mutableCopy];
+
             self.lastMeterTimeStamp = [NSDate date];
         }
     }
