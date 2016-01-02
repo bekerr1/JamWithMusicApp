@@ -14,17 +14,18 @@
 @property NSMutableArray *objectCollections;  // collects objects
 @end
 
+
+#define JWSampleFileName @"trimmedMP3"
+#define JWSampleFileNameAndExtension @"trimmedMP3.m4a"
+
 //#define JWSampleFileName @"trimmedMP3-45"
 //#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
 
 //#define JWSampleFileName @"AminorBackingtrackTrimmedMP3-45"
 //#define JWSampleFileNameAndExtension @"AminorBackingtrackTrimmedMP3-45.m4a"
 
-#define JWSampleFileName @"TheKillersTrimmedMP3-30"
-#define JWSampleFileNameAndExtension @"TheKillersTrimmedMP3-30.m4a"
-
-
-
+//#define JWSampleFileName @"TheKillersTrimmedMP3-30"
+//#define JWSampleFileNameAndExtension @"TheKillersTrimmedMP3-30.m4a"
 
 
 @implementation MasterViewController
@@ -299,10 +300,10 @@
     }
 
     
-    cell.textLabel.text = [NSString stringWithFormat:@"%@ %@ start:%00.2f",
-                           fileName,
-                           [object[@"key"] substringToIndex:6],
-                           startTime];
+    cell.textLabel.text = [NSString stringWithFormat:@"%@%@",
+                           [object[@"key"] substringToIndex:5],
+                           [fileName length] > 0 ? [NSString stringWithFormat:@"  %@",fileName ] : fileName
+                           ];
 
     cell.detailTextLabel.text = [NSString stringWithFormat:@"startTime %00.2f hasRef %@",startTime,object[@"referencefile"]?@"YES":@"NO"];
 
