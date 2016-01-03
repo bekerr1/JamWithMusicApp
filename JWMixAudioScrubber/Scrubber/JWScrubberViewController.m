@@ -155,6 +155,24 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 #pragma mark
 
+-(void)selectTrack:(NSUInteger)track {
+    NSUInteger touchTrack = track;
+    if (touchTrack > 0) {
+        [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+        [self modifyTrack:touchTrack colors:@{
+                                              JWColorScrubberTopPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
+                                              JWColorScrubberTopAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
+                                              JWColorScrubberBottomAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
+                                              JWColorScrubberBottomPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
+                                              JWColorScrubberTopPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
+                                              JWColorScrubberBottomPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
+                                              }];
+        
+        _selectedTrack = touchTrack;
+    }
+    
+}
+
 - (void)resetScrubberForRecording {  // public
     _isRecording = YES;
     [self transitionToRecording];
@@ -2735,7 +2753,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (touchTrack > 0) {
         NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
         
-        [self modifyTrack:touchTrack colors:@{
+        if (_selectedTrack == touchTrack) {
+            // DESELECT if SELECTED
+            [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+            [_delegate trackNotSelected];
+            _selectedTrack = 0;
+            
+        } else {
+            [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+            [self modifyTrack:touchTrack colors:@{
                                               JWColorScrubberTopPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
                                               JWColorScrubberTopAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
                                               JWColorScrubberBottomAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
@@ -2743,36 +2769,30 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                                               JWColorScrubberTopPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
                                               JWColorScrubberBottomPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
                                               }];
+        
+            _selectedTrack = touchTrack;
+            [_delegate trackSelected:touchTrack];
+        }
     }
-    
-    
-    
-    
-    
 }
+
 - (IBAction)didRotation:(id)sender {
     
     UIRotationGestureRecognizer *gesture = (UIRotationGestureRecognizer *)sender;
     
     CGFloat adjustedValue = 0.0;
-
     if (gesture.state == UIGestureRecognizerStateBegan) {
         NSLog(@"%s BEGAN",__func__);
-    }
-    
-    if (gesture.state == UIGestureRecognizerStateEnded) {
+    } else if (gesture.state == UIGestureRecognizerStateEnded) {
         NSLog(@"%s ENDED",__func__);
-//        [self adjustWhiteBacklightValue:0.5];
-    }
-    
-    if (gesture.state == UIGestureRecognizerStateChanged) {
+        //        [self adjustWhiteBacklightValue:0.5];
+    } else if (gesture.state == UIGestureRecognizerStateChanged) {
         NSLog(@"%s CHANGED",__func__);
         if (gesture.rotation > 0 && gesture.rotation < 1.0) {
             adjustedValue = gesture.rotation;
         }
         [self adjustWhiteBacklightValue:adjustedValue];
     }
-    
     NSLog(@"%s %.2f scrollView %@  view %@",__func__,gesture.rotation,NSStringFromCGPoint([gesture locationInView:self.scrollView]),
           NSStringFromCGPoint([gesture locationInView:self.view]));
     
@@ -2782,26 +2802,16 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     UIPinchGestureRecognizer *gesture = (UIPinchGestureRecognizer *)sender;
     if (gesture.state == UIGestureRecognizerStateBegan) {
         NSLog(@"%s BEGAN",__func__);
-    }
-    
-    if (gesture.state == UIGestureRecognizerStateEnded) {
+    } else if (gesture.state == UIGestureRecognizerStateEnded) {
         NSLog(@"%s ENDED",__func__);
-    }
-    
-    if (gesture.state == UIGestureRecognizerStateChanged) {
+    } else if (gesture.state == UIGestureRecognizerStateChanged) {
         NSLog(@"%s CHANGED",__func__);
     }
-    
     NSLog(@"%s %.2f scrollView %@  view %@",__func__,gesture.scale,NSStringFromCGPoint([gesture locationInView:self.scrollView]),
           NSStringFromCGPoint([gesture locationInView:self.view]));
-
     
     CATransform3D scaleTrans = CATransform3DMakeScale(gesture.scale,1.0, 1.0);
     self.scrollView.layer.transform = scaleTrans;
-
-    
-
-    
 }
 
 - (IBAction)didLongPress:(id)sender {
@@ -2828,13 +2838,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             [self modifyTrack:touchTrack alpha:0.3];
         }
 
-    }
-    
-    if (longPress.state == UIGestureRecognizerStateEnded) {
+    } else if (longPress.state == UIGestureRecognizerStateEnded) {
         NSLog(@"%s ENDED",__func__);
-    }
-
-    if (longPress.state == UIGestureRecognizerStateChanged) {
+    } else if (longPress.state == UIGestureRecognizerStateChanged) {
         NSLog(@"%s CHANGED",__func__);
     }
 
@@ -2915,78 +2921,13 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //@property (nonatomic) JWScrubberGradientLayer *hueLayer;
 //@property (nonatomic) JWScrubberGradientLayer *scrubberEffectsLayer;
 
-//- (void)rewindToEndOfEditingTrack:(NSUInteger)track {
-//    [self rewindToEndOfEditingTrack:track animated:YES];
-//}
-//- (void)rewindToEndOfEditingTrack:(NSUInteger)track animated:(BOOL)animated {
-//    _trackingEdit = NO;
-////    NSDictionary *trackInfo = [_delegate trackInfoForTrack:track];
-//    // TODO: works for editing only
-//    // secs = pos/_uiPointsPerSecondLength
-//    CGFloat pos = (_editFileReference.trackStartPosition + _editFileReference.duration) * _uiPointsPerSecondLength;
-//    CGPoint startOffset = CGPointMake( - self.scrollView.contentInset.left + pos,0);
-//    NSLog(@"%s pos %.2f for startTime %.2fs dur %.2fs %@",__func__,pos,
-//          _editFileReference.trackStartPosition,
-//          _editFileReference.duration,
-//          NSStringFromCGPoint(startOffset));
-//    if (pos > 0.0) {
-//        // 0 or greater
-//        if (animated) {
-//            _trackingEdit = NO;
-//            _waitForAnimated = YES;
-//            [_scrollView setContentOffset:startOffset animated:animated];
-//        }
-//        else {
-//            [_scrollView setContentOffset:startOffset animated:animated];
-//            _trackingEdit = YES;
-//        }
-//    } else {
-//        _trackingEdit = YES;
-//        [_scrollView setContentOffset:startOffset animated:animated];
-//    }
-
-//    if (pos > 0.0) {
-//        // 0 or greater
-//        if (animated) {
-//            _trackingEdit = NO;
-//            _waitForAnimated = YES;
-//            [_scrollView setContentOffset:startOffset animated:animated];
-//        else {
-//            [_scrollView setContentOffset:startOffset animated:animated];
-//            _trackingEdit = YES;
-//    } else {
-//        _trackingEdit = YES;
-//        [_scrollView setContentOffset:startOffset animated:animated];
 // Compute current pos
 //    CGPoint offset = _scrollView.contentOffset;
 //    CGFloat pos = offset.x + self.scrollView.contentInset.left;
 //    float currentPositionSeconds = pos / _uiPointsPerSecondLength;
 
-//            CGFloat ltl = [self largestTrackEndPosition];
-//            CGRect clipfr = _clipEnd.frame;
-//            clipfr.origin.x = ltl;
-//            _clipEnd.frame = clipfr;
-//            self.scrollView.contentSize =
-//            CGSizeMake([self largestTrackEndPosition] , scrubberViewSize.height - self.topLayoutScrollViewConstraint.constant - bottomLayoutOffset);
-
 //CGFloat ltl = [self largestTrackEndPosition];
-//    if (recording) {
-//        if (_currentPositions[track] > ltl ) {
-//            // TODO: compute exact position
-//            _currentPositions[track] = 0.0f;
 
-//// TODO: get crashes here
-//CGRect clipfr = _clipEnd.frame;
-//clipfr.origin.x = ltl;
-//_clipEnd.frame = clipfr;
-//
-////    NSLog(@"npos %.2f  %@",_currentPositions[track],NSStringFromCGPoint(fr.origin));
-//// Adjust the content size appropriately
-//// adjust when finished to vlenghth. Height-2 is bottom layout
-//
-//self.scrollView.contentSize =
-//CGSizeMake([self largestTrackEndPosition] ,
-//           scrubberViewSize.height - self.topLayoutScrollViewConstraint.constant - bottomLayoutOffset);
 
 //// RECORDING
 //if (_isRecording) {

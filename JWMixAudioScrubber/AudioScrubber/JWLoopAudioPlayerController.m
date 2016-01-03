@@ -12,7 +12,7 @@
 
 -(void) initializePlayerControllerWith:(id)svc and:(id)pvc {
     
-    [super initializePlayerControllerWith:svc and:pvc];
+    [super initializePlayerControllerWithScrubber:svc playerControls:pvc mixEdit:nil];
 }
 
 @end

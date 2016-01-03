@@ -16,23 +16,18 @@
 
 @property (weak) id <JWMixEditDelegate> delegateMixEdit;
 @property (nonatomic) id <JWEffectsHandler> effectsHandler;
+@property (nonatomic) NSUInteger selectedNodeIndex;
 -(void)refresh;
-
-// deprecated
-//@property (nonatomic, readonly) CurrentEffect currentEffect;
-//@property (nonatomic) BOOL newConfig;
-//@property (nonatomic) BOOL effectChosen;
--(void)refreshNewConfig;
 @end
-
-//-(void)expandCellAtSection:(NSUInteger)section andRow:(NSUInteger)row;
 
 
 @protocol JWMixEditDelegate <NSObject>
 @optional
-- (void)doneWithMixEdit:(JWMixEditTableViewController*)mixEdit;
 - (id <JWEffectsModifyingProtocol>) mixNodeControllerForScrubber;
 - (void)recordAtNodeIndex:(NSUInteger)index;
+
+- (void)doneWithMixEdit:(JWMixEditTableViewController*)mixEdit;
+
 @end
 
 

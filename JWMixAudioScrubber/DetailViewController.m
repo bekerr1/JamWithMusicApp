@@ -8,9 +8,12 @@
 
 #import "DetailViewController.h"
 #import "JWAudioPlayerController.h"
-#import "JWMixEditTableViewController.h"
 
-@interface DetailViewController () <JWAudioPlayerControllerDelegate,JWMixEditDelegate>
+
+@interface DetailViewController () <JWAudioPlayerControllerDelegate> {
+    
+    BOOL _playing;
+}
 
 @property (strong, nonatomic) JWAudioPlayerController* playerController;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *playButton;
@@ -26,11 +29,11 @@
 
 @property (strong, nonatomic) IBOutlet UIImageView *logoImageView;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
+@property (strong, nonatomic) id scrubber;
+@property (strong, nonatomic) id playerControls;
+@property (strong, nonatomic) id mixEdit;
 @property (strong, nonatomic) IBOutlet UIView *sctv;
-@property (strong, nonatomic) id scrubberContainerView;
-@property (strong, nonatomic) id playerControlsContainerView;
 @property (strong, nonatomic) IBOutlet UIView *mixeditContainerView;
-@property (strong, nonatomic) JWMixEditTableViewController  *mixEdit;
 @property (nonatomic) NSMutableString *statusString;
 @property (strong, nonatomic) NSArray *trackItems;
 @end
@@ -60,7 +63,6 @@
     
     self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
     
-    
     // SETUP AUDIO ENGINE
     if (_trackItems) {
         // MULTIPLE items
@@ -80,9 +82,6 @@
 //            [self updateStatusForItem:_detailItem];
         }
     }
-
-    [self.mixEdit refresh];
-
     
 }
 
@@ -91,21 +90,17 @@
     
     //TOOL BAR ITEMS FOR AUDIO
     
-    [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:YES];
+    [self toolbar1];
 
-    
 //    _playbackStartDelay = 0.0;
     
     self.playerController = [JWAudioPlayerController new];
-    [self.playerController initializePlayerControllerWith:_scrubberContainerView and:_playerControlsContainerView];
+    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
     self.playerController.delegate = self;
-    
-    self.mixEdit.effectsHandler = self.playerController.effectsHandler;
 
     // Do any additional setup after loading the view, typically from a nib.
     [self configureView];
 
-    
     [[self.navigationController toolbar] setBarTintColor:[UIColor blackColor]];
 
     [self.navigationController setToolbarHidden:NO];
@@ -121,25 +116,24 @@
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
 
     if ([segue.identifier isEqualToString:@"JWScrubberView"]) {
-        self.scrubberContainerView = segue.destinationViewController;
+        self.scrubber = segue.destinationViewController;
     } else if ([segue.identifier isEqualToString:@"JWPlayerControlsView"]) {
-        self.playerControlsContainerView = segue.destinationViewController;
-    } else if ([segue.identifier isEqualToString:@"JWMixEditEmbed"])
-    {
-        self.mixEdit = (JWMixEditTableViewController*)segue.destinationViewController;
-        self.mixEdit.delegateMixEdit = self;
+        self.playerControls = segue.destinationViewController;
+    } else if ([segue.identifier isEqualToString:@"JWMixEditEmbed"]){
+        self.mixEdit = segue.destinationViewController;
     }
 
     
 }
 
-#pragma mark - BUTTON ACTIONS
+#pragma mark - TOOLBAR BUTTON ACTIONS
 
 - (IBAction)buttonPressed:(UIBarButtonItem *)sender {
     
     if (sender == _playButton) {
-        NSLog(@"%s PLAY",__func__);        
-        [self setToolbarItems:@[_rewindButton, _fixedSpace, _pauseButton, _fixedSpace2, _forwardButton] animated:NO];
+        NSLog(@"%s PLAY",__func__);
+        _playing = YES;
+        [self toolbar2WithPlay:_playing];
         [_playerController play];
                 
     } else if (sender == _forwardButton) {
@@ -151,12 +145,21 @@
         [_playerController rewind];
         
     } else if (sender == _pauseButton) {
-        
-        [self setToolbarItems:@[_rewindButton, _fixedSpace, _playButton, _fixedSpace2, _forwardButton] animated:NO];
+        _playing = NO;
+        [self toolbar2WithPlay:_playing];
         [_playerController pause];
         
     }
     
+}
+
+-(void)toolbar1 {
+    [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:YES];
+}
+
+-(void)toolbar2WithPlay:(BOOL)playbutton {
+    
+        [self setToolbarItems:@[_rewindButton, _fixedSpace, !playbutton ? _playButton : _pauseButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
 }
 
 
@@ -221,37 +224,126 @@
     [self saveAction:nil];
 }
 
+
+-(void)noTrackSelected:(JWAudioPlayerController *)controller {
+    
+    _mixeditContainerView.hidden = YES;
+    [self toolbar1];
+}
+
+-(void)trackSelected:(JWAudioPlayerController *)controller {
+    if ([_mixeditContainerView isHidden]) {
+        [self effectsAction:nil];
+    }
+}
+
+#pragma mark -
+
+//When User wants to add an effect node or a recorder node
 - (IBAction)addAction:(id)sender {
     NSLog(@"%s",__func__);
+    
+    NSString *title;
+    NSString *message;
+    
+    UIAlertAction *addEffectAction;
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *addNodeAction = [UIAlertAction actionWithTitle:@"Add Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+        
+    }];
+    
+    if (self.mixeditContainerView.hidden == YES) {
+        title = @"Add Node";
+        message = @"Can Add Up To 3 Nodes";
+    } else {
+        title = @"Add Effect or Node";
+        message = @"Can Add Up To 3 Nodes And 4 Effects Each Node";
+        addEffectAction = [UIAlertAction actionWithTitle:@"Add Effect" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            
+            [self addEffectAction];
+            
+        }];
+    }
+    
+    UIAlertController *addNodeOrEffect = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    self.mixeditContainerView.hidden == NO ? [addNodeOrEffect addAction:addEffectAction] : NO;
+    [addNodeOrEffect addAction:addNodeAction];
+    [addNodeOrEffect addAction:cancel];
+    
+    [self presentViewController:addNodeOrEffect animated:YES completion:nil];
 
 }
+
+-(void)addEffectAction {
+    NSLog(@"%s", __func__);
+    
+    //TODO: specify in message which node they are adding the effect to
+    UIAlertController *addEffect = [UIAlertController alertControllerWithTitle:@"Add An Effect" message:@"Choose From These Effects" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *addReverbAction = [UIAlertAction actionWithTitle:@"Reverb" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    UIAlertAction *addDelayAction = [UIAlertAction actionWithTitle:@"Delay" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    UIAlertAction *addDistortionAction = [UIAlertAction actionWithTitle:@"Distortion" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    UIAlertAction *addEQAction = [UIAlertAction actionWithTitle:@"EQ" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+
+    [addEffect addAction:addReverbAction];
+    [addEffect addAction:addDelayAction];
+    [addEffect addAction:addDistortionAction];
+    [addEffect addAction:addEQAction];
+    [addEffect addAction:cancel];
+
+    [self presentViewController:addEffect animated:YES completion:nil];
+    
+}
+
+
 - (IBAction)effectsAction:(id)sender {
     NSLog(@"%s",__func__);
     self.mixeditContainerView.hidden =! self.mixeditContainerView.hidden;
     
-    
-    
     if (_mixeditContainerView.hidden == NO) {
-        [self setToolbarItems:@[_rewindButton, _fixedSpace, _playButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
+        
+        // EFFECTS ON
+        if (self.playerController.state == JWPlayerStatePlayFromPos) {
+            _playing = YES;
+        } else {
+            _playing = NO;
+        }
+        
+        [self toolbar2WithPlay:_playing];
+        [self.playerController selectValidTrack];
+        
     } else {
-        [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:YES];
+        // EFFECTS OFF
+
+        [self toolbar1];
 
     }
 
-    
 }
 - (IBAction)exportAction:(id)sender {
     NSLog(@"%s",__func__);
 
 }
 
-#pragma mark - MixEdit delegate
-
-- (id <JWEffectsModifyingProtocol>) mixNodeControllerForScrubber
-{
-    return [_playerController scrubberModifier];
+-(void)playTillEnd {
+    
+    _playing = NO;
+    if (_mixeditContainerView.hidden == NO) {
+        [self toolbar2WithPlay:_playing];
+    }
+    
 }
-
 
 @end
 

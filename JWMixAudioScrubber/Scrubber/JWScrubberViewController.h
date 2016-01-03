@@ -38,6 +38,9 @@
 @property (nonatomic) UIColor *headerColor2;
 @property (nonatomic) BOOL pulseBackLight;
 
+- (void)selectTrack:(NSUInteger)track;
+@property (nonatomic) NSUInteger selectedTrack;
+
 
 - (void)prepareForTracks;
 - (void)refresh;
@@ -123,6 +126,9 @@
 -(void)positionInTrackChanged:(int64_t)framePosition;
 -(void)positionInTrackChangedProgress:(CGFloat)progress;
 -(void)positionInTrackChangedPosition:(CGFloat)positionSeconds;
+
+-(void)trackSelected:(NSUInteger)track;
+-(void)trackNotSelected;
 
 -(CGSize)viewSize;
 -(BOOL)isPlaying;

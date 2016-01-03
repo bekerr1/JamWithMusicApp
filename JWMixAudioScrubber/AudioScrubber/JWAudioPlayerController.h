@@ -21,16 +21,17 @@
 @property (nonatomic, readonly) NSUInteger numberOfTracks;
 @property (nonatomic) id <JWAudioPlayerControllerDelegate> delegate;
 
-@property (nonatomic,readonly) id <JWEffectsHandler> effectsHandler;
-@property (nonatomic,readonly) id <JWEffectsModifyingProtocol> scrubberModifier;
-
--(void) initializePlayerControllerWith:(id)svc and:(id)pvc;
-
+-(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me;
+-(void) selectValidTrack;
 @end
 
 @protocol JWAudioPlayerControllerDelegate <NSObject>
 
 -(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller;
 -(void)save:(JWAudioPlayerController *)controller;
+-(void)playTillEnd;
+
+-(void)noTrackSelected:(JWAudioPlayerController *)controller;
+-(void)trackSelected:(JWAudioPlayerController *)controller;
 
 @end

@@ -11,8 +11,9 @@
 #import "JWScrubberController.h"
 #import "JWMTEffectsAudioEngine.h"
 #import "JWPlayerControlsViewController.h"
+#import "JWMixEditTableViewController.h"
 
-@interface JWAudioPlayerController () <JWScrubberControllerDelegate, JWMTAudioEngineDelgegate, JWScrubberInfoDelegate> {
+@interface JWAudioPlayerController () <JWScrubberControllerDelegate, JWMTAudioEngineDelgegate, JWScrubberInfoDelegate, JWMixEditDelegate> {
     
     BOOL _colorizedTracks;
     BOOL _rewound;
@@ -25,6 +26,7 @@
 
 @property (strong, nonatomic) JWScrubberController *sc;
 @property (strong, nonatomic) JWPlayerControlsViewController* pcvc;
+@property (strong, nonatomic) JWMixEditTableViewController *metvc;
 @property (strong, nonatomic) NSDictionary *scrubberTrackColors;
 @property (strong, nonatomic) NSDictionary *scrubberColors;
 @property (nonatomic) NSString *scrubberTrackId;
@@ -42,7 +44,7 @@
 @implementation JWAudioPlayerController
 
 
--(void) initializePlayerControllerWith:(id)svc and:(id)pvc {
+-(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me {
     
     //SCRUBBER COLORS
     iosColor1 = [UIColor colorWithRed:128/255.0 green:128/255.0 blue:0/255.0 alpha:1.0]; // asparagus
@@ -53,6 +55,10 @@
     //INITIALIZE ENGINE
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
     self.audioEngine.engineDelegate = self;
+    
+    self.metvc = me;
+    self.metvc.delegateMixEdit = self;
+    self.metvc.effectsHandler = self.audioEngine;
     
     _listenToPositionChanges = NO;
     
@@ -112,10 +118,9 @@
         [_audioEngine initializeAudio];
         [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
     
-        self.state = JWPlayerStatePlayFromBeg;
-        
         [self configureScrubbers:NO];
         
+        self.state = JWPlayerStatePlayFromBeg;
         [_pcvc setState:_state];
 
     }
@@ -280,6 +285,44 @@
     return playerNode;
     
 }
+
+
+
+
+-(void)selectValidTrack {
+    
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    int selectedIndex = 0;
+    
+    int index = 0;
+    for (NSMutableDictionary *item in playerNodeList) {
+        
+        NSURL *fileURL = [_audioEngine playerNodeFileURLAtIndex:index];
+        
+        JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
+        
+        if (nodeType == JWMixerNodeTypePlayer) {
+            
+            
+        } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
+            
+            if (fileURL) {
+                selectedIndex = index;
+                break;
+            }
+        }
+        
+        index++;
+    }
+    
+    NSString *sid = playerNodeList[selectedIndex][@"trackid"];
+    
+    [_sc selectTrack:sid];
+    [_metvc setSelectedNodeIndex:selectedIndex];
+    [_metvc refresh];
+    
+}
+
 
 
 //DEFAULT COLORS FOR SCRUBBER
@@ -466,7 +509,10 @@
             if (fileURL) {
                 NSLog(@"%s file at index %d\n%@",__func__,index,[fileURL lastPathComponent]);
                 // INSIDE  BLUE / BLUE
-                _scrubberTrackId =
+//                _scrubberTrackId =
+                
+                
+                NSString *sid =
                 [_sc prepareScrubberFileURL:fileURL
                              withSampleSize:ssz
                                     options:so
@@ -476,6 +522,9 @@
                               referenceFile:fileReference
                                   startTime:delay
                                onCompletion:nil];
+                
+                
+                [item setValue:sid forKey:@"trackid"];
                 
             } else {
                 // no file URL for player
@@ -504,6 +553,8 @@
             //If recorder has audio file, dont need to listen to it, should just play its audio
             if (usePlayerScrubber) {
                 // PLAYER - YELLOW / YELLOW
+                
+                NSString *sid =
                 [_sc prepareScrubberFileURL:fileURL
                              withSampleSize:SampleSize14
                                     options:SamplingOptionDualChannel
@@ -513,6 +564,9 @@
                               referenceFile:fileReference
                                   startTime:delay
                                onCompletion:nil];
+                
+                [item setValue:sid forKey:@"trackid"];
+
                 
             } else {
                 //This recorder has no audio and is used to record user audio
@@ -536,6 +590,9 @@
                     
                     [_audioEngine registerController:_sc withTrackId:recorderTrackId forPlayerRecorderAtIndex:index];
                    
+                    
+                    [item setValue:recorderTrackId forKey:@"trackid"];
+
                   //This recorder doesnt have audio and is used to record a mix
                 }
                 
@@ -569,13 +626,8 @@
         
         [_audioEngine registerController:_sc withTrackId:trackidMixerTap forPlayerRecorder:@"mixer"];
     }
-
     
-    
-    
-    
-    //TODO: scrubber needs to know number of tracks, not static
-    
+    [_metvc refresh];
     
 }
 
@@ -867,6 +919,32 @@
     return doUpdate;
 }
 
+-(void)scrubber:(JWScrubberController *)controller selectedTrack:(NSString *)sid {
+    NSLog(@"%s %@", __func__,sid);
+    [_delegate trackSelected:self];
+    
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    NSUInteger index = 0;
+    for (NSMutableDictionary *item in playerNodeList) {
+        
+        NSString *trackId = item[@"trackid"];
+        if ([sid isEqualToString:trackId]) {
+            // This one
+            break;
+        }
+        index++;
+    }
+    
+    [_metvc setSelectedNodeIndex:index];
+    [_metvc refresh];
+
+}
+
+-(void)scrubberTrackNotSelected:(JWScrubberController *)controller {
+    NSLog(@"%s", __func__);
+    [_delegate noTrackSelected:self];
+}
+
 #pragma mark - ENGINE DELEGATE
 
 -(void)completedPlayingAtPlayerIndex:(NSUInteger)index {
@@ -875,13 +953,27 @@
         self.state = JWPlayerStatePlayFromBeg;
     }
     
+    [_delegate playTillEnd];
+    
 
 }
 
 -(void)userAudioObtained {
     
     [self configureScrubbers:NO];
+    [_delegate playTillEnd];
     
+}
+
+#pragma mark - MIXEDIT DELEGATE
+
+- (id <JWEffectsModifyingProtocol>) mixNodeControllerForScrubber {
+    NSLog(@"%s", __func__);
+    
+    return _sc;
+}
+- (void)recordAtNodeIndex:(NSUInteger)index {
+    NSLog(@"%s", __func__);
     
 }
 

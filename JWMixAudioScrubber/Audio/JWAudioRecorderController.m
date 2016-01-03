@@ -134,6 +134,15 @@
     NSLog(@"%s not used, ignored",__func__);
     return 0.0;
 }
+-(float)floatValue3 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+-(float)floatValue4 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+
 -(BOOL)boolValue1 {
     NSLog(@"%s get isPlaying %@",__func__,@(self.recording));
     return self.recording;
@@ -146,6 +155,17 @@
     NSLog(@"%s not used, ignored",__func__);
     return NO;
 }
+-(BOOL)adjustFloatValue3:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+
+-(BOOL)adjustFloatValue4:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+
+
 -(BOOL)adjustBoolValue1:(BOOL)value {
     NSLog(@"%s adjusts toggles recording. %@",__func__,@(value));
     BOOL result = NO;
@@ -175,6 +195,16 @@
     NSLog(@"%s not used, ignored",__func__);
     return NO;
 }
+-(NSArray*)optionPresets {
+    NSLog(@"%s not used, ignored",__func__);
+    return nil;
+    
+}
+-(BOOL)adjustOptionPreset:(NSUInteger)value {
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+
 -(void)adjustFloatValue1WithSlider:(id)sender {
     [self adjustFloatValue1:[(UISlider*)sender value]];
 }
@@ -184,6 +214,16 @@
 -(void)adjustBoolValue1WithSwitch:(id)sender {
     [self adjustBoolValue1:[(UISwitch*)sender isOn]];
 }
+-(void)adjustFloatValue3WithSlider:(id)sender {
+    [self adjustFloatValue3:[(UISlider*)sender value]];
+}
+-(void)adjustFloatValue4WithSlider:(id)sender {
+    [self adjustFloatValue4:[(UISlider*)sender value]];
+}
+-(void)adjustTimeInterval1WithSlider:(id)sender {
+    [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
+}
+
 
 
 #pragma mark - metering
@@ -228,7 +268,7 @@
         // Channel 1 index 0
         // AVERAGE POWER
         avgSample = [self.audioRecorder averagePowerForChannel:0];
-        NSLog(@"avgSample %.5f",avgSample);
+//        NSLog(@"avgSample %.5f",avgSample);
         if (avgSample > 0 ) {
             avgNormalizedValue = 1.00f;
         } else {
@@ -241,7 +281,7 @@
         [_meterSamples[0] addObject:@(avgNormalizedValue)];
         // PEAK POWER
         peakSample = [self.audioRecorder peakPowerForChannel:0];
-        NSLog(@"peakSample %.5f",peakSample);
+//        NSLog(@"peakSample %.5f",peakSample);
 
         if (peakSample > 0 ){
             peakNormalizedValue = 1.00f;
@@ -283,7 +323,7 @@
                                                             andDuration:-timedMeter
                                                              forTrackId:_scrubberTrackIds[@"recorder"] ];
 
-            NSLog(@"peakcount %ld avg %ld",[_meterPeakSamples[0] count],[_meterSamples[0] count]);
+//            NSLog(@"peakcount %ld avg %ld",[_meterPeakSamples[0] count],[_meterSamples[0] count]);
 
             // Whole new arrays as the other array objects were passed and being processed
             _meterSamples[0] = [@[] mutableCopy];

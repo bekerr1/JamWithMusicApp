@@ -105,6 +105,14 @@ const int scMaxTracks = 10;
     NSLog(@"%s not used, ignored",__func__);
     return 0.0;
 }
+-(float)floatValue3 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+-(float)floatValue4 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
 -(BOOL)boolValue1 {
     NSLog(@"%s not used, ignored",__func__);
     return NO;
@@ -116,6 +124,14 @@ const int scMaxTracks = 10;
     return YES;
 }
 -(BOOL)adjustFloatValue2:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(BOOL)adjustFloatValue3:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(BOOL)adjustFloatValue4:(float)value{
     NSLog(@"%s not used, ignored",__func__);
     return NO;
 }
@@ -131,6 +147,14 @@ const int scMaxTracks = 10;
     NSLog(@"%s not used, ignored",__func__);
     return NO;
 }
+-(NSArray*)optionPresets {
+    NSLog(@"%s not used, ignored",__func__);
+    return nil;
+}
+-(BOOL)adjustOptionPreset:(NSUInteger)value {
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
 -(void)adjustFloatValue1WithSlider:(id)sender {
     [self adjustFloatValue1:[(UISlider*)sender value]];
 }
@@ -140,6 +164,17 @@ const int scMaxTracks = 10;
 -(void)adjustBoolValue1WithSwitch:(id)sender {
     [self adjustBoolValue1:[(UISwitch*)sender isOn]];
 }
+-(void)adjustFloatValue3WithSlider:(id)sender {
+    [self adjustFloatValue3:[(UISlider*)sender value]];
+}
+-(void)adjustFloatValue4WithSlider:(id)sender {
+    [self adjustFloatValue4:[(UISlider*)sender value]];
+}
+
+-(void)adjustTimeInterval1WithSlider:(id)sender {
+    [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
+}
+
 
 
 #pragma mark -
@@ -280,13 +315,20 @@ const int scMaxTracks = 10;
     [_scrubber adjustWhiteBacklightValue:value];
 }
 
-#pragma mark -
 
--(CGSize)viewSize
-{
-    NSLog(@"%s %@",__func__,NSStringFromCGSize(_scrubberControllerSize));
-    return _scrubberControllerSize;
+- (void)selectTrack:(NSString*)tid {
+    
+    _selectedTrackId = tid;
+    
+    NSUInteger track = 0;
+    if (tid){
+        track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
+        [_scrubber selectTrack:track];
+    }
+
 }
+
+
 
 #pragma mark -
 
@@ -919,7 +961,47 @@ EDITING PROTOCOL PUBLIC API
  ----------------------------------------------------
  */
 
+
+
+#pragma mark - Scrubber View delegate
+
+-(CGSize)viewSize
+{
+    NSLog(@"%s %@",__func__,NSStringFromCGSize(_scrubberControllerSize));
+    return _scrubberControllerSize;
+}
+
+-(void)trackSelected:(NSUInteger)track
+{
+    NSLog(@"%s %ld",__func__,track);
+    if ([_delegate respondsToSelector:@selector(scrubber:selectedTrack:)]){
+        [_delegate scrubber:self selectedTrack:[self trackIdForTrack:track]];
+    }
+}
+
+-(void)trackNotSelected
+{
+    NSLog(@"%s",__func__);
+    if ([_delegate respondsToSelector:@selector(scrubberTrackNotSelected:)]){
+        [_delegate scrubberTrackNotSelected:self];
+    }
+}
+
 #pragma mark edit delegate
+
+-(NSString*)trackIdForTrack:(NSUInteger)track {
+    NSLog(@"%s %ld",__func__,track);
+    NSString *result;
+    for (id item in [_tracks allKeys]) {
+        id trackNumberValue = _tracks[item][@"tracknum"];
+        NSUInteger tn = [(NSNumber*)trackNumberValue unsignedIntegerValue];
+        if (tn == track){
+            result = item;
+            break;
+        }
+    }
+    return result;
+}
 
 -(NSDictionary*)trackInfoForTrack:(NSUInteger)track {
     NSLog(@"%s %ld",__func__,track);
@@ -1033,6 +1115,9 @@ EDITING PROTOCOL PUBLIC API
  END EDITING PROTOCOL
  ----------------------------------------------------
  */
+
+
+
 
 
 #pragma mark - modify
