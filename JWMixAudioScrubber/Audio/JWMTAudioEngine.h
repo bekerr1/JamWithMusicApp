@@ -108,6 +108,7 @@
 // Scrubber stuff
 @property (nonatomic) AVAudioFramePosition micPlayerFramePostion;
 @property (nonatomic,assign) CGFloat progressSeekingAudioFile;
+@property (nonatomic) CGFloat currentPositionInAudio;
 // end scrubber stuff
 // older model
 @property (nonatomic) JWPlayerNode* playerNode1;

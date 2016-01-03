@@ -364,8 +364,6 @@
     }];
     
     
-    
-    NSLog(@"%s %ld activeNodes",__func__,(unsigned long)[nodes count]);
     return [NSArray arrayWithArray:nodes];
 }
 
@@ -1411,6 +1409,11 @@
 }
 
 // play all with fade in from primary
+//TODO: get this to work
+//In order to play all and record with a fade, i need to get the current position the
+//audio is at and i need to check if any crops have been done.  This is so if they are recording
+//from the middle of audio it can start there, or if they are recording from the beggining
+//of a clipped track, i can use seconds before the clips to fade in.
 
 -(void)playAllRecordingFromBeginnigAtIndex:(NSUInteger)prIndex fadeIn:(BOOL)fade{
     
@@ -1488,24 +1491,29 @@
                 
                 self.mixerVolume = 0.0;
                 
-                // Schedule fade in buffer playing buffer immediatelyfollowing
-                [playerNode scheduleBuffer:_fiveSecondBuffer atTime:nil options:0 completionHandler:^() {
-                    // Turn ON microphone
-                    [rc record];
+                //only schedule if framelength of five second buffer is > 0.0
+                if (_fiveSecondBuffer.frameLength > 0.0) {
+                    
+                    // Schedule fade in buffer playing buffer immediatelyfollowing
+                    [playerNode scheduleBuffer:_fiveSecondBuffer atTime:nil options:0 completionHandler:^() {
+                        // Turn ON microphone
+                        [rc record];
+                        
+                        NSLog(@"Five Second Audio Completed");
+                        // Notify delegate
+                        dispatch_sync(dispatch_get_main_queue(), ^() {
+                            if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
+                                [_engineDelegate fiveSecondBufferCompletion];
+                        });
+                    }];
 
-                    NSLog(@"Five Second Audio Completed");
-                    // Notify delegate
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
-                            [_engineDelegate fiveSecondBufferCompletion];
-                    });
-                }];
+                }
                 
                 // Schedule full playing buffer
                 
                 [playerNode scheduleBuffer:audioBuffer atTime:nil options:0 completionHandler:^() {
 
-                    NSLog(@"Audio Completed for playerAtIndex %ld",index);
+                    NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
                     // Turn OFF microphone
                     [rc stopRecording];
                     
@@ -1718,12 +1726,13 @@
                     });
                     
 
-                }
+                } else {
                 // Notify delegate
                 dispatch_sync(dispatch_get_main_queue(), ^() {
                     if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
                         [_engineDelegate completedPlayingAtPlayerIndex:index];
                 });
+                }
             }];
         }
         

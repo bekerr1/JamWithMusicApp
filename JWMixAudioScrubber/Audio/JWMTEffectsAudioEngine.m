@@ -404,7 +404,9 @@
 -(AVAudioUnitEffect *)eqEffectWith:(NSDictionary *)params {
     NSLog(@"%s Effect Created. %@", __func__, [params description]);
     AVAudioUnitEffect *effect;
+    AVAudioUnitEQ *eq = [[AVAudioUnitEQ alloc] initWithNumberOfBands:2];
     
+
     
     
     return effect;

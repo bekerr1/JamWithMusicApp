@@ -56,14 +56,19 @@
         [self setButtonsToR1];
     } else if (_state == JWPlayerStateRecFromPos) {
         [self setButtonsToR2];
-    } else if (_state == JWPlayerStateSetToBeg || _state == JWPlayerStateSetToPos) {
+    } else if (_state == JWPlayerStateSetToBeg
+               || _state == JWPlayerStateSetToPos
+               || _state == JWPlayerStatePlayFromBeg) {
         [self setButtonsToRoot];
     } else {
         
     }
     
     _rewindButton.alpha = _rewindButton.enabled ? 1.0 : 0.25;
-    _recordButton.alpha = _recordButton.enabled ? 1.0 : 0.25;
+    if (_recordButton.drawingStyle == recordEnabledButtonStyle) {
+        _recordButton.alpha = _recordButton.enabled ? 1.0 : 0.25;
+    }
+    
     //[self.view setNeedsLayout];
 }
 
@@ -87,6 +92,7 @@
     
     _playButton.drawingStyle = pauseButtonStyle;
     _rewindButton.enabled = NO;
+    _recordButton.enabled = NO;
     _recordButton.drawingStyle = recordEnabledButtonStyle;
 }
 

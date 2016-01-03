@@ -57,6 +57,8 @@
 		5525FF3E1C3764870081FB23 /* clipRecording_aminor1.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5525FF3B1C3764870081FB23 /* clipRecording_aminor1.caf */; };
 		5525FF3F1C3764870081FB23 /* clipRecording_killers1.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5525FF3C1C3764870081FB23 /* clipRecording_killers1.caf */; };
 		5525FF401C3764870081FB23 /* clipRecording_killers2.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5525FF3D1C3764870081FB23 /* clipRecording_killers2.caf */; };
+		55CD12231C38DA74001662CF /* jwfullamps - 3.png in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12221C38DA74001662CF /* jwfullamps - 3.png */; };
+		55CD12271C38DB39001662CF /* jwjustscreensandlogos - 2.png in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12261C38DB39001662CF /* jwjustscreensandlogos - 2.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -175,6 +177,8 @@
 		5525FF3B1C3764870081FB23 /* clipRecording_aminor1.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = clipRecording_aminor1.caf; sourceTree = "<group>"; };
 		5525FF3C1C3764870081FB23 /* clipRecording_killers1.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = clipRecording_killers1.caf; sourceTree = "<group>"; };
 		5525FF3D1C3764870081FB23 /* clipRecording_killers2.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = clipRecording_killers2.caf; sourceTree = "<group>"; };
+		55CD12221C38DA74001662CF /* jwfullamps - 3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jwfullamps - 3.png"; sourceTree = "<group>"; };
+		55CD12261C38DB39001662CF /* jwjustscreensandlogos - 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jwjustscreensandlogos - 2.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -225,6 +229,8 @@
 		5525FE891C3727430081FB23 /* JWMixAudioScrubber */ = {
 			isa = PBXGroup;
 			children = (
+				55CD12221C38DA74001662CF /* jwfullamps - 3.png */,
+				55CD12261C38DB39001662CF /* jwjustscreensandlogos - 2.png */,
 				5525FF691C37DD370081FB23 /* audiofiles */,
 				5525FEC71C3728D00081FB23 /* Common */,
 				5525FEC61C3728B00081FB23 /* AudioScrubber */,
@@ -503,7 +509,9 @@
 				5525FF3A1C3746280081FB23 /* TheKillersTrimmedMP3-30.m4a in Resources */,
 				5525FF3F1C3764870081FB23 /* clipRecording_killers1.caf in Resources */,
 				5525FF351C372AC00081FB23 /* trimmedMP3-45.m4a in Resources */,
+				55CD12231C38DA74001662CF /* jwfullamps - 3.png in Resources */,
 				5525FF3E1C3764870081FB23 /* clipRecording_aminor1.caf in Resources */,
+				55CD12271C38DB39001662CF /* jwjustscreensandlogos - 2.png in Resources */,
 				5525FE9A1C3727430081FB23 /* Assets.xcassets in Resources */,
 				5525FE981C3727430081FB23 /* Main.storyboard in Resources */,
 				5525FF361C372AC00081FB23 /* trimmedMP3.m4a in Resources */,

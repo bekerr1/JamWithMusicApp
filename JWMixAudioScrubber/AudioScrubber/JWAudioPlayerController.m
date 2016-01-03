@@ -50,14 +50,11 @@
     iosColor3 = [UIColor colorWithRed:0/255.0 green:128/255.0 blue:255/255.0 alpha:1.0]; // aqua
     iosColor4 = [UIColor colorWithRed:102/255.0 green:204/255.0 blue:255/255.0 alpha:1.0]; // sky
     
-    _state = JWPlayerStateSetToBeg;
-    
     //INITIALIZE ENGINE
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
     self.audioEngine.engineDelegate = self;
     
     _listenToPositionChanges = NO;
-    _rewound = YES;
     
     self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc];
     self.sc.delegate = self;
@@ -111,14 +108,11 @@
             
         }
         
-        //TODO: not sure this is right
-        //_trackItems = nodeList;
         _audioEngine.playerNodeList = nodeList;
         [_audioEngine initializeAudio];
-        [_audioEngine playerForNodeAtIndex:0].volume = 0.10;
-        //TODO: added this so the active players can be determined and record
-        //can be pressed right away
-        [_audioEngine scheduleAllStartSeconds:0.0];
+        [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
+    
+        self.state = JWPlayerStatePlayFromBeg;
         
         [self configureScrubbers:NO];
         
@@ -158,12 +152,6 @@
     
 }
 
--(void)setState:(PlayerControllerState)state {
-    
-    _state = state;
-    //TODO: added this
-    [_pcvc setState:_state withRecording:[self canRecordAudio]];
-}
 
 - (NSMutableDictionary*) newEnginePlayerNodeForItem:(NSDictionary*)item {
     
@@ -311,67 +299,92 @@
 -(void)play {
     NSLog(@"%s", __func__);
     
-    if (_state == JWPlayerStateSetToBeg) {
-        [_audioEngine scheduleAllStartSeconds:0.0];
-        
-    } else if (_state == JWPlayerStateSetToPos) {
-
-        
-    }
-
-    if ([_audioEngine playAllActivePlayerNodes]) {
-        [_sc play:nil];
-    }
-    
     self.state = JWPlayerStatePlayFromPos;
-    
-
 }
 
 -(void)rewind {
     NSLog(@"%s", __func__);
-    _rewound = YES;
-    
-    [_sc stopPlaying:nil rewind:YES];
-    [_audioEngine stopAllActivePlayerNodes];
     
     self.state = JWPlayerStateSetToBeg;
+    
 }
 
 -(void)pause {
     NSLog(@"%s", __func__);
     
     if (_state != JWPlayerStateRecFromPos) {
+        self.state = JWPlayerStateSetToPos;
         
-        [_audioEngine pauseAllActivePlayerNodes];
-        [_sc stopPlaying:nil];
     } else {
         //Ask the user if they want to keep the audio or re-record
         
+        self.state = JWPlayerStateSetToBeg;
         
     }
     
-    self.state = JWPlayerStateSetToPos;
-
 }
 
 -(void)record {
     NSLog(@"%s", __func__);
     
-    //[_audioEngine playAllAndRecordIt];
-    //prepareToRecord calls prepareToRecordFromBeginningAtPlayerRecorderNodeIndex then
-    //calls playAllRecordingFromBeginnigAtIndex'
-    
-    [_audioEngine prepareToRecord];
-    [_sc play:nil];
-    
     self.state = JWPlayerStateRecFromPos;
     
 }
+
 //TODO: added this
 -(BOOL) canRecordAudio {
     
     return [[_audioEngine activeRecorderNodes] count] > 0 ? YES : NO;
+}
+
+
+-(void)setState:(PlayerControllerState)state {
+    
+    _state = state;
+    //TODO: added this
+    
+    switch (state) {
+        case JWPlayerStatePlayFromBeg:
+            
+            _listenToPositionChanges = NO;
+            [_sc stopPlaying:nil rewind:YES];
+            [_audioEngine stopAllActivePlayerNodes];
+            [_audioEngine scheduleAllStartSeconds:0.0];
+            
+            break;
+            
+        case JWPlayerStatePlayFromPos:
+            
+            if ([_audioEngine playAllActivePlayerNodes]) {
+                [_sc play:nil];
+            }
+            break;
+            
+        case JWPlayerStateSetToBeg:
+            
+            _listenToPositionChanges = NO;
+            [_sc stopPlaying:nil rewind:YES];
+            [_audioEngine stopAllActivePlayerNodes];
+            
+            break;
+            
+        case JWPlayerStateSetToPos:
+            
+            [_audioEngine pauseAllActivePlayerNodes];
+            [_sc stopPlaying:nil];
+            
+            break;
+            
+        case JWPlayerStateRecFromPos:
+            
+            [_audioEngine prepareToRecord];
+            [_sc play:nil];
+
+        default:
+            break;
+    }
+    
+    [_pcvc setState:_state withRecording:[self canRecordAudio]];
 }
 
 
@@ -798,10 +811,11 @@
     NSLog(@"%s %.4f",__func__,position);
     if (_listenToPositionChanges) {
         
-        
-        self.currentPositionChange = position;
-        _state = JWPlayerStateSetToPos;
-        [_pcvc setState:_state];
+        //TODO: THIS IS not WRONG
+//        self.currentPositionChange = position;
+//        _state = JWPlayerStateSetToPos;
+//        [_pcvc setState:_state];
+        [_audioEngine setCurrentPositionInAudio:position];
         
         if ([self positionUpdateTask] == NO) {
             // DID not update will delay and try again
@@ -836,12 +850,12 @@
         NSLog(@"%s postion %.4f secs",__func__,_currentPositionChange);
 #endif
         
-        if (_state != JWPlayerStateSetToBeg) {
-            [_audioEngine scheduleAllStartSeconds:_currentPositionChange];
-            [_audioEngine playAllActivePlayerNodes];
-            _state = JWPlayerStateSetToPos;
-            
-        }
+//        if (_state != JWPlayerStateSetToBeg) {
+//            [_audioEngine scheduleAllStartSeconds:_currentPositionChange];
+//            [_audioEngine playAllActivePlayerNodes];
+//            _state = JWPlayerStateSetToPos;
+//            
+//        }
         
         
         
@@ -858,17 +872,17 @@
 -(void)completedPlayingAtPlayerIndex:(NSUInteger)index {
     
     if (index == 0) {
-        [_audioEngine stopAllActivePlayerNodes];
-        [_sc stopPlaying:nil];
-        _state = JWPlayerStateSetToBeg;
-        [_pcvc setState:_state];
+        self.state = JWPlayerStatePlayFromBeg;
     }
+    
+
 }
 
 -(void)userAudioObtained {
     
     [self configureScrubbers:NO];
-    self.state = JWPlayerStateSetToBeg;
+    
+    
 }
 
 

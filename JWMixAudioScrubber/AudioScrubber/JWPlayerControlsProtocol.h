@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM(NSInteger, PlayerControllerState) {
-    JWPlayerStateRoot = 1,
+    JWPlayerStatePlayFromBeg = 1,
     JWPlayerStatePlayFromPos,
     JWPlayerStateSetToPos,
     JWPlayerStateSetToBeg,

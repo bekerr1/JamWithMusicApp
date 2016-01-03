@@ -19,10 +19,17 @@
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *rewindButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *fixedSpace;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *fixedSpace2;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *flexSpace1;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *flexSpace2;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *exportButton;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *effectsButton;
+
+@property (strong, nonatomic) IBOutlet UIImageView *logoImageView;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
 @property (strong, nonatomic) IBOutlet UIView *sctv;
 @property (strong, nonatomic) id scrubberContainerView;
 @property (strong, nonatomic) id playerControlsContainerView;
+@property (strong, nonatomic) IBOutlet UIView *mixeditContainerView;
 @property (strong, nonatomic) JWMixEditTableViewController  *mixEdit;
 @property (nonatomic) NSMutableString *statusString;
 @property (strong, nonatomic) NSArray *trackItems;
@@ -83,7 +90,9 @@
     [super viewDidLoad];
     
     //TOOL BAR ITEMS FOR AUDIO
-    [self setToolbarItems:@[_rewindButton, _fixedSpace, _playButton, _fixedSpace2, _forwardButton] animated:YES];
+    
+    [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:YES];
+
     
 //    _playbackStartDelay = 0.0;
     
@@ -95,9 +104,12 @@
 
     // Do any additional setup after loading the view, typically from a nib.
     [self configureView];
+
     
-//    [self.navigationController setToolbarHidden:NO];
-    
+    [[self.navigationController toolbar] setBarTintColor:[UIColor blackColor]];
+
+    [self.navigationController setToolbarHidden:NO];
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -207,6 +219,30 @@
 -(void)save:(JWAudioPlayerController *)controller {
     
     [self saveAction:nil];
+}
+
+- (IBAction)addAction:(id)sender {
+    NSLog(@"%s",__func__);
+
+}
+- (IBAction)effectsAction:(id)sender {
+    NSLog(@"%s",__func__);
+    self.mixeditContainerView.hidden =! self.mixeditContainerView.hidden;
+    
+    
+    
+    if (_mixeditContainerView.hidden == NO) {
+        [self setToolbarItems:@[_rewindButton, _fixedSpace, _playButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
+    } else {
+        [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:YES];
+
+    }
+
+    
+}
+- (IBAction)exportAction:(id)sender {
+    NSLog(@"%s",__func__);
+
 }
 
 #pragma mark - MixEdit delegate
