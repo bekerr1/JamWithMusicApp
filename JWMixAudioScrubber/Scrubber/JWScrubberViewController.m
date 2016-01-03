@@ -153,25 +153,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [_scrollView setContentOffset:offset animated:NO];
 }
 
-#pragma mark
+#pragma mark -
 
--(void)selectTrack:(NSUInteger)track {
-    NSUInteger touchTrack = track;
-    if (touchTrack > 0) {
-        [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
-        [self modifyTrack:touchTrack colors:@{
-                                              JWColorScrubberTopPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
-                                              JWColorScrubberTopAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
-                                              JWColorScrubberBottomAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
-                                              JWColorScrubberBottomPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
-                                              JWColorScrubberTopPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
-                                              JWColorScrubberBottomPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
-                                              }];
-        
-        _selectedTrack = touchTrack;
-    }
-    
-}
 
 - (void)resetScrubberForRecording {  // public
     _isRecording = YES;
@@ -2545,8 +2528,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (_editLayerLeft == nil) {
         _editLayerLeft = [UIView new];
 //        _editLayerLeft.backgroundColor = [UIColor blueColor];
-        _editLayerLeft.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.40];
-//        _editLayerLeft.backgroundColor = [UIColor darkGrayColor];
+//        _editLayerLeft.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.40];
+
+        _editLayerLeft.backgroundColor = [UIColor darkGrayColor];
         _editLayerLeft.clipsToBounds = YES;
         _editLayerLeft.userInteractionEnabled = NO;
         [self.view addSubview:_editLayerLeft];
@@ -2654,6 +2638,204 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 
+-(void)deSelectTrack {
+    if (_selectedTrack > 0 ) {
+        // DESELECT if SELECTED
+        [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+        _selectedTrack = 0;
+    }
+}
+
+-(void)selectTrack:(NSUInteger)track {
+    
+    if (_editType == ScrubberEditNone) {
+        NSUInteger touchTrack = track;
+        if (touchTrack > 0) {
+            [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+            [self modifyTrack:touchTrack colors:
+             @{
+               JWColorScrubberTopPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
+               JWColorScrubberTopAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
+               JWColorScrubberBottomAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
+               JWColorScrubberBottomPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
+               JWColorScrubberTopPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
+               JWColorScrubberBottomPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
+               }];
+            
+            _selectedTrack = touchTrack;
+        }
+    } else {
+        // EDITING
+    }
+    
+}
+
+
+- (IBAction)didTap:(id)sender {
+    NSLog(@"%s",__func__);
+    UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
+    
+    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
+          NSStringFromCGPoint([tap locationInView:self.view]));
+    
+    //    self.topLayoutScrollViewConstraint.constant = 38; // just below numbers
+    //    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
+    
+    CGPoint touchPoint = [tap locationInView:self.scrollView];
+    
+    if (_editType == ScrubberEditNone) {
+        
+        CGSize size = [_delegate viewSize];
+        
+        NSUInteger touchTrack = 0;
+        for (int i = 0; i < _numberOfTracks; i++){
+            CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
+            if (CGRectContainsPoint(trackFrame, touchPoint)){
+                touchTrack = i+1;
+                break;
+            }
+        }
+        
+        if (touchTrack > 0) {
+            NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
+            
+            if (_selectedTrack == touchTrack) {
+                // DESELECT if SELECTED
+                [self deSelectTrack];
+                [_delegate trackNotSelected];
+                
+            } else {
+                // SELECT TRACK
+                [self selectTrack:touchTrack];
+                [_delegate trackSelected:_selectedTrack];
+            }
+        }
+    } else {
+        // EDITING
+    }
+}
+
+- (IBAction)didLongPress:(id)sender {
+    NSLog(@"%s",__func__);
+    
+    if (_editType == ScrubberEditNone) {
+        UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
+        
+        if (longPress.state == UIGestureRecognizerStateBegan) {
+            NSLog(@"%s BEGAN",__func__);
+            CGPoint touchPoint = [longPress     locationInView:self.scrollView];
+            
+            CGSize size = [_delegate viewSize];
+            
+            NSUInteger touchTrack = 0;
+            for (int i = 0; i < _numberOfTracks; i++){
+                CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
+                if (CGRectContainsPoint(trackFrame, touchPoint)){
+                    touchTrack = i+1;
+                    break;
+                }
+            }
+            
+            if (touchTrack > 0) {
+                NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
+                //[self modifyTrack:touchTrack alpha:0.3];
+                if (_selectedTrack == touchTrack) {
+                    // DESELECT if SELECTED
+                    [self deSelectTrack];
+                    [_delegate trackNotSelected];
+                    
+                } else {
+                    // SELECT TRACK
+                    [self selectTrack:touchTrack];
+                    [_delegate trackSelected:_selectedTrack];
+                }
+                
+                [_delegate longPressOnTrack:touchTrack];
+                
+                
+            }
+            
+        } else if (longPress.state == UIGestureRecognizerStateEnded) {
+            NSLog(@"%s ENDED",__func__);
+        } else if (longPress.state == UIGestureRecognizerStateChanged) {
+            NSLog(@"%s CHANGED",__func__);
+        }
+        
+        NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([longPress locationInView:self.scrollView]),
+              NSStringFromCGPoint([longPress locationInView:self.view]));
+        
+    } else {
+        // EDITING
+    }
+    
+}
+
+- (IBAction)didDoubleTap:(id)sender {
+    
+    NSLog(@"%s",__func__);
+    UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
+    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
+          NSStringFromCGPoint([tap locationInView:self.view]));
+    
+    //    self.topLayoutScrollViewConstraint.constant = 38; // just below numbers
+    //    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
+    
+    CGPoint touchPoint = [tap locationInView:self.scrollView];
+    CGSize size = [_delegate viewSize];
+    NSUInteger touchTrack = 0;
+    for (int i = 0; i < _numberOfTracks; i++){
+        CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
+        if (CGRectContainsPoint(trackFrame, touchPoint)){
+            touchTrack = i+1;
+            break;
+        }
+    }
+    
+    if (touchTrack > 0) {
+        NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
+//        [self modifyTrack:touchTrack alpha:0.3];
+    }
+
+}
+
+- (IBAction)didRotation:(id)sender {
+    
+    UIRotationGestureRecognizer *gesture = (UIRotationGestureRecognizer *)sender;
+    
+    CGFloat adjustedValue = 0.0;
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        NSLog(@"%s BEGAN",__func__);
+    } else if (gesture.state == UIGestureRecognizerStateEnded) {
+        NSLog(@"%s ENDED",__func__);
+        //        [self adjustWhiteBacklightValue:0.5];
+    } else if (gesture.state == UIGestureRecognizerStateChanged) {
+        NSLog(@"%s CHANGED",__func__);
+        if (gesture.rotation > 0 && gesture.rotation < 1.0) {
+            adjustedValue = gesture.rotation;
+        }
+        [self adjustWhiteBacklightValue:adjustedValue];
+    }
+    NSLog(@"%s %.2f scrollView %@  view %@",__func__,gesture.rotation,NSStringFromCGPoint([gesture locationInView:self.scrollView]),
+          NSStringFromCGPoint([gesture locationInView:self.view]));
+    
+}
+- (IBAction)didPinch:(id)sender {
+    
+    UIPinchGestureRecognizer *gesture = (UIPinchGestureRecognizer *)sender;
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        NSLog(@"%s BEGAN",__func__);
+    } else if (gesture.state == UIGestureRecognizerStateEnded) {
+        NSLog(@"%s ENDED",__func__);
+    } else if (gesture.state == UIGestureRecognizerStateChanged) {
+        NSLog(@"%s CHANGED",__func__);
+    }
+    NSLog(@"%s %.2f scrollView %@  view %@",__func__,gesture.scale,NSStringFromCGPoint([gesture locationInView:self.scrollView]),
+          NSStringFromCGPoint([gesture locationInView:self.view]));
+    
+    CATransform3D scaleTrans = CATransform3DMakeScale(gesture.scale,1.0, 1.0);
+    self.scrollView.layer.transform = scaleTrans;
+}
+
 #pragma mark -
 
 -(void)scaleBuffers {
@@ -2699,155 +2881,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [self.scrollView setNeedsLayout];
     _isScaled = YES;
 }
-- (IBAction)didDoubleTap:(id)sender {
-    
-    NSLog(@"%s",__func__);
-    UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
-    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
-          NSStringFromCGPoint([tap locationInView:self.view]));
-    
-    //    self.topLayoutScrollViewConstraint.constant = 38; // just below numbers
-    //    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
-    
-    CGPoint touchPoint = [tap locationInView:self.scrollView];
-    CGSize size = [_delegate viewSize];
-    NSUInteger touchTrack = 0;
-    for (int i = 0; i < _numberOfTracks; i++){
-        CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
-        if (CGRectContainsPoint(trackFrame, touchPoint)){
-            touchTrack = i+1;
-            break;
-        }
-    }
-    
-    if (touchTrack > 0) {
-        NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
-//        [self modifyTrack:touchTrack alpha:0.3];
-    }
 
-}
 
-- (IBAction)didTap:(id)sender {
-    NSLog(@"%s",__func__);
-    UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
-    
-    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
-          NSStringFromCGPoint([tap locationInView:self.view]));
-
-//    self.topLayoutScrollViewConstraint.constant = 38; // just below numbers
-//    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
-
-    CGPoint touchPoint = [tap locationInView:self.scrollView];
-    
-    CGSize size = [_delegate viewSize];
-
-    NSUInteger touchTrack = 0;
-    for (int i = 0; i < _numberOfTracks; i++){
-        CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
-        if (CGRectContainsPoint(trackFrame, touchPoint)){
-            touchTrack = i+1;
-            break;
-        }
-    }
-
-    if (touchTrack > 0) {
-        NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
-        
-        if (_selectedTrack == touchTrack) {
-            // DESELECT if SELECTED
-            [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
-            [_delegate trackNotSelected];
-            _selectedTrack = 0;
-            
-        } else {
-            [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
-            [self modifyTrack:touchTrack colors:@{
-                                              JWColorScrubberTopPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
-                                              JWColorScrubberTopAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
-                                              JWColorScrubberBottomAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.4],
-                                              JWColorScrubberBottomPeak : [[UIColor orangeColor] colorWithAlphaComponent:0.6],
-                                              JWColorScrubberTopPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
-                                              JWColorScrubberBottomPeakNoAvg : [[UIColor orangeColor] colorWithAlphaComponent:0.8],
-                                              }];
-        
-            _selectedTrack = touchTrack;
-            [_delegate trackSelected:touchTrack];
-        }
-    }
-}
-
-- (IBAction)didRotation:(id)sender {
-    
-    UIRotationGestureRecognizer *gesture = (UIRotationGestureRecognizer *)sender;
-    
-    CGFloat adjustedValue = 0.0;
-    if (gesture.state == UIGestureRecognizerStateBegan) {
-        NSLog(@"%s BEGAN",__func__);
-    } else if (gesture.state == UIGestureRecognizerStateEnded) {
-        NSLog(@"%s ENDED",__func__);
-        //        [self adjustWhiteBacklightValue:0.5];
-    } else if (gesture.state == UIGestureRecognizerStateChanged) {
-        NSLog(@"%s CHANGED",__func__);
-        if (gesture.rotation > 0 && gesture.rotation < 1.0) {
-            adjustedValue = gesture.rotation;
-        }
-        [self adjustWhiteBacklightValue:adjustedValue];
-    }
-    NSLog(@"%s %.2f scrollView %@  view %@",__func__,gesture.rotation,NSStringFromCGPoint([gesture locationInView:self.scrollView]),
-          NSStringFromCGPoint([gesture locationInView:self.view]));
-    
-}
-- (IBAction)didPinch:(id)sender {
-    
-    UIPinchGestureRecognizer *gesture = (UIPinchGestureRecognizer *)sender;
-    if (gesture.state == UIGestureRecognizerStateBegan) {
-        NSLog(@"%s BEGAN",__func__);
-    } else if (gesture.state == UIGestureRecognizerStateEnded) {
-        NSLog(@"%s ENDED",__func__);
-    } else if (gesture.state == UIGestureRecognizerStateChanged) {
-        NSLog(@"%s CHANGED",__func__);
-    }
-    NSLog(@"%s %.2f scrollView %@  view %@",__func__,gesture.scale,NSStringFromCGPoint([gesture locationInView:self.scrollView]),
-          NSStringFromCGPoint([gesture locationInView:self.view]));
-    
-    CATransform3D scaleTrans = CATransform3DMakeScale(gesture.scale,1.0, 1.0);
-    self.scrollView.layer.transform = scaleTrans;
-}
-
-- (IBAction)didLongPress:(id)sender {
-    NSLog(@"%s",__func__);
-    UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
-    
-    if (longPress.state == UIGestureRecognizerStateBegan) {
-        NSLog(@"%s BEGAN",__func__);
-        CGPoint touchPoint = [longPress     locationInView:self.scrollView];
-        
-        CGSize size = [_delegate viewSize];
-        
-        NSUInteger touchTrack = 0;
-        for (int i = 0; i < _numberOfTracks; i++){
-            CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
-            if (CGRectContainsPoint(trackFrame, touchPoint)){
-                touchTrack = i+1;
-                break;
-            }
-        }
-        
-        if (touchTrack > 0) {
-            NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
-            [self modifyTrack:touchTrack alpha:0.3];
-        }
-
-    } else if (longPress.state == UIGestureRecognizerStateEnded) {
-        NSLog(@"%s ENDED",__func__);
-    } else if (longPress.state == UIGestureRecognizerStateChanged) {
-        NSLog(@"%s CHANGED",__func__);
-    }
-
-    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([longPress locationInView:self.scrollView]),
-          NSStringFromCGPoint([longPress locationInView:self.view]));
-    
-}
 @end
 
 

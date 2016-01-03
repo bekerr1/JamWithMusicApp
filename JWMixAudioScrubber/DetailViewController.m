@@ -237,6 +237,142 @@
     }
 }
 
+-(void)playTillEnd {
+    
+    _playing = NO;
+    if (_mixeditContainerView.hidden == NO) {
+        [self toolbar2WithPlay:_playing];
+    }
+    
+}
+
+-(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index {
+    
+    [self clipActions];
+    
+}
+
+
+
+-(void)editingButtons{
+    
+    if (self.editing) {
+        [self.effectsButton setTitle:@"Clip"];
+//        [self.exportButton setTitle:@"Cancel"];
+    } else {
+        [self.effectsButton setTitle:@"Effects"];
+//        [self.exportButton setTitle:@"Export"];
+    }
+}
+
+
+
+#pragma mark -
+
+#pragma mark clip actions
+
+-(void)clipActions {
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:@"Clip" message:@"Select Action" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* clipLeftTrack =
+    [UIAlertAction actionWithTitle:@"Clip Left" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        if ([_playerController editSelectedTrackBeginInset]){
+            // SELECTED and EDITING
+            self.editing = YES;
+            
+            [self editingButtons];
+        }
+    }];
+    UIAlertAction* clipRightTrack =
+    [UIAlertAction actionWithTitle:@"Clip Right" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        if ([_playerController editSelectedTrackEndInset]){
+            // SELECTED and EDITING
+            self.editing = YES;
+            [self editingButtons];
+
+        }
+    }];
+    UIAlertAction* startPosition =
+    [UIAlertAction actionWithTitle:@"Set Start Position" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        if ([_playerController editSelectedTrackStartPosition]){
+            // SELECTED and EDITING
+            self.editing = YES;
+            [self editingButtons];
+
+        }
+    }];
+    UIAlertAction* cancelAction =
+    [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action) {
+    }];
+    [actionController addAction:clipLeftTrack];
+    [actionController addAction:clipRightTrack];
+    [actionController addAction:startPosition];
+    [actionController addAction:cancelAction];
+    [self presentViewController:actionController animated:YES completion:nil];
+    
+}
+
+-(void)clipActionsEditing {
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:@"Clip Edit" message:@"Save or Cancel Changes" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* saveClipEdit =
+    [UIAlertAction actionWithTitle:@"Save Clip Edit" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        if ([_playerController stopEditingSelectedTrackSave]){
+            // SELECTED and EDITING
+            self.editing = NO;
+            [self editingButtons];
+        }
+    }];
+    UIAlertAction* cancelClipEdit =
+    [UIAlertAction actionWithTitle:@"Cancel Clip Edit" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        if ([_playerController stopEditingSelectedTrackCancel]){
+            // SELECTED and EDITING
+            self.editing = NO;
+            [self editingButtons];
+        }
+    }];
+    UIAlertAction* cancelAction =
+    [UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action) {
+    }];
+    
+    [actionController addAction:saveClipEdit];
+    [actionController addAction:cancelClipEdit];
+    [actionController addAction:cancelAction];
+    [self presentViewController:actionController animated:YES completion:nil];
+    
+}
+
+
+-(void)addEffectAction {
+    NSLog(@"%s", __func__);
+    
+    //TODO: specify in message which node they are adding the effect to
+    UIAlertController *addEffect = [UIAlertController alertControllerWithTitle:@"Add An Effect" message:@"Choose From These Effects" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *addReverbAction = [UIAlertAction actionWithTitle:@"Reverb" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    UIAlertAction *addDelayAction = [UIAlertAction actionWithTitle:@"Delay" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    UIAlertAction *addDistortionAction = [UIAlertAction actionWithTitle:@"Distortion" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    UIAlertAction *addEQAction = [UIAlertAction actionWithTitle:@"EQ" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+    }];
+    
+    [addEffect addAction:addReverbAction];
+    [addEffect addAction:addDelayAction];
+    [addEffect addAction:addDistortionAction];
+    [addEffect addAction:addEQAction];
+    [addEffect addAction:cancel];
+    
+    [self presentViewController:addEffect animated:YES completion:nil];
+    
+}
+
 #pragma mark -
 
 //When User wants to add an effect node or a recorder node
@@ -276,74 +412,56 @@
 
 }
 
--(void)addEffectAction {
-    NSLog(@"%s", __func__);
-    
-    //TODO: specify in message which node they are adding the effect to
-    UIAlertController *addEffect = [UIAlertController alertControllerWithTitle:@"Add An Effect" message:@"Choose From These Effects" preferredStyle:UIAlertControllerStyleAlert];
-    
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-    UIAlertAction *addReverbAction = [UIAlertAction actionWithTitle:@"Reverb" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        
-    }];
-    UIAlertAction *addDelayAction = [UIAlertAction actionWithTitle:@"Delay" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        
-    }];
-    UIAlertAction *addDistortionAction = [UIAlertAction actionWithTitle:@"Distortion" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        
-    }];
-    UIAlertAction *addEQAction = [UIAlertAction actionWithTitle:@"EQ" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        
-    }];
-
-    [addEffect addAction:addReverbAction];
-    [addEffect addAction:addDelayAction];
-    [addEffect addAction:addDistortionAction];
-    [addEffect addAction:addEQAction];
-    [addEffect addAction:cancel];
-
-    [self presentViewController:addEffect animated:YES completion:nil];
-    
-}
 
 
 - (IBAction)effectsAction:(id)sender {
     NSLog(@"%s",__func__);
-    self.mixeditContainerView.hidden =! self.mixeditContainerView.hidden;
     
-    if (_mixeditContainerView.hidden == NO) {
+    if (self.editing) {
         
-        // EFFECTS ON
-        if (self.playerController.state == JWPlayerStatePlayFromPos) {
-            _playing = YES;
+        [self clipActionsEditing];
+
+    } else {
+        self.mixeditContainerView.hidden =! self.mixeditContainerView.hidden;
+        
+        // HIDDEN IS OFF
+        if (_mixeditContainerView.hidden == NO) {
+            
+            // EFFECTS ON
+            if (self.playerController.state == JWPlayerStatePlayFromPos) {
+                _playing = YES;
+            } else {
+                _playing = NO;
+            }
+            
+            [self toolbar2WithPlay:_playing];
+            
+            if (sender == nil) {
+                // called in program - track selected from sc
+                
+            } else {  // from button
+                [self.playerController selectValidTrack];
+            }
+            
         } else {
-            _playing = NO;
+            // EFFECTS OFF
+            
+            [self toolbar1];
+            [self.playerController deSelectTrack];
+            
         }
         
-        [self toolbar2WithPlay:_playing];
-        [self.playerController selectValidTrack];
-        
-    } else {
-        // EFFECTS OFF
-
-        [self toolbar1];
-
     }
 
 }
+
+
 - (IBAction)exportAction:(id)sender {
     NSLog(@"%s",__func__);
 
 }
 
--(void)playTillEnd {
-    
-    _playing = NO;
-    if (_mixeditContainerView.hidden == NO) {
-        [self toolbar2WithPlay:_playing];
-    }
-    
-}
+
 
 @end
 

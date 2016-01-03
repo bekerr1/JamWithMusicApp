@@ -39,6 +39,8 @@
 @property (nonatomic) BOOL pulseBackLight;
 
 - (void)selectTrack:(NSUInteger)track;
+- (void)deSelectTrack;
+
 @property (nonatomic) NSUInteger selectedTrack;
 
 
@@ -129,6 +131,7 @@
 
 -(void)trackSelected:(NSUInteger)track;
 -(void)trackNotSelected;
+-(void)longPressOnTrack:(NSUInteger)track;
 
 -(CGSize)viewSize;
 -(BOOL)isPlaying;

@@ -23,6 +23,15 @@
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me;
 -(void) selectValidTrack;
+-(void) deSelectTrack;
+
+-(BOOL) editSelectedTrackBeginInset;
+-(BOOL) editSelectedTrackEndInset;
+-(BOOL) editSelectedTrackStartPosition;
+
+-(BOOL) stopEditingSelectedTrackSave;
+-(BOOL) stopEditingSelectedTrackCancel;
+
 @end
 
 @protocol JWAudioPlayerControllerDelegate <NSObject>
@@ -33,5 +42,6 @@
 
 -(void)noTrackSelected:(JWAudioPlayerController *)controller;
 -(void)trackSelected:(JWAudioPlayerController *)controller;
+-(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
 
 @end

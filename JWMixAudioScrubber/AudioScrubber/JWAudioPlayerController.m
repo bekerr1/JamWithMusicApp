@@ -289,8 +289,11 @@
 }
 
 
+-(void)deSelectTrack {
+    
+    _sc.selectedTrack = nil;
 
-
+}
 -(void)selectValidTrack {
     
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
@@ -300,13 +303,8 @@
     for (NSMutableDictionary *item in playerNodeList) {
         
         NSURL *fileURL = [_audioEngine playerNodeFileURLAtIndex:index];
-        
         JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
-        
-        if (nodeType == JWMixerNodeTypePlayer) {
-            
-            
-        } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWMixerNodeTypePlayerRecorder) {
             
             if (fileURL) {
                 selectedIndex = index;
@@ -318,8 +316,9 @@
     }
     
     NSString *sid = playerNodeList[selectedIndex][@"trackid"];
-    
-    [_sc selectTrack:sid];
+//    [_sc selectTrack:sid];
+
+    _sc.selectedTrack = sid;
     [_metvc setSelectedNodeIndex:selectedIndex];
     [_metvc refresh];
     
@@ -710,6 +709,51 @@
 }
 
 
+
+
+
+-(BOOL) editSelectedTrackBeginInset {
+    if (_sc.selectedTrack) {
+        [_sc editTrackBeginInset:_sc.selectedTrack];
+        return YES;
+    }
+    return NO;
+}
+
+-(BOOL) editSelectedTrackEndInset {
+    if (_sc.selectedTrack) {
+        [_sc editTrackEndInset:_sc.selectedTrack];
+        return YES;
+    }
+    return NO;
+}
+
+-(BOOL) editSelectedTrackStartPosition {
+    if (_sc.selectedTrack) {
+        [_sc editTrackStartPosition:_sc.selectedTrack];
+        return YES;
+    }
+    return NO;
+}
+
+-(BOOL) stopEditingSelectedTrackSave {
+    if (_sc.selectedTrack) {
+        [_sc stopEditingTrackSave:_sc.selectedTrack];
+        return YES;
+    }
+    return NO;
+
+}
+-(BOOL) stopEditingSelectedTrackCancel {
+    if (_sc.selectedTrack) {
+        [_sc stopEditingTrackCancel:_sc.selectedTrack];
+        return YES;
+    }
+    return NO;
+}
+
+
+
 #pragma mark scrubber controler Delegate for buffers
 
 -(CGFloat)progressOfAudioFile:(JWScrubberController*)self forScrubberId:(NSString*)sid{
@@ -735,6 +779,8 @@
     
     return _sc.numberOfTracks;
 }
+
+
 
 
 
@@ -946,6 +992,30 @@
     NSLog(@"%s", __func__);
     [_delegate noTrackSelected:self];
 }
+
+
+-(void)scrubberDidLongPress:(JWScrubberController*)controller forScrubberId:(NSString*)sid {
+    
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    BOOL found = NO;
+    NSUInteger index = 0;
+    for (NSMutableDictionary *item in playerNodeList) {
+        
+        NSString *trackId = item[@"trackid"];
+        if ([sid isEqualToString:trackId]) {
+            // This one
+            found = YES;
+            break;
+        }
+        index++;
+    }
+    
+    if (found) {
+        [_delegate playerController:self didLongPressForTrackAtIndex:index];
+    }
+    
+}
+
 
 #pragma mark - ENGINE DELEGATE
 

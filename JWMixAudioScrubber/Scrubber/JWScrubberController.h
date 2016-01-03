@@ -51,8 +51,10 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @property (nonatomic) BOOL darkBackground;
 @property (nonatomic) BOOL pulseBackLight;
 
-- (void)selectTrack:(NSString*)tid;
+@property (nonatomic) NSString *selectedTrack;
 
+- (void)deSelectTrack;
+- (void)selectTrack:(NSString*)tid;
 @property (nonatomic) NSString *selectedTrackId;
 
 -(void)configureScrubberColors:(NSDictionary*)scrubberColors;
@@ -194,6 +196,7 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)scrubberAvailable:(JWScrubberController*)controller forTrack:(NSUInteger)track;
 -(void)scrubber:(JWScrubberController*)controller selectedTrack:(NSString*)sid;
 -(void)scrubberTrackNotSelected:(JWScrubberController*)controller;
+-(void)scrubberDidLongPress:(JWScrubberController*)controller forScrubberId:(NSString*)sid;
 
 // to allow the controller to support the play timer
 -(CGFloat)progressOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid;

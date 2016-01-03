@@ -316,16 +316,32 @@ const int scMaxTracks = 10;
 }
 
 
+-(void)setSelectedTrack:(NSString *)selectedTrack {
+    _selectedTrack = selectedTrack;
+    if (_selectedTrack) {
+        NSUInteger track = [(NSNumber*)_tracks[_selectedTrack][@"tracknum"] unsignedIntegerValue];
+        [_scrubber selectTrack:track];
+    } else {
+        // nil
+        [_scrubber deSelectTrack];
+    }
+}
+
+
+// select deselect prefer to use property selectedTrack
 - (void)selectTrack:(NSString*)tid {
-    
     _selectedTrackId = tid;
-    
+    _selectedTrack = _selectedTrackId;
     NSUInteger track = 0;
     if (tid){
         track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
         [_scrubber selectTrack:track];
     }
-
+}
+- (void)deSelectTrack {
+    self.selectedTrack = nil;
+    self.selectedTrackId = nil;
+    [_scrubber deSelectTrack];
 }
 
 
@@ -979,8 +995,10 @@ EDITING PROTOCOL PUBLIC API
 -(void)trackSelected:(NSUInteger)track
 {
     NSLog(@"%s %ld",__func__,track);
+    _selectedTrack = [self trackIdForTrack:track];
+
     if ([_delegate respondsToSelector:@selector(scrubber:selectedTrack:)]){
-        [_delegate scrubber:self selectedTrack:[self trackIdForTrack:track]];
+        [_delegate scrubber:self selectedTrack:_selectedTrack];
     }
 }
 
@@ -991,6 +1009,16 @@ EDITING PROTOCOL PUBLIC API
         [_delegate scrubberTrackNotSelected:self];
     }
 }
+
+-(void)longPressOnTrack:(NSUInteger)track
+{
+    _selectedTrack = [self trackIdForTrack:track];
+    [_delegate scrubberDidLongPress:self forScrubberId:_selectedTrack];
+}
+
+
+
+
 
 #pragma mark edit delegate
 
