@@ -405,7 +405,10 @@
     NSLog(@"%s Effect Created. %@", __func__, [params description]);
     AVAudioUnitEffect *effect;
     AVAudioUnitEQ *eq = [[AVAudioUnitEQ alloc] initWithNumberOfBands:2];
-    
+
+    if (eq == nil) {
+        
+    }
 
     
     

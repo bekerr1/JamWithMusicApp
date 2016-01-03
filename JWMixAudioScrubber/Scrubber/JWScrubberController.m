@@ -475,6 +475,11 @@ const int scMaxTracks = 10;
     UIColor *iosColor3 = [UIColor colorWithRed:0/255.0 green:128/255.0 blue:255/255.0 alpha:1.0]; // aqua
     UIColor *iosColor4 = [UIColor colorWithRed:102/255.0 green:204/255.0 blue:255/255.0 alpha:1.0]; // sky
 
+    if (iosColor1) {}
+    if (iosColor2) {}
+    if (iosColor3) {}
+    if (iosColor4) {}
+
     NSDictionary *scrubberColors =
     @{
       JWColorBackgroundHueColor : iosColor2,

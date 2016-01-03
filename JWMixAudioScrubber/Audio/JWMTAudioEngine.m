@@ -922,7 +922,6 @@
     NSLog(@"%s %.3f secondsin  %@",__func__,secondsIn,[_playerNodeList description]);
     
     NSUInteger index = 0;
-    NSUInteger playerNodeIndex = 0;
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
         
@@ -1418,7 +1417,6 @@
 -(void)playAllRecordingFromBeginnigAtIndex:(NSUInteger)prIndex fadeIn:(BOOL)fade{
     
     NSUInteger index = 0;  // index to playerNodeList
-    NSUInteger playerNodeIndex = 0; // index to _playerNodes
     JWAudioRecorderController *rc = [self recorderForPlayerNodeAtIndex:prIndex];
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
@@ -1635,7 +1633,6 @@
     
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     NSUInteger index = 0;
-    NSUInteger playerNodeIndex = 0;
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
         if (index == prIndex)

@@ -377,7 +377,7 @@
     if ([_objectCollections[fromIndexPath.section] count] == 0) {
         [_objectCollections removeObjectAtIndex:fromIndexPath.section];
         
-        NSUInteger reloadSection = toIndexPath.section;
+        //NSUInteger reloadSection = toIndexPath.section;
         //        if (fromIndexPath.section < toIndexPath.section) {
         //            reloadSection--;
         //        }

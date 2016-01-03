@@ -217,7 +217,9 @@
 
       ];
     
-//    playerNode[@"effects"] = effectsArray;
+    if (effectsArray) {
+        //    playerNode[@"effects"] = effectsArray;
+    }
     
     return playerNode;
 
