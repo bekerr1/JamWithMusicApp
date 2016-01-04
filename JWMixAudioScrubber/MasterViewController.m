@@ -33,13 +33,13 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    NSLog(@"%@",[self documentsDirectoryPath]);
+
     // Copy resoureces
     NSError *error;
     [[NSFileManager defaultManager]
      copyItemAtURL:[[NSBundle mainBundle] URLForResource:JWSampleFileName withExtension:@".m4a"]
      toURL:[self fileURLWithFileName:JWSampleFileNameAndExtension] error:&error];
-
-    
     
     [[NSFileManager defaultManager]
      copyItemAtURL:[[NSBundle mainBundle] URLForResource:@"clipRecording_aminor1" withExtension:@".caf"]
@@ -53,7 +53,6 @@
      copyItemAtURL:[[NSBundle mainBundle] URLForResource:@"clipRecording_killers2" withExtension:@".caf"]
      toURL:[self fileURLWithFileName:@"clipRecording_killers2.caf"] error:&error];
 
-    
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
@@ -216,14 +215,12 @@
         
     }
     
-    NSLog(@"%s%@ index %ld",__func__,key,index);
+//    NSLog(@"%s%@ index %ld",__func__,key,index);
     return [NSIndexPath indexPathForRow:index inSection:collectionIndex];
 }
 
 
 -(void)reloadItemAtIndex:(NSUInteger)index inSection:(NSUInteger)section {
-    
-    NSLog(@"%s index %ld %ld",__func__,index,section);
     
     [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:section]]
                           withRowAnimation:UITableViewRowAnimationFade];
@@ -335,8 +332,6 @@
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"%s",__func__);
-    
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         NSMutableArray *objectCollection = _objectCollections[indexPath.section];
         
@@ -366,8 +361,6 @@
 
 // Override to support rearranging the table view.
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-    
-    NSLog(@"%s",__func__);
     
     id moveObject = [_objectCollections[fromIndexPath.section] objectAtIndex:fromIndexPath.row];
     
@@ -411,7 +404,7 @@
     NSString *result = nil;
     NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     result = [searchPaths objectAtIndex:0];
-    NSLog(@"%s %@",__func__, result);
+//    NSLog(@"%s %@",__func__, result);
     return result;
 }
 

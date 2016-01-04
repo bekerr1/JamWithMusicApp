@@ -33,8 +33,6 @@
 
 - (void)createEngineAndAttachNodes
 {
-    NSLog(@"%s",__func__);
-
     /*  An AVAudioEngine contains a group of connected AVAudioNodes ("nodes"), each of which performs
      an audio signal generation, processing, or input/output task.
      
@@ -58,8 +56,6 @@
 
 - (void)makeEngineConnections
 {
-    NSLog(@"%s",__func__);
-
     // nothing to connect here
     // leave it to subclasses
     

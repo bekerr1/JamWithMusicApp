@@ -251,9 +251,7 @@
         }
     }
     
-    NSLog(@"%s %ld",__func__,count);
     return count;
-    
 }
 
 

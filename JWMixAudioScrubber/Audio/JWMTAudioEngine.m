@@ -606,8 +606,6 @@
 
 -(void)setupAVEngine {
     
-    NSLog(@"%s",__func__);
-
     [self fileURLs];
     [self createPlayerNodes];
     [self createEngineAndAttachNodes];
@@ -618,8 +616,6 @@
 }
 
 - (void)createEngineAndAttachNodes {
-    NSLog(@"%s",__func__);
-
     [super createEngineAndAttachNodes];
 
     /*  An AVAudioEngine contains a group of connected AVAudioNodes ("nodes"), each of which performs
@@ -656,8 +652,6 @@
 }
 
 - (void)makeEngineConnections {
-    NSLog(@"%s",__func__);
-
     /*  The engine will construct a singleton main mixer and connect it to the outputNode on demand,
      when this property is first accessed. You can then connect additional nodes to the mixer.
      
@@ -1206,7 +1200,7 @@
 
 //TODO: added this
 -(BOOL)playAllActivePlayerNodes {
-    NSLog(@"%s", __func__);
+//    NSLog(@"%s", __func__);
     
     if ([self.activePlayerNodes count] > 0) {
         
@@ -1226,7 +1220,7 @@
 }
 
 -(BOOL)pauseAllActivePlayerNodes {
-    NSLog(@"%s", __func__);
+//    NSLog(@"%s", __func__);
     
     if ([self.activePlayerNodes count] > 0) {
         

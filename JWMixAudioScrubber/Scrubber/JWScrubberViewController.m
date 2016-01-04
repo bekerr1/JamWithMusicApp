@@ -531,7 +531,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
     [self prepareToPlay:1];
     
-    NSLog(@"%s pos %.2f",__func__,position);
+//    NSLog(@"%s pos %.2f",__func__,position);
     _listenToScrolling = NO;
     CGFloat pos = position * _uiPointsPerSecondLength;
     CGPoint startOffest = CGPointMake( - self.scrollView.contentInset.left + pos,0);
@@ -650,7 +650,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             [self scrollViewTrackingAtPosition:pos];
         }
     } else {
-        NSLog(@"%s not listening to scrolling",__func__);
+//        NSLog(@"%s not listening to scrolling",__func__);
     }
 }
 
@@ -2447,8 +2447,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
     
     if (needsRectUpdate) {
-        NSLog(@"%s needs rect update",__func__);
-        
+//        NSLog(@"%s needs rect update",__func__);
         if (_usePulse) {
             _pulseBaseLayer.frame = gfr;
             [_pulseBaseLayer render];
@@ -2516,7 +2515,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 -(void)configureEditLayerLeft:(CGSize)size {
-    NSLog(@"%s %@",__func__,NSStringFromCGSize(size));
     CGRect fr = CGRectZero;
     fr = CGRectMake(0, 0,
                     size.width/2 ,
@@ -2564,14 +2562,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     _editLayerRight.frame = fr;
     
-    NSLog(@"%s %@",__func__,NSStringFromCGRect(fr));
-    
 }
 
 
 -(void)configureBookendClips:(CGSize)size {
     
-    NSLog(@"%s %@",__func__,NSStringFromCGSize(size));
+//    NSLog(@"%s %@",__func__,NSStringFromCGSize(size));
 
     CGRect fr = CGRectZero;
     
@@ -2605,9 +2601,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
     _clipBegin.frame = fr;
 
-    NSLog(@"%s %@",__func__,NSStringFromCGRect(fr));
-    
-    
     fr = CGRectMake( [self largestTrackEndPosition] - offsetToPlayhead, 0,
                     size.width + offsetToPlayhead,
                     size.height - _topLayoutScrollViewConstraint.constant);
@@ -2634,7 +2627,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     _clipEnd.frame = fr;
     
     [self.scrollView setNeedsLayout];
-    NSLog(@"%s %@",__func__,NSStringFromCGRect(fr));
 }
 
 

@@ -1018,8 +1018,6 @@ EDITING PROTOCOL PUBLIC API
 
 
 
-
-
 #pragma mark edit delegate
 
 -(NSString*)trackIdForTrack:(NSUInteger)track {
@@ -1052,13 +1050,11 @@ EDITING PROTOCOL PUBLIC API
 
 -(void)editCompleted:(NSUInteger)track {
     
-    NSLog(@"%s %ld",__func__,track);
     [self editCompletedForTrack:track withTrackInfo:nil];
 }
 
 -(void)editChange:(NSUInteger)track {
     
-    NSLog(@"%s %ld",__func__,track);
     [self editChangeForTrack:track withTrackInfo:nil];
 }
 
@@ -1066,7 +1062,6 @@ EDITING PROTOCOL PUBLIC API
 // nil fileReference no change
 -(void)editCompletedForTrack:(NSUInteger)track withTrackInfo:(id)fileReference {
     
-    NSLog(@"%s %ld",__func__,track);
     
     // GET THE track info and trackId
     NSString *trackId;
@@ -2166,7 +2161,7 @@ EDITING PROTOCOL PUBLIC API
     
     framesToReadCount = remainingFrameCount;
 
-    NSLog(@"%s startReadPosition %lld framesToReadCount %u",__func__,startReadPosition,framesToReadCount);
+//    NSLog(@"%s startReadPosition %lld framesToReadCount %u",__func__,startReadPosition,framesToReadCount);
 
     const AVAudioFrameCount kBufferMaxFrameCapacity = 18 * 1024L;
     AVAudioPCMBuffer *readBuffer = nil;
@@ -2264,7 +2259,9 @@ EDITING PROTOCOL PUBLIC API
     // Iterate again to generate buffer views
 
     framesToReadCount = remainingFrameCount;
-    NSLog(@"%s startReadPosition %lld framesToReadCount %u",__func__,startReadPosition,framesToReadCount);
+    
+//    NSLog(@"%s startReadPosition %lld framesToReadCount %u",__func__,startReadPosition,framesToReadCount);
+    
     frameCount = 0;
     audioFile.framePosition = startReadPosition;
     

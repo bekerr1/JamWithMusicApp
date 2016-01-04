@@ -25,8 +25,6 @@
 
 -(void) setupAVEngine {
 
-    NSLog(@"%s",__func__);
-    
     // READ and initialize effects list before call super
     
     [self effectsEngineConfigPrepare:NO]; // NO refresh, is Init
@@ -41,8 +39,6 @@
 
 - (void)createEngineAndAttachNodes
 {
-    NSLog(@"%s",__func__);
-
     [super createEngineAndAttachNodes];
 
     /*  An AVAudioEngine contains a group of connected AVAudioNodes ("nodes"), each of which performs
@@ -76,8 +72,6 @@
 
 - (void)makeEngineConnections
 {
-    
-    NSLog(@"%s",__func__);
     
     [super makeEngineConnections];
     
@@ -120,9 +114,6 @@
         
         JWPlayerNode *playerNode = playerNodeInfo[@"player"];
         
-        // GET the buffer (for format) that will play in the effects
-
-//        AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
         AVAudioFile *audioFile = playerNodeInfo[@"audiofile"];
 
         if (audioFile) {
@@ -151,13 +142,6 @@
     
 }
 
-//NSArray *playernodeEffects = _effectnodes[index];
-//            AVAudioNode *lastnode = playerNode;  // the lastnode connected//
-//            for (id effectsNode in playernodeEffects) {//
-//                [self.audioEngine  connect:lastnode to:effectsNode  format:audioBuffer.format];
-//                lastnode = effectsNode;
-//            }//
-//            [self.audioEngine connect:lastnode to:mainMixer format:audioBuffer.format];
 
 #pragma mark - Effects handler protocol
 
@@ -166,7 +150,6 @@
     return self.playerNodeList;
 }
 
-
 -(NSArray *)config {
     
     return nil;
@@ -174,8 +157,6 @@
 
 -(BOOL)configChanged:(NSArray *)config {
     
-//    _effectnodesList = config;
-
     [self refreshEngineForEffectsNodeChanges];
     
     [self saveUserOrderedList];
@@ -203,7 +184,6 @@
 
 -(id <JWEffectsModifyingProtocol> )playerNodeAtIndex:(NSUInteger)pindex {
     
-    
     id <JWEffectsModifyingProtocol> result;
     
     if ([self.playerNodeList count] > pindex) {
@@ -220,7 +200,6 @@
 
 -(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex
 {
-
     id <JWEffectsModifyingProtocol> result;
     if (pindex < [self.playerNodeList count]) {
         NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
@@ -377,7 +356,7 @@
 }
 
 -(AVAudioUnitEffect *)distortionEffectWith:(NSDictionary *)params {
-   NSLog(@"%s Effect Created. %@", __func__, [params description]);
+//   NSLog(@"%s Effect Created. %@", __func__, [params description]);
     AVAudioUnitEffect *effect;
     AVAudioUnitDistortion *distortion = [AVAudioUnitDistortion new];
     
@@ -402,7 +381,7 @@
 }
 
 -(AVAudioUnitEffect *)eqEffectWith:(NSDictionary *)params {
-    NSLog(@"%s Effect Created. %@", __func__, [params description]);
+//    NSLog(@"%s Effect Created. %@", __func__, [params description]);
     AVAudioUnitEffect *effect;
     AVAudioUnitEQ *eq = [[AVAudioUnitEQ alloc] initWithNumberOfBands:2];
 

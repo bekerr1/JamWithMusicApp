@@ -88,21 +88,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    //TOOL BAR ITEMS FOR AUDIO
-    
     [self toolbar1];
 
-//    _playbackStartDelay = 0.0;
-    
     self.playerController = [JWAudioPlayerController new];
+    
     [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
     self.playerController.delegate = self;
-
     // Do any additional setup after loading the view, typically from a nib.
     [self configureView];
 
     [[self.navigationController toolbar] setBarTintColor:[UIColor blackColor]];
-
     [self.navigationController setToolbarHidden:NO];
 
 }
@@ -111,6 +106,27 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+
+//-(void)viewDidAppear:(BOOL)animated
+//{
+//    static int firstTime = 1;
+//    if (firstTime) {
+//        [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
+//        self.playerController.delegate = self;
+//        // Do any additional setup after loading the view, typically from a nib.
+//        [self configureView];
+//    }
+//    firstTime = 0;
+//    
+//}
+
+//if ([self isMovingToParentViewController]) {
+//    NSLog(@"%s isMovingToParentViewController", __func__);
+//}
+//if ([self isBeingPresented]) {
+//    NSLog(@"%s isBeingPresented", __func__);
+//}
 
 //SCRUBBER CONTROLLER EMBEDED IN SCTV
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {

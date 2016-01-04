@@ -11,14 +11,10 @@
 @interface JWPlayerControlsViewController() {
     BOOL _lightBackground;
 }
-
-
 @end
 
 
 @implementation JWPlayerControlsViewController
-
-
 
 -(void)initializeWithState:(PlayerControllerState)state withLightBackround:(BOOL)backround {
 
@@ -37,7 +33,6 @@
 
 - (void)initializeUIElements {
     
-    
     _rewindButton.drawingStyle = rewindButtonStyle;
     _rewindButton.fillColor = _lightBackground ? [UIColor blackColor].CGColor :[UIColor whiteColor].CGColor;
     
@@ -50,7 +45,6 @@
 }
 
 -(void) updateButtonStates {
-    
     
     if (_state == JWPlayerStatePlayFromPos) {
         [self setButtonsToR1];
@@ -69,7 +63,6 @@
         _recordButton.alpha = _recordButton.enabled ? 1.0 : 0.25;
     }
     
-    //[self.view setNeedsLayout];
 }
 
 -(void)setButtonsToR1 {
@@ -96,11 +89,7 @@
     _recordButton.drawingStyle = recordEnabledButtonStyle;
 }
 
-
-
 - (IBAction)playPressed:(UIButton *)sender {
-    NSLog(@"%s", __func__);
-//    [(JWUITransportButton*)sender drawingStyle];
     _playButton.drawingStyle == playButtonStyle ?
     [_delegate play] :
     [_delegate pause];
@@ -108,22 +97,12 @@
 
 
 - (IBAction)recordPressed:(id)sender {
-    NSLog(@"%s", __func__);
     [_delegate record];
 }
 
 - (IBAction)rewindPressed:(id)sender {
-    NSLog(@"%s", __func__);
     [_delegate rewind];
 }
-
-
-//-(void)viewDidLayoutSubviews {
-////    [self updateUIElements];
-////    [self updateButtonStates];
-//
-//    
-//}
 
 
 @end
