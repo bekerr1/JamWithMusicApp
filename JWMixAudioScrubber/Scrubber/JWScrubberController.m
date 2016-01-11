@@ -118,7 +118,7 @@ const int scMaxTracks = 10;
     return NO;
 }
 -(BOOL)adjustFloatValue1:(float)value{
-    NSLog(@"%s adjusting backlightValue %.2f to %.2f",__func__,self.backlightValue,value);
+//    NSLog(@"%s adjusting backlightValue %.2f to %.2f",__func__,self.backlightValue,value);
     self.backlightValue = value;
     [_scrubber adjustWhiteBacklightValue:_backlightValue];
     return YES;
@@ -213,6 +213,7 @@ const int scMaxTracks = 10;
     }
 
     [self startPlayTimer];
+    
     
     if ([self hasRecording]) {
         [_scrubber transitionToRecording];
@@ -1512,6 +1513,8 @@ EDITING PROTOCOL PUBLIC API
 
 #pragma mark - pulse types
 
+//#define TRACEPULSE
+
 -(void)pulseOnProgress:(CGFloat)progress trackId:(NSString*)trackId {
     // float currentPosSeconds = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
     // find index holding values use first for duration division
@@ -1536,11 +1539,12 @@ EDITING PROTOCOL PUBLIC API
     float remainderProgress = 1.0 - remainder;
     
     if (indexOfBuffer > [_pulseSamples count] - 1) {
-        NSLog(@"%s index %ld dur %.2f currentPos %.3f",__func__,indexOfBuffer,buffersDuration,currentPosSeconds);
-        // ERRR
+#ifdef TRACEPULSE
+        NSLog(@"%s OUT of Range index %ld dur %.2f currentPos %.3f",__func__,indexOfBuffer,buffersDuration,currentPosSeconds);
+#endif
     } else {
         
-        NSUInteger pulseType = 2;
+        NSUInteger pulseType = 3;
         
         NSArray *pulsData = _pulseSamples[indexOfBuffer];
 
@@ -1565,9 +1569,12 @@ EDITING PROTOCOL PUBLIC API
             if ([pulsData[0] floatValue] > 0.50) {
                 // first value h
             }
+            
+#ifdef TRACEPULSE
             NSLog(@"%s ndx %ld prValue %.3f endsmplvl %.3f rem %.4f",__func__,indexOfBuffer,progressValue,endSampleValue,remainder);
+#endif
             float remainingDuration = buffersDuration - progressValue;
-            if (remainder > 0.15 ) {
+            if (remainder > 0.20 ) {
                 startSampleValue = endSampleValue; // the first sample value
                 endSampleValue = [pulsData[3] floatValue]; // the second sample value
                 
@@ -1581,7 +1588,9 @@ EDITING PROTOCOL PUBLIC API
                     [_scrubber pulseBackLight:0 endValue:endSampleValue duration:remainingDuration];
                 });
             } else {
+#ifdef TRACEPULSE
                 NSLog(@"SKIP\n");
+#endif
             }
 
             
@@ -1608,16 +1617,23 @@ EDITING PROTOCOL PUBLIC API
             if (remainder > 0.15 ) {
                 startSampleValue = endSampleValue; // the first sample value
                 endSampleValue = [pulsData[3] floatValue]; // the second sample value
-                                    NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
-                                          indexOfBuffer,buffersDuration,currentPosSeconds,
-                                          pulseDataAvg,progressValue,endSampleValue);
+                
+#ifdef TRACEPULSE
+                NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
+                      indexOfBuffer,buffersDuration,currentPosSeconds,
+                      pulseDataAvg,progressValue,endSampleValue);
+#endif
+
                 double delayInSecs = progressValue;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     // pulse anim 2 -  first point to second point
                     [_scrubber pulseBackLight:0 endValue:endSampleValue duration:remainingDuration];
                 });
             } else {
+#ifdef TRACEPULSE
                 NSLog(@"SKIP\n");
+#endif
+
                 
             }
             
@@ -1634,9 +1650,13 @@ EDITING PROTOCOL PUBLIC API
             
             float middleProgressValue =([pulsData[2] floatValue] * buffersDuration) - progressValue;
             float remainingDuration = buffersDuration - middleProgressValue;
+            
+#ifdef TRACEPULSE
             NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
                   indexOfBuffer,buffersDuration,currentPosSeconds,
                   pulseDataAvg,progressValue,endSampleValue);
+#endif
+
             
             float lastStartValue = endSampleValue;
             float lastEndValue = pulseDataAvg;

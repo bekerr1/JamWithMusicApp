@@ -569,7 +569,7 @@
                 // ASSIGN FILE
                 playerNodeInfo[@"audiofile"] = audioFile;
 
-                NSLog(@"%s file length %lld buffer length %u",__func__,audioFile.length,audioBuffer.frameLength);
+//                NSLog(@"%s file length %lld buffer length %u",__func__,audioFile.length,audioBuffer.frameLength);
             }
         } else {
             [playerNodeInfo removeObjectForKey:@"audiofile"];
@@ -898,6 +898,11 @@
     [self scheduleAllWithOptions:0 insetSeconds:secondsIn recording:NO];
 }
 
+-(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn duration:(NSTimeInterval)duration {
+    
+    [self scheduleAllWithOptions:0 insetSeconds:secondsIn recording:NO];
+}
+
 /*
  playAlllWithOptions
 
@@ -913,7 +918,8 @@
 
 -(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn recording:(BOOL)recording {
     
-    NSLog(@"%s %.3f secondsin  %@",__func__,secondsIn,[_playerNodeList description]);
+//    NSLog(@"%s %.3f secondsin  %@",__func__,secondsIn,[_playerNodeList description]);
+    NSLog(@"%s %.3f secondsin  node count %ld",__func__,secondsIn,[_playerNodeList count]);
     
     NSUInteger index = 0;
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
@@ -999,12 +1005,12 @@
                 if (fileReference) {
                     
                     if (fileReference.readPositionInReferencedTrack < 0.0) {
-                        NSLog(@"%s read position negative",__func__);
+                        NSLog(@"%s fileReference read position negative",__func__);
                         hasAudioToPlay = NO;
                     } else {
                         readPosition = fileReference.readPositionInReferencedTrack *  processingFormat.sampleRate;
                         
-                        NSLog(@"%s ref dur %.2fs remaining %.2fs read %lld ",__func__,
+                        NSLog(@"%s fileReference dur %.2fs remaining %.2fs read %lld ",__func__,
                               fileReference.duration,
                               fileReference.remainingInTrack,
                               readPosition);
@@ -1020,7 +1026,7 @@
             }
             
             
-            NSLog(@"%s loops %@ secondsDelay %.3f secondsin %.3f read %lld ",__func__,@(loops),secondsDelay,secondsIn,readPosition);
+//            NSLog(@"%s loops %@ secondsDelay %.3f secondsin %.3f read %lld ",__func__,@(loops),secondsDelay,secondsIn,readPosition);
             
             if (hasAudioToPlay) {
                 // GET The player for this audio
@@ -1241,7 +1247,7 @@
 
 
 -(BOOL)stopAllActivePlayerNodes {
-    NSLog(@"%s", __func__);
+//    NSLog(@"%s", __func__);
     
     if ([self.activePlayerNodes count] > 0) {
         

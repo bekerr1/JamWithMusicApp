@@ -639,6 +639,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 #pragma mark - scrollViewDelegate
 
+// #define TRACESCROLL
+
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
 
     if (_listenToScrolling) {
@@ -656,7 +658,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
 
+#ifdef TRACESCROLL
     NSLog(@"%s velocity %@ traget %@",__func__,NSStringFromCGPoint(velocity),NSStringFromCGPoint(*targetContentOffset));
+#endif
     
     CGPoint targetPoint = *targetContentOffset;
     CGFloat scrubberBegin = - self.scrollView.contentInset.left;
@@ -680,18 +684,24 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 ////            [self userTrackingComputeProgress];
 //        }
     }
-    
+ 
+#ifdef TRACESCROLL
     NSLog(@"%s scrubberBegin %.2f end %.2f",__func__,scrubberBegin,scrubberEnd);
-    
+#endif
 }
 
 -(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+#ifdef TRACESCROLL
     NSLog(@"%s willDecelerate %@",__func__,@(decelerate));
+#endif
+
     if (decelerate == NO) {
         if (_listenToScrolling) {
             CGFloat pos = scrollView.contentOffset.x + self.scrollView.contentInset.left;
             if (pos  < 0) {
+#ifdef TRACESCROLL
                 NSLog(@"%s not tracking position %.3f",__func__,pos);
+#endif
             } else {
                 
                 [self scrollViewTrackingAtPosition:pos];
@@ -705,26 +715,41 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView   {
 
+    
+#ifdef TRACESCROLL
     NSLog(@"%s",__func__);
+#endif
     if (_listenToScrolling) {
         CGFloat pos = scrollView.contentOffset.x + self.scrollView.contentInset.left;
         if (pos  < 0) {
+#ifdef TRACESCROLL
             NSLog(@"%s not tracking position %.3f",__func__,pos);
+#endif
+
         } else {
             
             [self scrollViewTrackingAtPosition:pos];
         }
     } else {
+#ifdef TRACESCROLL
         NSLog(@"%s not listening to scrolling",__func__);
+#endif
+
     }
 }
 
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+#ifdef TRACESCROLL
     NSLog(@"%s",__func__);
+#endif
+
 }
 
 -(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+#ifdef TRACESCROLL
     NSLog(@"%s",__func__);
+#endif
+
 
     if (_waitForAnimated) {
         _listenToScrolling = YES;
@@ -999,6 +1024,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         } else {
             [self configureColorsInBufferView:bufferView recording:recording];
         }
+        
+        bufferView.userInteractionEnabled = NO;
         
         // NOT EDITING
         CGFloat previousTrackPosition = startingPosition; // is needed for autoadvance
@@ -2227,22 +2254,36 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.view.backgroundColor = [UIColor colorWithWhite:value alpha:1.0];
 }
 
+
+
+//#define TRACEPULSE
 /*
  */
 -(void)pulseBackLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration {
     //    self.view.backgroundColor = [UIColor colorWithWhite:pulseStartValue alpha:1.0];
     
     if (_pulseBlocked == NO) {
-        
+        BOOL pulseControllerToo = YES;
+       
+#ifdef TRACEPULSE 
         NSLog(@"PULSE value %.3f dur %.3f",endValue,duration);
+#endif
         endValue *= _outputValue;  // OUTPUTValue is factored in
 
+        if (pulseControllerToo)
+            self.view.superview.superview.backgroundColor = [UIColor colorWithWhite:endValue alpha:1.0];
         self.view.backgroundColor = [UIColor colorWithWhite:endValue alpha:1.0];
-        CGFloat durationFadeMax = 0.20;
-        double delayInSecs = duration;
+        
+//        CGFloat durationFadeMax = 0.20;
+        CGFloat durationFadeMax = duration * .75;
+
+        double delayInSecs = duration * .25;
+        
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [CATransaction begin];
             [CATransaction setAnimationDuration:durationFadeMax * endValue];
+            if (pulseControllerToo)
+                self.view.superview.superview.backgroundColor = [UIColor colorWithWhite:0 alpha:1.0];
             self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:1.0];
             [CATransaction commit];
             
@@ -2276,7 +2317,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #pragma mark - transition to 
 
 -(void)transitionToPlay {
-    _pulseBlocked = NO;
+    if (_usePulse)
+        _pulseBlocked = NO;
+
     [CATransaction begin];
     [CATransaction setAnimationDuration:0.9];
 //    _scrubberEffectsLayer.color1 = [[UIColor blueColor] colorWithAlphaComponent:0.5];
@@ -2288,10 +2331,13 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //    self.playHeadWindow.backgroundColor = [UIColor clearColor];
 //    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.18];
 //    self.playHeadWindow.alpha = 0.0;
+    
+    self.scrollView.userInteractionEnabled = NO;
 }
 
 -(void)transitionToStopPlaying {
-    _pulseBlocked=YES;
+    if (_usePulse)
+        _pulseBlocked=YES;
     [CATransaction begin];
     [CATransaction setAnimationDuration:1.6];
 //    _scrubberEffectsLayer.color1 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.5];
@@ -2300,16 +2346,27 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.pulseBaseLayer.backgroundColor = [UIColor clearColor].CGColor;
     
 //    self.pulseLightLayer.backgroundColor = [UIColor clearColor].CGColor;
+    
+    self.scrollView.userInteractionEnabled = YES;
+
 
 }
 
 -(void)transitionToRecording {
+    
+    if (_usePulse)
+        _pulseBlocked = NO;
+
     [CATransaction begin];
     [CATransaction setAnimationDuration:1.2];
+
 //    _scrubberEffectsLayer.color1 = [[UIColor redColor] colorWithAlphaComponent:0.5];
 //    _scrubberEffectsLayer.color2 = [[UIColor redColor] colorWithAlphaComponent:0.2];
     [CATransaction commit];
+    self.scrollView.userInteractionEnabled = NO;
+
 }
+
 
 
 -(void)viewDidLayoutSubviews {
@@ -2390,9 +2447,13 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                 effectsLayer.color1 = _trackGradientColor1 ? _trackGradientColor1 : [UIColor blackColor];
                 effectsLayer.color2 = _trackGradientColor2 ? _trackGradientColor2 : [[UIColor blackColor] colorWithAlphaComponent:0.5];
                 effectsLayer.color3 = _trackGradientColor3 ? _trackGradientColor3 : [[UIColor whiteColor] colorWithAlphaComponent:0.5];
-                effectsLayer.breakingPoint1 = 0.12f;
-                effectsLayer.breakingPoint2 = 0.35;  // allows .30  to include spread at .50
-                effectsLayer.centeredBreakingCenterSpread = 0.09f;  // prob should be less than opening in pulseLayer
+//                effectsLayer.breakingPoint1 = 0.12f;
+//                effectsLayer.breakingPoint2 = 0.35;  // allows .30  to include spread at .50
+//                effectsLayer.centeredBreakingCenterSpread = 0.09f;  // prob should be less than opening in pulseLayer
+
+                effectsLayer.breakingPoint1 = 0.20f;
+                effectsLayer.breakingPoint2 = 0.40;  // allows .30  to include spread at .50
+                effectsLayer.centeredBreakingCenterSpread = 0.08f;  // prob should be less than opening in pulseLayer
 
                 [_trackGradients addObject:effectsLayer];
             }
@@ -2610,7 +2671,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         self.gradientRight = [[JWScrubberClipEndsLayer alloc] initWithKind:JWScrubberClipEndsKindRight];
         
         if (_trackGradientColor1) {
-            _gradientLeft.color = _trackGradientColor1;
+            _gradientRight.color = _trackGradientColor1;
         } else {
             _gradientRight.color = [UIColor blackColor];
         }

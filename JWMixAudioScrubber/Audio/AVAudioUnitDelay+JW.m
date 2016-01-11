@@ -38,19 +38,19 @@
 }
 
 -(BOOL)adjustFloatValue1:(float)value{
-    NSLog(@"%s adjusting wetDryMix %.2f to %.2f",__func__,self.wetDryMix,value);
+//    NSLog(@"%s adjusting wetDryMix %.2f to %.2f",__func__,self.wetDryMix,value);
     self.wetDryMix = value;
     return YES;
 }
 
 -(BOOL)adjustFloatValue2:(float)value{
-    NSLog(@"%s adjusting feedback %.2f to %.2f",__func__,self.feedback,value);
+//    NSLog(@"%s adjusting feedback %.2f to %.2f",__func__,self.feedback,value);
     self.feedback = value;
     return YES;
 }
 
 -(BOOL)adjustFloatValue3:(float)value{
-    NSLog(@"%s adjusting lowPassCutoff %.2f to %.2f",__func__,self.lowPassCutoff,value);
+//    NSLog(@"%s adjusting lowPassCutoff %.2f to %.2f",__func__,self.lowPassCutoff,value);
     self.lowPassCutoff = value;
     return YES;
 }

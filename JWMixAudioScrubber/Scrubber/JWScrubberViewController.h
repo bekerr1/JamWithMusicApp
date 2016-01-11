@@ -14,6 +14,7 @@
 @interface JWScrubberViewController : UIViewController
 
 @property (nonatomic,assign) id <ScrubberDelegate> delegate;
+@property (strong, nonatomic) IBOutlet UIVisualEffectView *visualEffects;
 @property (strong, nonatomic) NSString *playHeadValueStr;
 @property (strong, nonatomic) NSString *formatValueStr;
 @property (strong, nonatomic) NSString *remainingValueStr;

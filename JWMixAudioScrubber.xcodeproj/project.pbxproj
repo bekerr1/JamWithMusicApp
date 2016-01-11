@@ -59,6 +59,27 @@
 		5525FF401C3764870081FB23 /* clipRecording_killers2.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5525FF3D1C3764870081FB23 /* clipRecording_killers2.caf */; };
 		55CD12231C38DA74001662CF /* jwfullamps - 3.png in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12221C38DA74001662CF /* jwfullamps - 3.png */; };
 		55CD12271C38DB39001662CF /* jwjustscreensandlogos - 2.png in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12261C38DB39001662CF /* jwjustscreensandlogos - 2.png */; };
+		55CD122A1C3F16B5001662CF /* YoutubeSearch.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12281C3F16B5001662CF /* YoutubeSearch.storyboard */; };
+		55CD122D1C3F17C7001662CF /* Other.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 55CD122B1C3F17C7001662CF /* Other.storyboard */; };
+		55CD12301C3F1A37001662CF /* JWFileController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD122F1C3F1A37001662CF /* JWFileController.m */; };
+		55CD12551C3F6D5E001662CF /* JWAmpItemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12501C3F6D5E001662CF /* JWAmpItemViewController.m */; };
+		55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12521C3F6D5E001662CF /* JWAmpPageViewController.m */; };
+		55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */; };
+		55CD126A1C3F6D71001662CF /* JWFileDowloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12591C3F6D71001662CF /* JWFileDowloadController.m */; };
+		55CD126B1C3F6D71001662CF /* JWJamMP3TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD125B1C3F6D71001662CF /* JWJamMP3TableViewController.m */; };
+		55CD126C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD125D1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m */; };
+		55CD126D1C3F6D71001662CF /* JWURLManip.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD125F1C3F6D71001662CF /* JWURLManip.m */; };
+		55CD126E1C3F6D71001662CF /* JWYoutubeMP3ConvertController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12611C3F6D71001662CF /* JWYoutubeMP3ConvertController.m */; };
+		55CD126F1C3F6D71001662CF /* JWYoutubeMP3ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12631C3F6D71001662CF /* JWYoutubeMP3ViewController.m */; };
+		55CD12701C3F6D71001662CF /* JWYouTubeSearchTypingData.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12651C3F6D71001662CF /* JWYouTubeSearchTypingData.m */; };
+		55CD12711C3F6D71001662CF /* JWYouTubeVideoData.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12671C3F6D71001662CF /* JWYouTubeVideoData.m */; };
+		55CD12721C3F6D71001662CF /* JWYTSearchTypingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12691C3F6D71001662CF /* JWYTSearchTypingViewController.m */; };
+		55CD12771C3F6D84001662CF /* JWClipAudioController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12741C3F6D84001662CF /* JWClipAudioController.m */; };
+		55CD12781C3F6D84001662CF /* JWClipAudioViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12761C3F6D84001662CF /* JWClipAudioViewController.m */; };
+		55CD127B1C3F6EBD001662CF /* JWCurrentWorkItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD127A1C3F6EBD001662CF /* JWCurrentWorkItem.m */; };
+		55CD12821C3F742A001662CF /* JWTrackSetsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12811C3F742A001662CF /* JWTrackSetsViewController.m */; };
+		55CD12841C3F7B31001662CF /* JWMedia.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12831C3F7B31001662CF /* JWMedia.xcassets */; };
+		55CD12871C42AD71001662CF /* JWSourceAudioListsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -179,6 +200,48 @@
 		5525FF3D1C3764870081FB23 /* clipRecording_killers2.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = clipRecording_killers2.caf; sourceTree = "<group>"; };
 		55CD12221C38DA74001662CF /* jwfullamps - 3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jwfullamps - 3.png"; sourceTree = "<group>"; };
 		55CD12261C38DB39001662CF /* jwjustscreensandlogos - 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jwjustscreensandlogos - 2.png"; sourceTree = "<group>"; };
+		55CD12291C3F16B5001662CF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/YoutubeSearch.storyboard; sourceTree = "<group>"; };
+		55CD122C1C3F17C7001662CF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Other.storyboard; sourceTree = "<group>"; };
+		55CD122E1C3F1A37001662CF /* JWFileController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWFileController.h; path = Common/JWFileController.h; sourceTree = "<group>"; };
+		55CD122F1C3F1A37001662CF /* JWFileController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWFileController.m; path = Common/JWFileController.m; sourceTree = "<group>"; };
+		55CD124F1C3F6D5E001662CF /* JWAmpItemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWAmpItemViewController.h; path = Misc/JWAmpItemViewController.h; sourceTree = "<group>"; };
+		55CD12501C3F6D5E001662CF /* JWAmpItemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWAmpItemViewController.m; path = Misc/JWAmpItemViewController.m; sourceTree = "<group>"; };
+		55CD12511C3F6D5E001662CF /* JWAmpPageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWAmpPageViewController.h; path = Misc/JWAmpPageViewController.h; sourceTree = "<group>"; };
+		55CD12521C3F6D5E001662CF /* JWAmpPageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWAmpPageViewController.m; path = Misc/JWAmpPageViewController.m; sourceTree = "<group>"; };
+		55CD12531C3F6D5E001662CF /* JWFilesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWFilesTableViewController.h; path = Misc/JWFilesTableViewController.h; sourceTree = "<group>"; };
+		55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWFilesTableViewController.m; path = Misc/JWFilesTableViewController.m; sourceTree = "<group>"; };
+		55CD12581C3F6D71001662CF /* JWFileDowloadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWFileDowloadController.h; path = YoutubeMP3/JWFileDowloadController.h; sourceTree = "<group>"; };
+		55CD12591C3F6D71001662CF /* JWFileDowloadController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWFileDowloadController.m; path = YoutubeMP3/JWFileDowloadController.m; sourceTree = "<group>"; };
+		55CD125A1C3F6D71001662CF /* JWJamMP3TableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWJamMP3TableViewController.h; path = YoutubeMP3/JWJamMP3TableViewController.h; sourceTree = "<group>"; };
+		55CD125B1C3F6D71001662CF /* JWJamMP3TableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWJamMP3TableViewController.m; path = YoutubeMP3/JWJamMP3TableViewController.m; sourceTree = "<group>"; };
+		55CD125C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWSourceAudioFilesTableViewController.h; path = YoutubeMP3/JWSourceAudioFilesTableViewController.h; sourceTree = "<group>"; };
+		55CD125D1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWSourceAudioFilesTableViewController.m; path = YoutubeMP3/JWSourceAudioFilesTableViewController.m; sourceTree = "<group>"; };
+		55CD125E1C3F6D71001662CF /* JWURLManip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWURLManip.h; path = YoutubeMP3/JWURLManip.h; sourceTree = "<group>"; };
+		55CD125F1C3F6D71001662CF /* JWURLManip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWURLManip.m; path = YoutubeMP3/JWURLManip.m; sourceTree = "<group>"; };
+		55CD12601C3F6D71001662CF /* JWYoutubeMP3ConvertController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWYoutubeMP3ConvertController.h; path = YoutubeMP3/JWYoutubeMP3ConvertController.h; sourceTree = "<group>"; };
+		55CD12611C3F6D71001662CF /* JWYoutubeMP3ConvertController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWYoutubeMP3ConvertController.m; path = YoutubeMP3/JWYoutubeMP3ConvertController.m; sourceTree = "<group>"; };
+		55CD12621C3F6D71001662CF /* JWYoutubeMP3ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWYoutubeMP3ViewController.h; path = YoutubeMP3/JWYoutubeMP3ViewController.h; sourceTree = "<group>"; };
+		55CD12631C3F6D71001662CF /* JWYoutubeMP3ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWYoutubeMP3ViewController.m; path = YoutubeMP3/JWYoutubeMP3ViewController.m; sourceTree = "<group>"; };
+		55CD12641C3F6D71001662CF /* JWYouTubeSearchTypingData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWYouTubeSearchTypingData.h; path = YoutubeMP3/JWYouTubeSearchTypingData.h; sourceTree = "<group>"; };
+		55CD12651C3F6D71001662CF /* JWYouTubeSearchTypingData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWYouTubeSearchTypingData.m; path = YoutubeMP3/JWYouTubeSearchTypingData.m; sourceTree = "<group>"; };
+		55CD12661C3F6D71001662CF /* JWYouTubeVideoData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWYouTubeVideoData.h; path = YoutubeMP3/JWYouTubeVideoData.h; sourceTree = "<group>"; };
+		55CD12671C3F6D71001662CF /* JWYouTubeVideoData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWYouTubeVideoData.m; path = YoutubeMP3/JWYouTubeVideoData.m; sourceTree = "<group>"; };
+		55CD12681C3F6D71001662CF /* JWYTSearchTypingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWYTSearchTypingViewController.h; path = YoutubeMP3/JWYTSearchTypingViewController.h; sourceTree = "<group>"; };
+		55CD12691C3F6D71001662CF /* JWYTSearchTypingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWYTSearchTypingViewController.m; path = YoutubeMP3/JWYTSearchTypingViewController.m; sourceTree = "<group>"; };
+		55CD12731C3F6D84001662CF /* JWClipAudioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWClipAudioController.h; path = AudioClip/JWClipAudioController.h; sourceTree = "<group>"; };
+		55CD12741C3F6D84001662CF /* JWClipAudioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWClipAudioController.m; path = AudioClip/JWClipAudioController.m; sourceTree = "<group>"; };
+		55CD12751C3F6D84001662CF /* JWClipAudioViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWClipAudioViewController.h; path = AudioClip/JWClipAudioViewController.h; sourceTree = "<group>"; };
+		55CD12761C3F6D84001662CF /* JWClipAudioViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWClipAudioViewController.m; path = AudioClip/JWClipAudioViewController.m; sourceTree = "<group>"; };
+		55CD12791C3F6EBD001662CF /* JWCurrentWorkItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWCurrentWorkItem.h; path = Common/JWCurrentWorkItem.h; sourceTree = "<group>"; };
+		55CD127A1C3F6EBD001662CF /* JWCurrentWorkItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWCurrentWorkItem.m; path = Common/JWCurrentWorkItem.m; sourceTree = "<group>"; };
+		55CD127C1C3F6F36001662CF /* JWRecordJamViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWRecordJamViewController.h; path = Misc/JWRecordJamViewController.h; sourceTree = "<group>"; };
+		55CD127D1C3F6F36001662CF /* JWRecordJamViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWRecordJamViewController.m; path = Misc/JWRecordJamViewController.m; sourceTree = "<group>"; };
+		55CD127F1C3F6F7C001662CF /* JWDBKeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWDBKeys.h; path = Common/JWDBKeys.h; sourceTree = "<group>"; };
+		55CD12801C3F742A001662CF /* JWTrackSetsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWTrackSetsViewController.h; sourceTree = "<group>"; };
+		55CD12811C3F742A001662CF /* JWTrackSetsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWTrackSetsViewController.m; sourceTree = "<group>"; };
+		55CD12831C3F7B31001662CF /* JWMedia.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = JWMedia.xcassets; sourceTree = "<group>"; };
+		55CD12851C42AD71001662CF /* JWSourceAudioListsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWSourceAudioListsViewController.h; sourceTree = "<group>"; };
+		55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWSourceAudioListsViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,6 +292,9 @@
 		5525FE891C3727430081FB23 /* JWMixAudioScrubber */ = {
 			isa = PBXGroup;
 			children = (
+				55CD124E1C3F6D4C001662CF /* Misc */,
+				55CD124D1C3F6D2F001662CF /* YoutubeMP3 */,
+				55CD124C1C3F6D22001662CF /* AudioClip */,
 				55CD12221C38DA74001662CF /* jwfullamps - 3.png */,
 				55CD12261C38DB39001662CF /* jwjustscreensandlogos - 2.png */,
 				5525FF691C37DD370081FB23 /* audiofiles */,
@@ -244,10 +310,17 @@
 				5525FE931C3727430081FB23 /* DetailViewController.h */,
 				5525FE941C3727430081FB23 /* DetailViewController.m */,
 				5525FE961C3727430081FB23 /* Main.storyboard */,
+				55CD12281C3F16B5001662CF /* YoutubeSearch.storyboard */,
+				55CD122B1C3F17C7001662CF /* Other.storyboard */,
 				5525FE991C3727430081FB23 /* Assets.xcassets */,
+				55CD12831C3F7B31001662CF /* JWMedia.xcassets */,
 				5525FE9B1C3727430081FB23 /* LaunchScreen.storyboard */,
 				5525FE9E1C3727430081FB23 /* Info.plist */,
 				5525FE8A1C3727430081FB23 /* Supporting Files */,
+				55CD12801C3F742A001662CF /* JWTrackSetsViewController.h */,
+				55CD12811C3F742A001662CF /* JWTrackSetsViewController.m */,
+				55CD12851C42AD71001662CF /* JWSourceAudioListsViewController.h */,
+				55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */,
 			);
 			path = JWMixAudioScrubber;
 			sourceTree = "<group>";
@@ -378,6 +451,11 @@
 		5525FEC71C3728D00081FB23 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				55CD127F1C3F6F7C001662CF /* JWDBKeys.h */,
+				55CD12791C3F6EBD001662CF /* JWCurrentWorkItem.h */,
+				55CD127A1C3F6EBD001662CF /* JWCurrentWorkItem.m */,
+				55CD122E1C3F1A37001662CF /* JWFileController.h */,
+				55CD122F1C3F1A37001662CF /* JWFileController.m */,
 				5525FEC81C3728ED0081FB23 /* JWPlayerFileInfo.h */,
 				5525FEC91C3728ED0081FB23 /* JWPlayerFileInfo.m */,
 				5525FECA1C3728ED0081FB23 /* JWUITransportButton.h */,
@@ -398,6 +476,57 @@
 				5525FF341C372AC00081FB23 /* trimmedMP3.m4a */,
 			);
 			name = audiofiles;
+			sourceTree = "<group>";
+		};
+		55CD124C1C3F6D22001662CF /* AudioClip */ = {
+			isa = PBXGroup;
+			children = (
+				55CD12731C3F6D84001662CF /* JWClipAudioController.h */,
+				55CD12741C3F6D84001662CF /* JWClipAudioController.m */,
+				55CD12751C3F6D84001662CF /* JWClipAudioViewController.h */,
+				55CD12761C3F6D84001662CF /* JWClipAudioViewController.m */,
+			);
+			name = AudioClip;
+			sourceTree = "<group>";
+		};
+		55CD124D1C3F6D2F001662CF /* YoutubeMP3 */ = {
+			isa = PBXGroup;
+			children = (
+				55CD12581C3F6D71001662CF /* JWFileDowloadController.h */,
+				55CD12591C3F6D71001662CF /* JWFileDowloadController.m */,
+				55CD125A1C3F6D71001662CF /* JWJamMP3TableViewController.h */,
+				55CD125B1C3F6D71001662CF /* JWJamMP3TableViewController.m */,
+				55CD125C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.h */,
+				55CD125D1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m */,
+				55CD125E1C3F6D71001662CF /* JWURLManip.h */,
+				55CD125F1C3F6D71001662CF /* JWURLManip.m */,
+				55CD12601C3F6D71001662CF /* JWYoutubeMP3ConvertController.h */,
+				55CD12611C3F6D71001662CF /* JWYoutubeMP3ConvertController.m */,
+				55CD12621C3F6D71001662CF /* JWYoutubeMP3ViewController.h */,
+				55CD12631C3F6D71001662CF /* JWYoutubeMP3ViewController.m */,
+				55CD12641C3F6D71001662CF /* JWYouTubeSearchTypingData.h */,
+				55CD12651C3F6D71001662CF /* JWYouTubeSearchTypingData.m */,
+				55CD12661C3F6D71001662CF /* JWYouTubeVideoData.h */,
+				55CD12671C3F6D71001662CF /* JWYouTubeVideoData.m */,
+				55CD12681C3F6D71001662CF /* JWYTSearchTypingViewController.h */,
+				55CD12691C3F6D71001662CF /* JWYTSearchTypingViewController.m */,
+			);
+			name = YoutubeMP3;
+			sourceTree = "<group>";
+		};
+		55CD124E1C3F6D4C001662CF /* Misc */ = {
+			isa = PBXGroup;
+			children = (
+				55CD127C1C3F6F36001662CF /* JWRecordJamViewController.h */,
+				55CD127D1C3F6F36001662CF /* JWRecordJamViewController.m */,
+				55CD124F1C3F6D5E001662CF /* JWAmpItemViewController.h */,
+				55CD12501C3F6D5E001662CF /* JWAmpItemViewController.m */,
+				55CD12511C3F6D5E001662CF /* JWAmpPageViewController.h */,
+				55CD12521C3F6D5E001662CF /* JWAmpPageViewController.m */,
+				55CD12531C3F6D5E001662CF /* JWFilesTableViewController.h */,
+				55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */,
+			);
+			name = Misc;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -503,6 +632,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55CD12841C3F7B31001662CF /* JWMedia.xcassets in Resources */,
 				5525FE9D1C3727430081FB23 /* LaunchScreen.storyboard in Resources */,
 				5525FF391C3746280081FB23 /* AminorBackingtrackTrimmedMP3-45.m4a in Resources */,
 				5525FF401C3764870081FB23 /* clipRecording_killers2.caf in Resources */,
@@ -511,8 +641,10 @@
 				5525FF351C372AC00081FB23 /* trimmedMP3-45.m4a in Resources */,
 				55CD12231C38DA74001662CF /* jwfullamps - 3.png in Resources */,
 				5525FF3E1C3764870081FB23 /* clipRecording_aminor1.caf in Resources */,
+				55CD122A1C3F16B5001662CF /* YoutubeSearch.storyboard in Resources */,
 				55CD12271C38DB39001662CF /* jwjustscreensandlogos - 2.png in Resources */,
 				5525FE9A1C3727430081FB23 /* Assets.xcassets in Resources */,
+				55CD122D1C3F17C7001662CF /* Other.storyboard in Resources */,
 				5525FE981C3727430081FB23 /* Main.storyboard in Resources */,
 				5525FF361C372AC00081FB23 /* trimmedMP3.m4a in Resources */,
 			);
@@ -541,32 +673,49 @@
 			files = (
 				5525FF2F1C3729980081FB23 /* JWMicAudioEngine.m in Sources */,
 				5525FF271C3729980081FB23 /* AVAudioPlayerNode+JW.m in Sources */,
+				55CD12301C3F1A37001662CF /* JWFileController.m in Sources */,
 				5525FF031C37298B0081FB23 /* JWEffectPresetTableViewCell.m in Sources */,
 				5525FED51C3729130081FB23 /* JWAudioPlayerController.m in Sources */,
 				5525FF2C1C3729980081FB23 /* JWAudioRecorderController.m in Sources */,
+				55CD12821C3F742A001662CF /* JWTrackSetsViewController.m in Sources */,
 				5525FEEE1C37295C0081FB23 /* JWScrubberClipEndsLayer.m in Sources */,
 				5525FF291C3729980081FB23 /* AVAudioUnitDistortion+JW.m in Sources */,
 				5525FF2D1C3729980081FB23 /* JWClipAudioEngine.m in Sources */,
+				55CD12551C3F6D5E001662CF /* JWAmpItemViewController.m in Sources */,
+				55CD12711C3F6D71001662CF /* JWYouTubeVideoData.m in Sources */,
 				5525FE8F1C3727430081FB23 /* AppDelegate.m in Sources */,
 				5525FECC1C3728ED0081FB23 /* JWPlayerFileInfo.m in Sources */,
 				5525FF301C3729980081FB23 /* JWMTAudioEngine.m in Sources */,
 				5525FED61C3729130081FB23 /* JWLoopAudioPlayerController.m in Sources */,
 				5525FEEC1C37295C0081FB23 /* JWPulseLightView.m in Sources */,
 				5525FF311C3729980081FB23 /* JWMTEffectsAudioEngine.m in Sources */,
+				55CD12771C3F6D84001662CF /* JWClipAudioController.m in Sources */,
 				5525FF281C3729980081FB23 /* AVAudioUnitDelay+JW.m in Sources */,
 				5525FF2E1C3729980081FB23 /* JWEffectsClipAudioEngine.m in Sources */,
+				55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */,
 				5525FEEF1C37295C0081FB23 /* JWScrubberController.m in Sources */,
+				55CD126B1C3F6D71001662CF /* JWJamMP3TableViewController.m in Sources */,
+				55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */,
+				55CD127B1C3F6EBD001662CF /* JWCurrentWorkItem.m in Sources */,
 				5525FECD1C3728ED0081FB23 /* JWUITransportButton.m in Sources */,
+				55CD12871C42AD71001662CF /* JWSourceAudioListsViewController.m in Sources */,
 				5525FF071C37298B0081FB23 /* JWSliderTableViewCell.m in Sources */,
+				55CD12781C3F6D84001662CF /* JWClipAudioViewController.m in Sources */,
+				55CD126E1C3F6D71001662CF /* JWYoutubeMP3ConvertController.m in Sources */,
 				5525FEF11C37295C0081FB23 /* JWScrubberGradientLayer.m in Sources */,
 				5525FEF01C37295C0081FB23 /* JWScrubberDemoController.m in Sources */,
 				5525FE921C3727430081FB23 /* MasterViewController.m in Sources */,
 				5525FE8C1C3727430081FB23 /* main.m in Sources */,
 				5525FEED1C37295C0081FB23 /* JWScalingVisualAudioBufferView.m in Sources */,
 				5525FEEB1C37295C0081FB23 /* JWBufferSampler.m in Sources */,
+				55CD12701C3F6D71001662CF /* JWYouTubeSearchTypingData.m in Sources */,
 				5525FF2B1C3729980081FB23 /* JWAudioEngine.m in Sources */,
 				5525FF081C37298B0081FB23 /* JWTableHeaderView.m in Sources */,
 				5525FF321C3729980081FB23 /* JWPlayerNode.m in Sources */,
+				55CD126C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m in Sources */,
+				55CD126D1C3F6D71001662CF /* JWURLManip.m in Sources */,
+				55CD12721C3F6D71001662CF /* JWYTSearchTypingViewController.m in Sources */,
+				55CD126F1C3F6D71001662CF /* JWYoutubeMP3ViewController.m in Sources */,
 				5525FEF31C37295C0081FB23 /* JWVisualAudioBufferView.m in Sources */,
 				5525FED71C3729130081FB23 /* JWPlayerControlsViewController.m in Sources */,
 				5525FF061C37298B0081FB23 /* JWSliderAndSwitchTableViewCell.m in Sources */,
@@ -575,6 +724,7 @@
 				5525FF021C37298B0081FB23 /* JWEffectParametersTableViewCell.m in Sources */,
 				5525FF051C37298B0081FB23 /* JWRecorderTableViewCell.m in Sources */,
 				5525FEF21C37295C0081FB23 /* JWScrubberViewController.m in Sources */,
+				55CD126A1C3F6D71001662CF /* JWFileDowloadController.m in Sources */,
 				5525FE951C3727430081FB23 /* DetailViewController.m in Sources */,
 				5525FF041C37298B0081FB23 /* JWMixEditTableViewController.m in Sources */,
 			);
@@ -626,6 +776,22 @@
 				5525FE9C1C3727430081FB23 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		55CD12281C3F16B5001662CF /* YoutubeSearch.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				55CD12291C3F16B5001662CF /* Base */,
+			);
+			name = YoutubeSearch.storyboard;
+			sourceTree = "<group>";
+		};
+		55CD122B1C3F17C7001662CF /* Other.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				55CD122C1C3F17C7001662CF /* Base */,
+			);
+			name = Other.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

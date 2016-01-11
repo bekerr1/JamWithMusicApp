@@ -11,6 +11,9 @@
 #import "JWEffectsHandler.h"
 @import UIKit;
 
+
+typedef void (^JWPlayerCompletionHandler)(void);
+
 @protocol JWAudioPlayerControllerDelegate;
 
 @interface JWAudioPlayerController : NSObject <JWPlayerControlsProtocol>
@@ -21,7 +24,13 @@
 @property (nonatomic, readonly) NSUInteger numberOfTracks;
 @property (nonatomic) id <JWAudioPlayerControllerDelegate> delegate;
 
+
+-(void)setTrackSet:(id)trackSet;
+
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me;
+
+-(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me withCompletion:(JWPlayerCompletionHandler)completion;
+
 -(void) selectValidTrack;
 -(void) deSelectTrack;
 
@@ -31,6 +40,8 @@
 
 -(BOOL) stopEditingSelectedTrackSave;
 -(BOOL) stopEditingSelectedTrackCancel;
+
+-(void)stop;
 
 @end
 

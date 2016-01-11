@@ -8,11 +8,14 @@
 
 #import "DetailViewController.h"
 #import "JWAudioPlayerController.h"
+#import "JWCurrentWorkItem.h"
 
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate> {
     
     BOOL _playing;
+    NSUInteger selectedAmpImageIndex;
+
 }
 
 @property (strong, nonatomic) JWAudioPlayerController* playerController;
@@ -26,7 +29,9 @@
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *flexSpace2;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *exportButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *effectsButton;
+@property (strong, nonatomic) IBOutlet UIActivityIndicatorView *scrubberActivity;
 
+@property (strong, nonatomic) IBOutlet UIView *scrubberContainerView;
 @property (strong, nonatomic) IBOutlet UIImageView *logoImageView;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
 @property (strong, nonatomic) id scrubber;
@@ -57,76 +62,158 @@
 
 - (void)configureView {
     
+    _scrubberContainerView.hidden = YES;
+    [_scrubberActivity startAnimating];
+
     // Update the user interface for the detail item.
-    
     //[self updateStepperForItem:_detailItem];
     
-    self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
-    
-    // SETUP AUDIO ENGINE
-    if (_trackItems) {
-        // MULTIPLE items
-        if (_playerController)
-        {
-            [_playerController setTrackItems:_trackItems];
+    if (_detailItem) {
+        id hasTrackObjectSet = _detailItem[@"trackobjectset"];
+        if (hasTrackObjectSet) {
+            self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+        } else {
+            self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
         }
         
-    } else {
-        // SINGLE detail item
-        if (self.detailItem) {
-            if (_playerController)
-            {
-                [_playerController setTrackItem:_detailItem];
+        
+        if (_playerController) {
+            // SETUP AUDIO ENGINE
+            if (_trackItems) {
+                // MULTIPLE items
+                if (hasTrackObjectSet) {
+
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [_playerController setTrackItems:_trackItems];
+                });
+                } else {
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [_playerController setTrackItems:_trackItems];
+                    });
+
+                }
+            } else {
+                // SINGLE detail item
+                if (self.detailItem) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [_playerController setTrackItem:_detailItem];
+                    });
+                }
             }
-            
-//            [self updateStatusForItem:_detailItem];
         }
     }
+
     
+    _scrubberContainerView.alpha = 0;
+    _scrubberContainerView.hidden = NO;
+    [UIView animateWithDuration:0.5 delay:0.5 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        _scrubberContainerView.alpha = 1.0;
+    } completion:^(BOOL fini){
+    } ];
+    double delayInSecs = 0.6;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [_scrubberActivity stopAnimating];
+    });
+
 }
+
+
+//    double delayInSecs = 0.5;
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        _scrubberContainerView.hidden = NO;
+//        [_scrubberActivity stopAnimating];
+//    });
+
+//    _scrubberContainerView.hidden = NO;
+//    [_scrubberActivity stopAnimating];
+
+//    [UIView transitionWithView:_scrubberContainerView duration:0.5 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+//        _scrubberContainerView.hidden = NO;
+//    } completion:^(BOOL fini){
+//        [_scrubberActivity stopAnimating];
+//    }];
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+    NSLog(@"%s",__func__);
+    [[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
     [self toolbar1];
 
+    _scrubberContainerView.hidden = YES;
+    [_scrubberActivity startAnimating];
+
     self.playerController = [JWAudioPlayerController new];
-    
-    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
     self.playerController.delegate = self;
-    // Do any additional setup after loading the view, typically from a nib.
-    [self configureView];
+    
+//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
+    
+    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit
+                                                   withCompletion:^{
+                                                       [self configureView];
+                                                       [self.navigationController setToolbarHidden:NO];
+                                                   }];
 
-    [[self.navigationController toolbar] setBarTintColor:[UIColor blackColor]];
-    [self.navigationController setToolbarHidden:NO];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
 
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
+    [self updateAmpImage];
+}
+
+-(void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+
+//    UISplitViewController *splitView = self.navigationController.splitViewController;
+//    if (splitView != nil) {
+//        if (splitView.displayMode == UISplitViewControllerDisplayModePrimaryOverlay)
+//            [self.playerController stop];
+//    }
+    
+}
+
+-(void)delloc
+{
+    [self.playerController stop];
+}
+
+-(void)stopPlaying {
+    [self.playerController stop];
+}
+
+-(void)updateAmpImage {
+    NSLog(@"%s %ld",__func__,selectedAmpImageIndex);
+    
+    // jwframesandscreens - 3
+    //jwscreensandcontrols
+    //jwjustscreensandlogos
+    
+    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %ld",selectedAmpImageIndex + 1]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _logoImageView.image = ampImage;
+        [self.logoImageView setNeedsLayout];
+    });
+}
+
+-(void)didSelectAmpImage:(NSNotification*)noti {
+    
+    NSLog(@"%s %@",__func__,[[noti userInfo] description]);
+    
+    NSNumber *selectedIndex = noti.userInfo[@"index"];
+    if (selectedIndex) {
+        selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
+    }
+    [self updateAmpImage];
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
-
-//-(void)viewDidAppear:(BOOL)animated
-//{
-//    static int firstTime = 1;
-//    if (firstTime) {
-//        [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
-//        self.playerController.delegate = self;
-//        // Do any additional setup after loading the view, typically from a nib.
-//        [self configureView];
-//    }
-//    firstTime = 0;
-//    
-//}
-
-//if ([self isMovingToParentViewController]) {
-//    NSLog(@"%s isMovingToParentViewController", __func__);
-//}
-//if ([self isBeingPresented]) {
-//    NSLog(@"%s isBeingPresented", __func__);
-//}
 
 //SCRUBBER CONTROLLER EMBEDED IN SCTV
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -155,7 +242,6 @@
     } else if (sender == _forwardButton) {
         NSLog(@"%s PAUSE",__func__);
         
-        
     } else  if (sender == _rewindButton) {
         NSLog(@"%s REWIND",__func__);
         [_playerController rewind];
@@ -175,7 +261,7 @@
 
 -(void)toolbar2WithPlay:(BOOL)playbutton {
     
-        [self setToolbarItems:@[_rewindButton, _fixedSpace, !playbutton ? _playButton : _pauseButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
+    [self setToolbarItems:@[_rewindButton, _fixedSpace, !playbutton ? _playButton : _pauseButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
 }
 
 

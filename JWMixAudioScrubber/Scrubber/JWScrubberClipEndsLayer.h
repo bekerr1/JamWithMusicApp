@@ -22,6 +22,7 @@ typedef NS_ENUM(NSInteger, JWScrubberClipEndsKind) {
 
 @property (nonatomic) JWScrubberClipEndsKind kind;
 @property (nonatomic) UIColor *color;
+
 -(void)render;
 
 @end

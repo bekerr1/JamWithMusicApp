@@ -46,6 +46,9 @@
     _mixerSection = 0;
     _scrubberSection = 0;
 
+    self.tableView.decelerationRate = UIScrollViewDecelerationRateFast;
+    self.tableView.bounces = NO;
+
     [self refresh];
 }
 

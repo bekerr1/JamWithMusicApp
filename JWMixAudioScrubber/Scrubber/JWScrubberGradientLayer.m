@@ -49,7 +49,7 @@
         
         CGFloat spread = _centeredSpacingSpread/2;
 
-        self.locations = @[@(_breakingPoint1),@(.500 - spread),@(.500 +spread),@(1 - _breakingPoint1)];
+        self.locations = @[@(_breakingPoint1), @(.500 - spread), @(.500 +spread),@(1 - _breakingPoint1)];
         self.colors = @[(__bridge id)_color1.CGColor,
                         (__bridge id)_color2.CGColor,
                         (__bridge id)_color2.CGColor,

@@ -37,13 +37,13 @@
 }
 
 -(BOOL)adjustFloatValue1:(float)value{
-    NSLog(@"%s adjusting wetdrymix %.2f to %.2f",__func__,self.wetDryMix,value);
+//    NSLog(@"%s adjusting wetdrymix %.2f to %.2f",__func__,self.wetDryMix,value);
     self.wetDryMix = value;
     return YES;
 }
 
 -(BOOL)adjustFloatValue2:(float)value{
-    NSLog(@"%s adjusting preGain %.2f to %.2f",__func__,self.preGain,value);
+//    NSLog(@"%s adjusting preGain %.2f to %.2f",__func__,self.preGain,value);
     self.preGain = value;
     return YES;
 }

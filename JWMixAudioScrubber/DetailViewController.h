@@ -8,13 +8,25 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSInteger, JWHomeSectionType) {
+    JWHomeSectionTypeNone     =1,
+    JWHomeSectionTypeOther,
+    JWHomeSectionTypeDownloaded,
+    JWHomeSectionTypePreloaded,
+    JWHomeSectionTypeYoutube,
+    JWHomeSectionTypeMyTracks,
+    JWHomeSectionTypeAudioFiles
+};
+
 @protocol JWDetailDelegate;
 
 @interface DetailViewController : UIViewController
-
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
 @property (weak, nonatomic) id <JWDetailDelegate> delegate;
+
+-(void)stopPlaying;
+
 @end
 
 @protocol JWDetailDelegate <NSObject>
@@ -23,10 +35,10 @@
 -(void)save:(DetailViewController*)controller cachKey:(NSString*)key;
 -(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key;
 -(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key;
+-(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key;
 @end
 
 @protocol JWAudioControlsDelegate <NSObject>
-
 
 
 @end

@@ -133,7 +133,7 @@
             }
             
         } else {
-            NSLog(@"%s NO audioBuffer player at index %ld perhaps try using audioFile for format ",__func__,(unsigned long)index);
+//            NSLog(@"%s NO audioBuffer player at index %ld perhaps try using audioFile for format ",__func__,(unsigned long)index);
         }
 
         index++;

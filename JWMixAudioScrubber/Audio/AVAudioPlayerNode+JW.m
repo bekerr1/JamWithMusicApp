@@ -36,13 +36,13 @@
 }
 
 -(BOOL)adjustFloatValue1:(float)value{
-    NSLog(@"%s adjusting volume %.2f to %.2f",__func__,self.volume,value);
+//    NSLog(@"%s adjusting volume %.2f to %.2f",__func__,self.volume,value);
     self.volume = value;
     return YES;
 }
 
 -(BOOL)adjustFloatValue2:(float)value{
-    NSLog(@"%s adjusting pan %.2f to %.2f",__func__,self.pan,value);
+//    NSLog(@"%s adjusting pan %.2f to %.2f",__func__,self.pan,value);
     self.pan = value;
     return YES;
 }
