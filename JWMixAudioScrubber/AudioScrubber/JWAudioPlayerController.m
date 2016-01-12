@@ -127,6 +127,8 @@
 
 -(void)setTrackSet:(id)trackSet {
     
+    NSLog(@"%s",__func__);
+    
     _trackItems = trackSet;
     
     if (_trackItems) {
@@ -184,6 +186,7 @@
             playerNode =
             [@{@"title":@"playerrecordernode1",
                @"type":@(JWMixerNodeTypePlayerRecorder),
+               @"nodekey":item[@"key"],
                } mutableCopy];
         }
         
@@ -1139,9 +1142,18 @@
 -(void)userAudioObtained {
     
     [self configureScrubbers:NO];
+    
     [_delegate playTillEnd];
     
 }
+
+
+-(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
+    
+    if ([_delegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
+        [_delegate userAudioObtainedAtIndex:index recordingId:rid];
+}
+
 
 #pragma mark - MIXEDIT DELEGATE
 

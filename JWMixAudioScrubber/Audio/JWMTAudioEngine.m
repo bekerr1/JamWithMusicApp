@@ -1713,14 +1713,21 @@
                     playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
                     playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
                     playerNodeInfo [@"audiofile"] = micOutputFile;
+                    
+                    NSString *recordingId = rc.recordingId;
                     [_activeRecorderIndex removeIndex:prIndex];
                     
                     self.needMakeConnections = YES;
                     
                     dispatch_sync(dispatch_get_main_queue(), ^() {
+                        if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
+                            [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+
                         if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
                             [_engineDelegate userAudioObtained];
                     });
+                    
+
                     
 
                 } else {

@@ -28,6 +28,8 @@
 // registercontroller
 @property (nonatomic,strong)  NSMutableDictionary *scrubberTrackIds;
 @property (nonatomic,strong) id <JWScrubberBufferControllerDelegate> scrubberBufferController;
+
+@property (nonatomic, readwrite) NSString *recordingId;
 @end
 
 
@@ -120,6 +122,8 @@
     NSString *thisfName = @"clipRecording";
     NSString *uniqueFname = [NSString stringWithFormat:@"%@_%@.caf",thisfName,cacheKey?cacheKey:@""];
     NSString *docsDir = [NSHomeDirectory() stringByAppendingPathComponent:  @"Documents"];
+    
+    _recordingId = cacheKey;
     
     _micOutputFileURL = [NSURL URLWithString:[docsDir stringByAppendingPathComponent:uniqueFname]];
 }

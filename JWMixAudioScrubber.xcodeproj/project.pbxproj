@@ -517,14 +517,14 @@
 		55CD124E1C3F6D4C001662CF /* Misc */ = {
 			isa = PBXGroup;
 			children = (
-				55CD127C1C3F6F36001662CF /* JWRecordJamViewController.h */,
-				55CD127D1C3F6F36001662CF /* JWRecordJamViewController.m */,
 				55CD124F1C3F6D5E001662CF /* JWAmpItemViewController.h */,
 				55CD12501C3F6D5E001662CF /* JWAmpItemViewController.m */,
 				55CD12511C3F6D5E001662CF /* JWAmpPageViewController.h */,
 				55CD12521C3F6D5E001662CF /* JWAmpPageViewController.m */,
 				55CD12531C3F6D5E001662CF /* JWFilesTableViewController.h */,
 				55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */,
+				55CD127C1C3F6F36001662CF /* JWRecordJamViewController.h */,
+				55CD127D1C3F6F36001662CF /* JWRecordJamViewController.m */,
 			);
 			name = Misc;
 			sourceTree = "<group>";

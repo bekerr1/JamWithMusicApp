@@ -84,7 +84,9 @@
                 if (hasTrackObjectSet) {
 
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [_playerController setTrackItems:_trackItems];
+                    [_playerController setTrackSet:_trackItems];
+//                    [_playerController setTrackItems:_trackItems];
+
                 });
                 } else {
                     
@@ -368,6 +370,15 @@
 }
 
 
+
+-(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
+    
+    if ( index <  [self.trackItems count]){
+        id nodeItem = _trackItems[index];
+        if ([_delegate respondsToSelector:@selector(userAudioObtainedInNodeWithKey:recordingId:)])
+            [_delegate userAudioObtainedInNodeWithKey:nodeItem[@"key"] recordingId:rid];
+    }
+}
 
 #pragma mark -
 

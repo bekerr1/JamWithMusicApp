@@ -33,6 +33,7 @@
 @property (nonatomic)NSURL* micOutputFileURL;
 @property (nonatomic, readonly) BOOL hasRecorded;
 @property (nonatomic, readonly) BOOL recording;
+@property (nonatomic, readonly) NSString *recordingId;
 
 -(void)initializeController;
 -(void)record;

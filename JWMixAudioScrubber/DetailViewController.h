@@ -36,6 +36,10 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
 -(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key;
 -(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key;
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key;
+
+@optional
+-(void) userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid;
+
 @end
 
 @protocol JWAudioControlsDelegate <NSObject>

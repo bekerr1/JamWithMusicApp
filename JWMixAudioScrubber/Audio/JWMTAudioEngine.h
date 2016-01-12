@@ -123,6 +123,7 @@
 -(void) completedPlayingAtPlayerIndex:(NSUInteger)index;
 -(void) fiveSecondBufferCompletion;
 -(void) userAudioObtained;
+-(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
 -(void) mixRecordingCompleted;
 // TODO: not used
 -(void) mixInCountDownFired;

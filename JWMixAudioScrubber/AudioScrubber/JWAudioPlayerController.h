@@ -55,4 +55,6 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)trackSelected:(JWAudioPlayerController *)controller;
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
 
+-(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
+
 @end

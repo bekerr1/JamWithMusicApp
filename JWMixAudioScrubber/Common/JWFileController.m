@@ -155,6 +155,22 @@
     return result;
 }
 
+-(NSURL *)fileURLWithFileName:(NSString*)name inPath:(NSArray*)pathComponents{
+
+    NSURL *result;
+    NSURL *baseURL = [NSURL fileURLWithPath:[self documentsDirectoryPath]];
+    NSString *pathString = @"";
+    for (id path in pathComponents) {
+        pathString = [pathString stringByAppendingPathComponent:path];
+    }
+    pathString = [pathString stringByAppendingPathComponent:name];
+    NSURL *url = [NSURL fileURLWithPath:pathString relativeToURL:baseURL];
+    NSURL *absURL = [url absoluteURL];
+//    NSLog(@"absURL = %@", absURL);
+    result = url;
+    return result;
+}
+
 /*
  
  ./
