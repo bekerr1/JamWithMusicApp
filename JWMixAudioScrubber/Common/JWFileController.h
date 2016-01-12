@@ -21,6 +21,7 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 -(void)readFsData;
 
 -(void)saveMeta;
+-(void)saveUserList;
 
 // returns records URLs and size for Files arrays
 @property (nonatomic,readonly) NSArray *downloadedJamTrackFiles;

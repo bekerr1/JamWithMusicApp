@@ -36,7 +36,6 @@
 
 @implementation MasterViewController
 
-
 - (void)viewDidLoad {
     [super viewDidLoad];
 
@@ -202,28 +201,13 @@
     
     NSLog(@"%s",__func__);
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.navigationController popToRootViewControllerAnimated:NO];
-    });
-    
     NSString *fname = [NSString stringWithFormat:@"trimmedMP3_%@.m4a",key ? key : @""];
     NSURL *fileURL = [self fileURLWithFileName:fname inPath:nil];
     
     id jamTrack = [self newJamTrackObjectWithFileURL:fileURL];
     
-    
-    //    id trackObject = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL];
-//    
-//    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL];
-//    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
-//    
-//    id jamTrack = [self newJamTrackObject];
-//    
-//    jamTrack[@"trackobjectset"] = [@[track1, track2] mutableCopy];
-
-    if ([title length] > 0) {
+    if ([title length] > 0)
         jamTrack[@"title"] = title;
-    }
 
     NSUInteger insertSection = [self indexOfSectionOfType:JWHomeSectionTypeAudioFiles];
     
@@ -233,14 +217,17 @@
         
         [jamTracks insertObject:jamTrack atIndex:0];
         
-        
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:insertSection];
         dispatch_async(dispatch_get_main_queue(), ^{
+            [self.navigationController popToRootViewControllerAnimated:NO];
             [self.tableView reloadData];
             [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
             [self performSegueWithIdentifier:@"showDetail" sender:self];
         });
-        
+    }
+    
+}
+
 //        // Animated
 //        dispatch_async(dispatch_get_main_queue(), ^{
 //            [self.tableView beginUpdates];
@@ -249,10 +236,7 @@
 //                                  withRowAnimation:UITableViewRowAnimationAutomatic];
 //            [self.tableView endUpdates];
 //        });
-        
-    }
-    
-}
+
 
 -(void)finishedTrim:(JWYTSearchTypingViewController *)controller withDBKey:(NSString*)key {
     NSLog(@"%s",__func__);
@@ -1338,9 +1322,9 @@
                                      usingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                                          if ([obj isEqualToString:@"Documents"]) {
                                              indexToDocuments = idx;
+                                             *stop = YES;
                                          }
-                                     }
-     ];
+                                     }];
     
     NSMutableArray *pathFromDocuments = [NSMutableArray new];
     // Iterate one past Documents til count -1 end slash
@@ -1376,13 +1360,6 @@
 -(NSURL *)fileURLWithFileName:(NSString*)name {
     return [self fileURLWithFileName:name inPath:nil];
 }
-//    NSURL *result;
-//    NSString *thisfName = name;//@"mp3file";
-//    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
-//    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
-//    [fname appendFormat:@"/%@",thisName];
-//    result = [NSURL fileURLWithPath:fname];
-//    return result;
 
 
 #pragma mark -
@@ -1417,7 +1394,6 @@
     }
 }
 
-// -------------
 
 -(void)serializeInJamTrackNode:(id)jamTrackNode {
     id fileRelativePath = jamTrackNode[@"fileRelativePath"];
@@ -1446,8 +1422,7 @@
 
 -(void)saveHomeMenuLists {
     [self serializeOutJamTracks];
-    
-    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
+//    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
 
     [_homeControllerSections writeToURL:[self fileURLWithFileName:@"homeObjects"] atomically:YES];
     
@@ -1461,25 +1436,39 @@
 
     [self serializeInJamTracks];
     
-    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
-    
+//    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
     NSLog(@"%s homeObjects[%ld]",__func__,[_homeControllerSections count]);
-
 }
 
 @end
 
+
+
+
+
+
+
+//    id trackObject = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL];
+//    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL];
+//    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
+//    id jamTrack = [self newJamTrackObject];
+//    jamTrack[@"trackobjectset"] = [@[track1, track2] mutableCopy];
 
 //        NSLog(@"%s\n\nlastpath %@\nbaseurl %@\n relative %@\n\n",__func__,
 //              [[(NSURL*)furl path] lastPathComponent],
 //              [[(NSURL*)furl baseURL] path],
 //              [(NSURL*)furl relativePath]);
 
-
+//    NSURL *result;
+//    NSString *thisfName = name;//@"mp3file";
+//    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
+//    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
+//    [fname appendFormat:@"/%@",thisName];
+//    result = [NSURL fileURLWithPath:fname];
+//    return result;
 
 //if (!self.objectCollections) {
 //    self.objectCollections = [[NSMutableArray alloc] init];
-//}
 //
 //NSMutableArray *objectCollection = nil;
 //BOOL useSet = YES;
@@ -1487,43 +1476,30 @@
 // Use SET will great a collection of items, here a Tracks Object set
 // A Track Object or a Track Object set
 // */
-//
 //if (useSet) {
 //    objectCollection = [self newTrackObjectSet];
 //    [_objectCollections insertObject:objectCollection atIndex:0];
 //    [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-//    
 //} else {
 //    NSMutableDictionary *trackObject = [self newTrackObject];
 //    NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-//    
 //    // ADD A Track Object to the selected TrackObject set
 //    if (selected) {
 //        objectCollection = _objectCollections[selected.section];
-//        
 //        [objectCollection insertObject:trackObject atIndex:0];
 //        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:selected.section];
-//        
 //        [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 //    }
-//    
 //    // ELSE CREATES AN NEW TrackObject set
 //    else {
-//        
 //        [objectCollection insertObject:trackObject atIndex:0];
 //        [_objectCollections insertObject:objectCollection atIndex:0];
-//        
 //        [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-//    }
-//}
-
 
 //-(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key {
 //    NSIndexPath *item = [self indexPathOfCacheItem:key];
 //    NSMutableArray *objectCollection = _objectCollections[item.section];
 //    return objectCollection;
-//}
-
 
 ///*
 // serializeOut
@@ -1538,10 +1514,6 @@
 //            if (furl) {
 //                obj[@"fileName"] = [[(NSURL*)furl path] lastPathComponent];
 //                [obj removeObjectForKey:@"fileURL"];
-//            }
-//        }
-//    }
-//}
 //-(void)saveUserOrderedList {
 //    [self serializeOut];
 //    [_objectCollections writeToURL:[self fileURLWithFileName:@"savedobjects"] atomically:YES];
@@ -1549,9 +1521,6 @@
 //    
 //    NSLog(@"%s savedobjects[%ld]",__func__,[_objectCollections count]);
 //    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-//    
-//}
-//
 ///*
 // serializeIn
 // Convert any dictionary items that could not be serialized and were converted to a serializable format
@@ -1565,15 +1534,9 @@
 //            if (fname) {
 //                obj[@"fileURL"] = [self fileURLWithFileName:fname];
 //                [obj removeObjectForKey:@"fileName"];
-//            }
-//        }
-//    }
-//}
 //-(void)readUserOrderedList {
 //    _objectCollections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"savedobjects"]];
 //    [self serializeIn];
 //    NSLog(@"%savedobjects[%ld]",__func__,[_objectCollections count]);
 //    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-//}
-//
 

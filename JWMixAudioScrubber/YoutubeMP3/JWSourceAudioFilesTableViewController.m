@@ -39,7 +39,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 @property (nonatomic) NSIndexPath *selectedIndexPath;
 @property (nonatomic) NSString *selectedCacheItemKey;
 @property (nonatomic) NSArray *allFilesSections;
-
+@property NSIndexPath *selectedDetailIndexPath;
 @end
 
 
@@ -48,6 +48,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.refreshControl  = [UIRefreshControl new];
+    
+    [self.refreshControl addTarget:self action:@selector(refreshFromControl:) forControlEvents:UIControlEventValueChanged];
     self.clearsSelectionOnViewWillAppear = NO;
     self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
@@ -56,16 +59,21 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         dispatch_queue_create("imageProcessingSourceAudio",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_UTILITY, 0));
     }
-    if (_allFiles)
+    if (_allFiles) {
         _allFilesSections = @[@[],@[]];  // 2 empties
-
+    }
+  
+    [self.refreshControl beginRefreshing];
     [self loadData];
-
 }
 
-//-(void)viewWillAppear:(BOOL)animated {
-//    [super viewWillAppear:animated];
-//}
+-(void) refreshFromControl:(id)sender {
+    
+    if ([(UIRefreshControl*)sender isRefreshing]) {
+        [self loadData];
+    }
+}
+
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
@@ -83,7 +91,8 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [_playerNode stop];
-    [self saveUserOrderedList];
+    [[JWFileController sharedInstance] saveUserList];
+//    [self saveUserOrderedList];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -166,17 +175,16 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             
             index++;
         }
-
-
-        
     }
 
-    
-
     [self.tableView reloadData];
+    [self.refreshControl endRefreshing];
 
-    return;
-    
+}
+
+
+//    return;
+
 //    [self readMetaData];
 //    [self readUserOrderedList];
 //    _mp3filesFilesData = [NSMutableDictionary new];
@@ -184,10 +192,10 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 //    if (_userOrderList == nil) {
 //        NSLog(@"%s no userlist, creating new one from dictionary keys",__func__ );
 //        _userOrderList = [NSMutableArray arrayWithArray:[_mp3FilesInfo allKeys]];
-//        
+//
 //    } else {
 //        // add items to end of userlist that are not in
-//        
+//
 //        for (NSString *item in [_mp3FilesInfo allKeys] ) {
 //            NSUInteger index = [_userOrderList indexOfObject:item];
 //            if (index == NSNotFound) {
@@ -198,14 +206,11 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 //    }
 //    [self.tableView reloadData];
 
-    // Get the images and file Info Asynchrounously dont delay
+// Get the images and file Info Asynchrounously dont delay
 
 //    [self fileSystemInfo];
 //
 //    self.images = [@{} mutableCopy];
-    
-    
-}
 
 
 #pragma mark - Table view data source
@@ -304,11 +309,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     else
         cell.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
 
-
 //    cell.accessoryView.tintColor = [UIColor blueColor];
   
     cell.tintColor = [UIColor blueColor];
-
     cell.imageView.image = imageIcon;
 
     return cell;
@@ -328,9 +331,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
     return result;
 }
-
-
-
 
 
 #pragma mark - Table view delegate
@@ -396,9 +396,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             [self performSegueWithIdentifier:@"JWSourceFilesToClipSegue" sender:self];
 
         }
-
     }
-    
 }
 
 
@@ -444,8 +442,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
                                   [[JWFileController sharedInstance] jamTrackFiles],
                                   [[JWFileController sharedInstance] downloadedJamTrackFiles]
                                   ];
-
-            
         } else {
             
             // Delete the row from the data source
@@ -458,14 +454,17 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             BOOL deleteInfoToo = YES;
             if (deleteInfoToo) {
                 [_mp3FilesInfo removeObjectForKey:_userOrderList[indexPath.row]];
-                [self saveMetaData];
+                [[JWFileController sharedInstance] saveMeta];
+
+//                [self saveMetaData];
             }
-            [_userOrderList removeObjectAtIndex:indexPath.row];
             
-            [self saveUserOrderedList];
+            [_userOrderList removeObjectAtIndex:indexPath.row];
+            [[JWFileController sharedInstance] saveUserList];
+
+//            [self saveUserOrderedList];
         }
         
-
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }
 }
@@ -478,7 +477,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
      [_userOrderList removeObjectAtIndex:fromIndexPath.row];
      [_userOrderList insertObject:moveObject atIndex:toIndexPath.row];
      
-     [self saveUserOrderedList];
+     [[JWFileController sharedInstance] saveUserList];
+
+//     [self saveUserOrderedList];
  }
 
 // Override to support conditional rearranging of the table view.
@@ -488,10 +489,63 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 }
 
 
+- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
+    
+    self.selectedDetailIndexPath = indexPath;
+    [self namePrompt];
+}
+
+
+
+#pragma mark - Detail
+
+-(void)namePrompt {
+
+    NSString *title;
+    NSMutableString *message = [NSMutableString new];
+    
+    NSURL *fileURL;
+    if (_allFiles)
+        fileURL = _allFilesSections[_selectedDetailIndexPath.section][_selectedDetailIndexPath.row][@"furl"];
+    else
+        fileURL = [self fileURLForCacheItem:_userOrderList[_selectedDetailIndexPath.row]];
+    
+    if (_previewMode) {
+        title = @"Mode: Preview";
+        [message appendString:@"Select row to listen to audio"];
+    } else {
+        title = @"Mode: Select";
+        [message appendString:@"Select row to proceed with audio file"];
+    }
+
+    [message appendString:@"\n\n"];
+    [message appendString:[fileURL pathExtension]];
+    [message appendString:@"\n"];
+    [message appendString:[[fileURL lastPathComponent] stringByDeletingPathExtension]];
+
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[fileURL path]]) {
+        [message appendString:@"\nFile Exists"];
+    } else {
+        [message appendString:@"\nFile does not exist."];
+    }
+    
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* okAction =
+    [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        self.selectedDetailIndexPath = nil;
+    }];
+    
+    [actionController addAction:okAction];
+    [self presentViewController:actionController animated:YES completion:nil];
+}
+
+
 #pragma mark -
 
 -(void)playFileUsingAVPlayer:(NSURL*)audioFile {
-    NSLog(@"%s %@",__func__,[audioFile lastPathComponent]);
+//    NSLog(@"%s %@",__func__,[audioFile lastPathComponent]);
     
     AVPlayer *myPlayer = [AVPlayer playerWithURL:audioFile];
     AVPlayerViewController *playerViewController = [[AVPlayerViewController alloc] init];
@@ -504,6 +558,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 }
 
 -(void)playFileInEngine:(NSURL*)audioFile {
+    
     _audioEngine = [AVAudioEngine new];
     AVAudioPlayerNode *player = [AVAudioPlayerNode new];
     [_audioEngine attachNode:player];
@@ -570,7 +625,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         
         clipController.trackName = [fileURL lastPathComponent];
         clipController.delegate = self;
-
     }
 
 }
@@ -600,7 +654,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         }
         
     } else {
-  
+        
         if (_allFiles) {
             fileURL = _allFilesSections[_selectedIndexPath.section][_selectedIndexPath.row][@"furl"];
             title = [[fileURL lastPathComponent] stringByDeletingPathExtension];
@@ -608,7 +662,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             fileURL = [self fileURLForCacheItem:_userOrderList[_selectedIndexPath.row]];
         }
     }
-
 
     if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)]) {
         [_delegate finishedTrim:self title:title withDBKey:key];
@@ -623,6 +676,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     return [searchPaths objectAtIndex:0];
 }
+
 -(NSURL *)fileURLForCacheItem:(NSString*)dbkey {
     NSURL *result;
     NSString *thisfName = @"mp3file";
@@ -658,6 +712,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         index++;
     }
 }
+
 -(NSDictionary *)fileSystemInfoForCacheItem:(NSString*)dbkey{
     NSDictionary *result = nil;
     NSURL *fileURL = [self fileURLForCacheItem:dbkey];
@@ -669,104 +724,94 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     return result;
 }
 
-#pragma mark save and retrieve
-
--(void)saveMetaData {
-    [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:
-                               [[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]
-                   atomically:YES];
-    NSLog(@"%sMP3INFOCOUNT[%ld]",__func__,[_mp3FilesInfo count]);
-//    NSLog(@"\n%s\nMP3INFO\n%@",__func__,[_mp3FilesInfo description]);
-}
--(void)readMetaData {
-    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
-                     [NSURL fileURLWithPath:
-                      [[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
-    NSLog(@"%sMP3INFOCOUNT[%ld]",__func__,[_mp3FilesInfo count]);
-//    NSLog(@"\n%s\nMP3INFO\n%@",__func__,[_mp3FilesInfo description]);
-}
-
-
--(void)saveDescriptions {
-    [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
-    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
-}
--(void)readDescriptions {
-    _mp3FilesDescriptions = [[NSMutableDictionary alloc] initWithContentsOfURL:
-                             [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
-    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
-}
-
-
--(void)saveUserOrderedList {
-    [_userOrderList writeToURL:
-     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
-                    atomically:YES];
-    
-    NSLog(@"%sUSERLISTCOUNT[%ld] MP3DESCRIPCOUNT[%ld]",__func__,[_userOrderList count],[_mp3FilesDescriptions count]);
-
-//    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
-//    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
-}
--(void)readUserOrderedList {
-    _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
-                      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
-    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
-//    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
-}
-
-
-
--(void)convertDescriptions {
-    for (id dbkey in [_mp3FilesInfo allKeys]) {
-        [self convertDescription:dbkey];
-    }
-    for (id dbkey in [_mp3FilesInfo allKeys]) {
-        NSLog(@"%s\n%@\nrecord\n%@",__func__,dbkey,[_mp3FilesInfo[dbkey] description]);
-    }
-//    [self saveMetaData];
-}
-
--(void)convertDescription:(NSString*)dbkey {
-    // Remove the description from ytdata before adding to _mp3Info
-    NSMutableDictionary *ytdata = [_mp3FilesInfo[dbkey][JWDbKeyYouTubeData] mutableCopy];
-    if (ytdata) {
-//        NSLog(@"%s\nytdata record before\n%@",__func__,[ytdata description]);
-        id ytdescription = ytdata[JWDbKeyYoutubeDataDescription];
-        id ytlocalized = ytdata[JWDbKeyYoutubeDataLocalized];
-        if (ytdescription || ytlocalized) {
-            NSMutableDictionary *mp3DescriptionRecord = [@{} mutableCopy];
-            if (ytdescription) {
-                mp3DescriptionRecord[JWDbKeyYoutubeDataDescription] = ytdescription;
-            }
-            if (ytlocalized) {
-                mp3DescriptionRecord[JWDbKeyYoutubeDataLocalized] = ytlocalized;
-            }
-            mp3DescriptionRecord[JWDbKeyYouTubeDataVideoId] = ytdata[JWDbKeyYouTubeDataVideoId];
-//            NSLog(@"%s\ndescription record\n%@",__func__,[mp3DescriptionRecord description]);
-            NSString*descriptionKey = [[NSUUID UUID] UUIDString];
-            _mp3FilesDescriptions[descriptionKey] = mp3DescriptionRecord;
-            [ytdata removeObjectForKey:JWDbKeyYoutubeDataDescription];
-            [ytdata removeObjectForKey:JWDbKeyYoutubeDataLocalized];
-            // add the crossreference
-            ytdata[@"ytdescriptionskey"] = descriptionKey;
-            NSLog(@"%s\nytdata record after\n%@",__func__,[ytdata description]);
-//            NSLog(@"%s\ndescription accessed\n%@",__func__,[ytdata[descriptionKey] description]);
-            _mp3FilesInfo[dbkey][JWDbKeyYouTubeData]=ytdata;
-//            NSLog(@"%s\ndescription accessed\n%@",__func__,[_mp3FilesDescriptions[descriptionKey] description]);
-        } else {
-            NSLog(@"%s NO DESCRIPTION DATA - RECORD GOOD",__func__);
-        }
-    } else {
-        NSLog(@"%s NO YT DATA ",__func__);
-    }
-}
-
 
 @end
 
 
 
+
+
+
+//#pragma mark save and retrieve
+//-(void)saveMetaData {
+//    [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:
+//                               [[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]
+//                   atomically:YES];
+//    NSLog(@"%sMP3INFOCOUNT[%ld]",__func__,[_mp3FilesInfo count]);
+//    //    NSLog(@"\n%s\nMP3INFO\n%@",__func__,[_mp3FilesInfo description]);
+//}
+//-(void)readMetaData {
+//    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
+//                     [NSURL fileURLWithPath:
+//                      [[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
+//    NSLog(@"%sMP3INFOCOUNT[%ld]",__func__,[_mp3FilesInfo count]);
+//    //    NSLog(@"\n%s\nMP3INFO\n%@",__func__,[_mp3FilesInfo description]);
+//-(void)saveDescriptions {
+//    [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
+//    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
+//-(void)readDescriptions {
+//    _mp3FilesDescriptions = [[NSMutableDictionary alloc] initWithContentsOfURL:
+//                             [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
+//    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
+
+//-(void)saveUserOrderedList {
+//    [_userOrderList writeToURL:
+//     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
+//                    atomically:YES];
+//    
+//    NSLog(@"%sUSERLISTCOUNT[%ld] MP3DESCRIPCOUNT[%ld]",__func__,[_userOrderList count],[_mp3FilesDescriptions count]);
+//    
+//    //    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
+//    //    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
+//}
+//-(void)readUserOrderedList {
+//    _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
+//                      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
+//    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
+//    //    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
+//}
+
+//-(void)convertDescriptions {
+//    for (id dbkey in [_mp3FilesInfo allKeys]) {
+//        [self convertDescription:dbkey];
+//    }
+//    for (id dbkey in [_mp3FilesInfo allKeys]) {
+//        NSLog(@"%s\n%@\nrecord\n%@",__func__,dbkey,[_mp3FilesInfo[dbkey] description]);
+//    }
+//    //    [self saveMetaData];
+//
+//-(void)convertDescription:(NSString*)dbkey {
+//    // Remove the description from ytdata before adding to _mp3Info
+//    NSMutableDictionary *ytdata = [_mp3FilesInfo[dbkey][JWDbKeyYouTubeData] mutableCopy];
+//    if (ytdata) {
+//        //        NSLog(@"%s\nytdata record before\n%@",__func__,[ytdata description]);
+//        id ytdescription = ytdata[JWDbKeyYoutubeDataDescription];
+//        id ytlocalized = ytdata[JWDbKeyYoutubeDataLocalized];
+//        if (ytdescription || ytlocalized) {
+//            NSMutableDictionary *mp3DescriptionRecord = [@{} mutableCopy];
+//            if (ytdescription) {
+//                mp3DescriptionRecord[JWDbKeyYoutubeDataDescription] = ytdescription;
+//            }
+//            if (ytlocalized) {
+//                mp3DescriptionRecord[JWDbKeyYoutubeDataLocalized] = ytlocalized;
+//            }
+//            mp3DescriptionRecord[JWDbKeyYouTubeDataVideoId] = ytdata[JWDbKeyYouTubeDataVideoId];
+//            //            NSLog(@"%s\ndescription record\n%@",__func__,[mp3DescriptionRecord description]);
+//            NSString*descriptionKey = [[NSUUID UUID] UUIDString];
+//            _mp3FilesDescriptions[descriptionKey] = mp3DescriptionRecord;
+//            [ytdata removeObjectForKey:JWDbKeyYoutubeDataDescription];
+//            [ytdata removeObjectForKey:JWDbKeyYoutubeDataLocalized];
+//            // add the crossreference
+//            ytdata[@"ytdescriptionskey"] = descriptionKey;
+//            NSLog(@"%s\nytdata record after\n%@",__func__,[ytdata description]);
+//            //            NSLog(@"%s\ndescription accessed\n%@",__func__,[ytdata[descriptionKey] description]);
+//            _mp3FilesInfo[dbkey][JWDbKeyYouTubeData]=ytdata;
+//            //            NSLog(@"%s\ndescription accessed\n%@",__func__,[_mp3FilesDescriptions[descriptionKey] description]);
+//        } else {
+//            NSLog(@"%s NO DESCRIPTION DATA - RECORD GOOD",__func__);
+//        }
+//    } else {
+//        NSLog(@"%s NO YT DATA ",__func__);
 
 //    BOOL recentsFirst = YES;
 //    NSArray *sortedArray = [_mp3filesFilesData sortedArrayUsingComparator: ^(id obj1, id obj2) {
@@ -785,8 +830,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 //            } else if (cresult == NSOrderedDescending) {
 //                cresult = NSOrderedAscending;
 //            }
-//        }
-//
 //        return cresult;
 //    }];
 //    _mp3filesFilesData = [sortedArray mutableCopy];

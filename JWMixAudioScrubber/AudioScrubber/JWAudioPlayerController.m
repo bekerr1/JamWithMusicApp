@@ -280,12 +280,14 @@
 }
 
 -(void)setTrackItem:(id)trackItem {
-    NSLog(@"%s NO LONGER USED use trackSet",__func__);
     _trackItem = trackItem;
-    if (trackItem) {
-        NSArray *trackItems = @[trackItem];
-        self.trackItems = trackItems;
+    if (trackItem != nil) {
+        NSLog(@"%s NO LONGER USED use trackSet",__func__);
     }
+//    if (trackItem) {
+//        NSArray *trackItems = @[trackItem];
+//        self.trackItems = trackItems;
+//    }
 }
 - (NSMutableDictionary*) newEnginePlayerNodeForItem:(NSDictionary*)item {
     NSLog(@"%s NO LONGER USED use trackSet",__func__);
@@ -516,7 +518,7 @@
             
             //If its a player node that has a file url that buffer info can be recieved
             if (fileURL) {
-                NSLog(@"%s file at index %d\n%@",__func__,index,[fileURL lastPathComponent]);
+//                NSLog(@"%s file at index %d\n%@",__func__,index,[fileURL lastPathComponent]);
                 
                 NSString *sid =
                 [_sc prepareScrubberFileURL:fileURL
@@ -554,7 +556,7 @@
                 usePlayerScrubber = NO;
             }
             
-            NSLog(@"%s use player %@ at index %d",__func__,usePlayerScrubber?@"YES":@"NO",index);
+            NSLog(@"%s usePlayerScrubber for recorderplayer %@ at index %d",__func__,usePlayerScrubber?@"YES":@"NO",index);
             //If recorder has audio file, dont need to listen to it, should just play its audio
             if (usePlayerScrubber) {
                 // PLAYER - YELLOW / YELLOW

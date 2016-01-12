@@ -989,7 +989,7 @@ EDITING PROTOCOL PUBLIC API
 
 -(CGSize)viewSize
 {
-    NSLog(@"%s %@",__func__,NSStringFromCGSize(_scrubberControllerSize));
+//    NSLog(@"%s %@",__func__,NSStringFromCGSize(_scrubberControllerSize));
     return _scrubberControllerSize;
 }
 
