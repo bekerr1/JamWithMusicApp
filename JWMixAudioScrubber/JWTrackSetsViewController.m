@@ -7,42 +7,24 @@
 //
 
 #import "JWTrackSetsViewController.h"
-
 #import "DetailViewController.h"
-
 
 @interface JWTrackSetsViewController () <JWDetailDelegate>
 @property NSIndexPath *selectedIndexPath;
-//@property NSMutableArray *objectCollections;  // collects objects
+@property NSMutableArray *objectCollections;  // collects objects
+@property NSMutableArray *jamTracks;  // keys to collections
 @end
-
-
-//#define JWSampleFileName @"trimmedMP3"
-//#define JWSampleFileNameAndExtension @"trimmedMP3.m4a"
-
-//#define JWSampleFileName @"trimmedMP3-45"
-//#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
-
-//#define JWSampleFileName @"AminorBackingtrackTrimmedMP3-45"
-//#define JWSampleFileNameAndExtension @"AminorBackingtrackTrimmedMP3-45.m4a"
-
-#define JWSampleFileName @"TheKillersTrimmedMP3-30"
-#define JWSampleFileNameAndExtension @"TheKillersTrimmedMP3-30.m4a"
 
 
 @implementation JWTrackSetsViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
 
 //    self.navigationItem.leftBarButtonItem = self.editButtonItem;
     
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
     self.navigationItem.rightBarButtonItem = addButton;
-    
-//    self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
-//    [self readUserOrderedList];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -55,6 +37,30 @@
     // Dispose of any resources that can be recreated.
 }
 
+#pragma mark -
+
+// Array of arrays jamTracks
+-(void)setTrackSet:(id)trackSet {
+    
+    NSLog(@"%s",__func__);
+    
+    self.objectCollections = [[NSMutableArray alloc] init];
+    self.jamTracks = [[NSMutableArray alloc] init];
+
+    if (trackSet) {
+        
+        for(id jamTrack in trackSet) {
+            id trackNodes = jamTrack[@"trackobjectset"];
+            if (trackNodes)
+                [_objectCollections addObject:jamTrack[@"trackobjectset"]];
+            
+            [_jamTracks addObject:jamTrack];
+        }
+    }
+    
+}
+
+
 - (void)insertNewObject:(id)sender {
     if (!self.objectCollections) {
         self.objectCollections = [[NSMutableArray alloc] init];
@@ -65,102 +71,64 @@
     
     if (useSet) {
         objectCollection = [self newTrackObjectSet];
-        [_objectCollections insertObject:objectCollection atIndex:0];
-        [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+        if (objectCollection) {
+            [_objectCollections insertObject:objectCollection atIndex:0];
+            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+        }
         
     } else {
         
         NSMutableDictionary *trackObject = [self newTrackObject];
-        NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-        
-        if (selected) {
-            objectCollection = _objectCollections[selected.section];
+        if (trackObject) {
+            NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
             
-            [objectCollection insertObject:trackObject atIndex:0];
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:selected.section];
-            
-            [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-            
-        } else {
-            
-            [objectCollection insertObject:trackObject atIndex:0];
-            [_objectCollections insertObject:objectCollection atIndex:0];
-            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+            if (selected) {
+                objectCollection = _objectCollections[selected.section];
+                
+                [objectCollection insertObject:trackObject atIndex:0];
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:selected.section];
+                
+                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                
+            } else {
+                
+                [objectCollection insertObject:trackObject atIndex:0];
+                [_objectCollections insertObject:objectCollection atIndex:0];
+                [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+            }
         }
+
     }
     
-    [self saveUserOrderedList];
+//    [self saveUserOrderedList];
     
 }
 
 
 -(NSMutableDictionary*)newTrackObject {
     NSMutableDictionary *result = nil;
-    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension];
-    NSMutableDictionary * fileReference =
-    [@{@"duration":@(0),
-       @"startinset":@(0.0),
-       @"endinset":@(0.0),
-       } mutableCopy];
-    
-    // The object to INSERT
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"title":@"track",
-       @"starttime":@(0.0),
-       @"referencefile": fileReference,
-       @"date":[NSDate date],
-       @"fileURL":fileURL
-       } mutableCopy];
-    
     return result;
 }
 
 -(NSMutableArray*)newTrackObjectSet {
-    
     NSMutableArray *result = nil;
-    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension];
-    
-    NSMutableDictionary * fileReference =
-    [@{@"duration":@(0),
-       @"startinset":@(0.0),
-       @"endinset":@(0.0),
-       } mutableCopy];
-    
-    // The object to INSERT
-    result =[@[
-               [@{@"key":[[NSUUID UUID] UUIDString],
-                  @"title":@"track",
-                  @"starttime":@(0.0),
-                  @"referencefile": fileReference,
-                  @"date":[NSDate date],
-                  @"fileURL":fileURL
-                  } mutableCopy],
-               
-               [@{@"key":[[NSUUID UUID] UUIDString],
-                  @"title":@"track",
-                  @"starttime":@(0.0),
-                  @"date":[NSDate date],
-                  } mutableCopy]
-               ] mutableCopy];
-    
     return result;
 }
-
 
 
 #pragma mark - Segues
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
     if ([[segue identifier] isEqualToString:@"JWShowDetailFromFiles"]) {
         
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         
-        NSMutableArray *objectCollection = _objectCollections[indexPath.section];
-        NSDictionary *object = objectCollection[indexPath.row];
+        NSDictionary *object = _jamTracks[indexPath.section];
         
         DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
         controller.delegate = self;
+        
         [controller setDetailItem:object];
         
         controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
@@ -188,12 +156,10 @@
             }
             index++;
         }
-        if (found){
+        if (found)
             break;
-        } else {
-            collectionIndex++;
-        }
         
+        collectionIndex++;
     }
     
     //    NSLog(@"%s%@ index %ld",__func__,key,index);
@@ -231,26 +197,51 @@
 -(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key {
     
 //    NSIndexPath *item = [self indexPathOfCacheItem:key];
-//    
 //    NSMutableArray *objectCollection = _objectCollections[item.section];
 //    NSMutableDictionary *trackObject = [self newTrackObject];
-//    
 //    [objectCollection insertObject:trackObject atIndex:0];
-//    
 //    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:item.section];
-//    
 //    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 //
+
+// old way
 -(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key {
     NSIndexPath *item = [self indexPathOfCacheItem:key];
     NSMutableArray *objectCollection = _objectCollections[item.section];
-    
     return objectCollection;
 }
 
+// current way
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key {
-    return nil;
+
+    return [self tracksForKey:key];
+}
+
+
+-(NSArray*)tracksForKey:(NSString*)key
+{
+    NSArray *result = nil;
+    NSUInteger collectionIndex = 0;
+    
+    BOOL found = NO;
+    for (id jamTrack in _jamTracks) {
+        if ([key isEqualToString:jamTrack[@"key"]]) {
+            // found it
+            found=YES;
+            break;
+        }
+        collectionIndex++;
+    }
+    
+    if (found) {
+        if (collectionIndex < [_objectCollections count]) {
+            result = _objectCollections[collectionIndex];
+        }
+    }
+    
+    return result;
+    
 }
 
 #pragma mark - Table View
@@ -284,29 +275,11 @@
                            [fileName length] > 0 ? [NSString stringWithFormat:@"  %@",fileName ] : fileName
                            ];
     
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"startTime %00.2f hasRef %@",startTime,object[@"referencefile"]?@"YES":@"NO"];
-    
-    //    cell.textLabel.text = [NSString stringWithFormat:@"%@ %@ start:%00.2f",
-    //                           object[@"title"],
-    //                           [object[@"key"] substringToIndex:6],
-    //                           startTime];
-    //    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ hasRef %@",fileName,object[@"referencefile"]?@"YES":@"NO"];
+    cell.detailTextLabel.text =
+    [NSString stringWithFormat:@"startTime %00.2f hasRef %@",startTime,object[@"referencefile"]?@"YES":@"NO"];
     
     return cell;
 }
-
-//    NSDictionary *object = self.objects[indexPath.row];
-//    NSDate *object = self.objects[indexPath.row];
-//    cell.textLabel.text = [object description];
-
-//    [@{@"key":cacheKey,
-//       @"title":@"track",
-//       @"starttime":@(0.0),
-//       @"referencefile": fileReference,
-//       @"date":[NSDate date],
-//       @"fileURL":fileURL
-
-//    cell.textLabel.text = object[@"title"];
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.
@@ -328,7 +301,7 @@
             [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
         }
         
-        [self saveUserOrderedList];
+//        [self saveUserOrderedList];
         
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
@@ -384,7 +357,7 @@
     
     [tableView reloadSectionIndexTitles];
     
-    [self saveUserOrderedList];
+//    [self saveUserOrderedList];
 }
 
 // Override to support conditional rearranging of the table view.
@@ -400,84 +373,153 @@
     return proposedDestinationIndexPath;
 }
 
-#pragma mark -
-
--(NSString*)documentsDirectoryPath {
-    NSString *result = nil;
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    result = [searchPaths objectAtIndex:0];
-    //    NSLog(@"%s %@",__func__, result);
-    return result;
-}
-
--(NSURL *)fileURLWithFileName:(NSString*)name {
-    NSURL *result;
-    NSString *thisfName = name;//@"mp3file";
-    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
-    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
-    [fname appendFormat:@"/%@",thisName];
-    result = [NSURL fileURLWithPath:fname];
-    return result;
-}
-
-/*
- serializeOut
- Convert any dictionary items that cannot be serialized to serializable format if possible
- fileURL NSURL to Path
- UIColor to rgb alpha
- */
--(void)serializeOut {
-    
-    for (id objectCollection in _objectCollections) {
-        for (id obj in objectCollection) {
-            id furl = obj[@"fileURL"];
-            if (furl) {
-                obj[@"fileName"] = [[(NSURL*)furl path] lastPathComponent];
-                [obj removeObjectForKey:@"fileURL"];
-            }
-        }
-    }
-}
-
--(void)saveUserOrderedList {
-    [self serializeOut];
-    [_objectCollections writeToURL:[self fileURLWithFileName:@"savedobjects"] atomically:YES];
-    [self serializeIn];
-    
-    NSLog(@"%s savedobjects[%ld]",__func__,[_objectCollections count]);
-    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-    
-}
-
-/*
- serializeIn
- Convert any dictionary items that could not be serialized and were converted to a serializable format
- Path to fileURL NSURL
- rgb-alpha to UIColor
- */
-
--(void)serializeIn {
-    
-    for (id objectCollection in _objectCollections) {
-        for (id obj in objectCollection) {
-            id fname = obj[@"fileName"];
-            if (fname) {
-                obj[@"fileURL"] = [self fileURLWithFileName:fname];
-                [obj removeObjectForKey:@"fileName"];
-            }
-        }
-    }
-}
-
--(void)readUserOrderedList {
-    
-    _objectCollections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"savedobjects"]];
-    
-    [self serializeIn];
-    
-    NSLog(@"%savedobjects[%ld]",__func__,[_objectCollections count]);
-    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-}
-
 @end
 
+
+
+//        NSMutableArray *objectCollection = _objectCollections[indexPath.section];
+//        NSDictionary *object = objectCollection[indexPath.row];
+
+
+//#pragma mark -
+
+//-(NSString*)documentsDirectoryPath {
+//    NSString *result = nil;
+//    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+//    result = [searchPaths objectAtIndex:0];
+//    //    NSLog(@"%s %@",__func__, result);
+//    return result;
+//}
+//
+//-(NSURL *)fileURLWithFileName:(NSString*)name {
+//    NSURL *result;
+//    NSString *thisfName = name;//@"mp3file";
+//    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
+//    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
+//    [fname appendFormat:@"/%@",thisName];
+//    result = [NSURL fileURLWithPath:fname];
+//    return result;
+//}
+
+//
+///*
+// serializeOut
+// Convert any dictionary items that cannot be serialized to serializable format if possible
+// fileURL NSURL to Path
+// UIColor to rgb alpha
+// */
+//-(void)serializeOut {
+//    
+//    for (id objectCollection in _objectCollections) {
+//        for (id obj in objectCollection) {
+//            id furl = obj[@"fileURL"];
+//            if (furl) {
+//                obj[@"fileName"] = [[(NSURL*)furl path] lastPathComponent];
+//                [obj removeObjectForKey:@"fileURL"];
+//            }
+//        }
+//    }
+//}
+//
+//-(void)saveUserOrderedList {
+//    [self serializeOut];
+//    [_objectCollections writeToURL:[self fileURLWithFileName:@"savedobjects"] atomically:YES];
+//    [self serializeIn];
+//    
+//    NSLog(@"%s savedobjects[%ld]",__func__,[_objectCollections count]);
+//    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
+//    
+//}
+//
+///*
+// serializeIn
+// Convert any dictionary items that could not be serialized and were converted to a serializable format
+// Path to fileURL NSURL
+// rgb-alpha to UIColor
+// */
+//
+//-(void)serializeIn {
+//    
+//    for (id objectCollection in _objectCollections) {
+//        for (id obj in objectCollection) {
+//            id fname = obj[@"fileName"];
+//            if (fname) {
+//                obj[@"fileURL"] = [self fileURLWithFileName:fname];
+//                [obj removeObjectForKey:@"fileName"];
+//            }
+//        }
+//    }
+//}
+//
+//-(void)readUserOrderedList {
+//    _objectCollections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"savedobjects"]];
+//    [self serializeIn];
+//    NSLog(@"%savedobjects[%ld]",__func__,[_objectCollections count]);
+//    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
+//}
+//
+
+////#define JWSampleFileName @"trimmedMP3"
+////#define JWSampleFileNameAndExtension @"trimmedMP3.m4a"
+////#define JWSampleFileName @"trimmedMP3-45"
+////#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
+////#define JWSampleFileName @"AminorBackingtrackTrimmedMP3-45"
+////#define JWSampleFileNameAndExtension @"AminorBackingtrackTrimmedMP3-45.m4a"
+//#define JWSampleFileName @"TheKillersTrimmedMP3-30"
+//#define JWSampleFileNameAndExtension @"TheKillersTrimmedMP3-30.m4a"
+//
+
+
+
+//-(NSMutableDictionary*)newTrackObject {
+//    NSMutableDictionary *result = nil;
+//    //    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension];
+//    //    NSMutableDictionary * fileReference =
+//    //    [@{@"duration":@(0),
+//    //       @"startinset":@(0.0),
+//    //       @"endinset":@(0.0),
+//    //       } mutableCopy];
+//    //
+//    //    // The object to INSERT
+//    //    result =
+//    //    [@{@"key":[[NSUUID UUID] UUIDString],
+//    //       @"title":@"track",
+//    //       @"starttime":@(0.0),
+//    //       @"referencefile": fileReference,
+//    //       @"date":[NSDate date],
+//    //       @"fileURL":fileURL
+//    //       } mutableCopy];
+//    //
+//    return result;
+//}
+//
+//-(NSMutableArray*)newTrackObjectSet {
+//    
+//    NSMutableArray *result = nil;
+//    //    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension];
+//    //
+//    //    NSMutableDictionary * fileReference =
+//    //    [@{@"duration":@(0),
+//    //       @"startinset":@(0.0),
+//    //       @"endinset":@(0.0),
+//    //       } mutableCopy];
+//    //
+//    //    // The object to INSERT
+//    //    result =[@[
+//    //               [@{@"key":[[NSUUID UUID] UUIDString],
+//    //                  @"title":@"track",
+//    //                  @"starttime":@(0.0),
+//    //                  @"referencefile": fileReference,
+//    //                  @"date":[NSDate date],
+//    //                  @"fileURL":fileURL
+//    //                  } mutableCopy],
+//    //
+//    //               [@{@"key":[[NSUUID UUID] UUIDString],
+//    //                  @"title":@"track",
+//    //                  @"starttime":@(0.0),
+//    //                  @"date":[NSDate date],
+//    //                  } mutableCopy]
+//    //               ] mutableCopy];
+//    
+//    return result;
+//}

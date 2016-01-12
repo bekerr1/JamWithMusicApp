@@ -12,9 +12,9 @@
 
 @interface JWTrackSetsViewController : UITableViewController
 
-@property NSMutableArray *objectCollections;  // collects objects
-@property (weak, nonatomic) id <JWTrackSetsProtocol> delegate;
+-(void)setTrackSet:(id)trackSet;
 
+@property (weak, nonatomic) id <JWTrackSetsProtocol> delegate;
 @end
 
 
@@ -22,6 +22,4 @@
 -(void)save:(JWTrackSetsViewController*)controller;
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForSection:(NSUInteger)section;
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleDetailForSection:(NSUInteger)section;
-
-
 @end

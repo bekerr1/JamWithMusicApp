@@ -39,7 +39,7 @@
 
 -(void) dealloc
 {
-    NSLog(@"%s",__func__);
+//    NSLog(@"%s",__func__);
     if (_notifString)
     {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:_notifString object:nil];

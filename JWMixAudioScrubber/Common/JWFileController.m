@@ -145,31 +145,6 @@
     return result;
 }
 
--(NSURL *)documentsFileURLWithFileName:(NSString*)name {
-    NSURL *result;
-    NSString *thisfName = name;//@"mp3file";
-    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
-    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
-    [fname appendFormat:@"/%@",thisName];
-    result = [NSURL fileURLWithPath:fname];
-    return result;
-}
-
--(NSURL *)fileURLWithFileName:(NSString*)name inPath:(NSArray*)pathComponents{
-
-    NSURL *result;
-    NSURL *baseURL = [NSURL fileURLWithPath:[self documentsDirectoryPath]];
-    NSString *pathString = @"";
-    for (id path in pathComponents) {
-        pathString = [pathString stringByAppendingPathComponent:path];
-    }
-    pathString = [pathString stringByAppendingPathComponent:name];
-    NSURL *url = [NSURL fileURLWithPath:pathString relativeToURL:baseURL];
-    NSURL *absURL = [url absoluteURL];
-//    NSLog(@"absURL = %@", absURL);
-    result = url;
-    return result;
-}
 
 /*
  
@@ -657,20 +632,12 @@
      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
                     atomically:YES];
     
-    NSLog(@"%sUSERLISTCOUNT[%ld] MP3DESCRIPCOUNT[%ld]",__func__,[_userOrderList count],[_mp3FilesDescriptions count]);
-    
-    //    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
-    //    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
+    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
 }
 -(void)readUserOrderedList {
     _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
                       [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
     NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
-    //    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
 }
-
-
-
-
 
 @end

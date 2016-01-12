@@ -12,12 +12,9 @@
 
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate> {
-    
     BOOL _playing;
     NSUInteger selectedAmpImageIndex;
-
 }
-
 @property (strong, nonatomic) JWAudioPlayerController* playerController;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *playButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *pauseButton;
@@ -30,7 +27,6 @@
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *exportButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *effectsButton;
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *scrubberActivity;
-
 @property (strong, nonatomic) IBOutlet UIView *scrubberContainerView;
 @property (strong, nonatomic) IBOutlet UIImageView *logoImageView;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
@@ -72,28 +68,26 @@
         id hasTrackObjectSet = _detailItem[@"trackobjectset"];
         if (hasTrackObjectSet) {
             self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+            
         } else {
             self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
         }
         
-        
         if (_playerController) {
             // SETUP AUDIO ENGINE
+            
             if (_trackItems) {
                 // MULTIPLE items
                 if (hasTrackObjectSet) {
-
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [_playerController setTrackSet:_trackItems];
-//                    [_playerController setTrackItems:_trackItems];
-
-                });
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [_playerController setTrackSet:_trackItems];
+                    });
                 } else {
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [_playerController setTrackItems:_trackItems];
                     });
-
+                    
                 }
             } else {
                 // SINGLE detail item
@@ -106,7 +100,6 @@
         }
     }
 
-    
     _scrubberContainerView.alpha = 0;
     _scrubberContainerView.hidden = NO;
     [UIView animateWithDuration:0.5 delay:0.5 options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -120,21 +113,6 @@
 
 }
 
-
-//    double delayInSecs = 0.5;
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        _scrubberContainerView.hidden = NO;
-//        [_scrubberActivity stopAnimating];
-//    });
-
-//    _scrubberContainerView.hidden = NO;
-//    [_scrubberActivity stopAnimating];
-
-//    [UIView transitionWithView:_scrubberContainerView duration:0.5 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-//        _scrubberContainerView.hidden = NO;
-//    } completion:^(BOOL fini){
-//        [_scrubberActivity stopAnimating];
-//    }];
 
 
 - (void)viewDidLoad {
@@ -169,13 +147,6 @@
 
 -(void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-
-//    UISplitViewController *splitView = self.navigationController.splitViewController;
-//    if (splitView != nil) {
-//        if (splitView.displayMode == UISplitViewControllerDisplayModePrimaryOverlay)
-//            [self.playerController stop];
-//    }
-    
 }
 
 -(void)delloc
@@ -183,17 +154,20 @@
     [self.playerController stop];
 }
 
--(void)stopPlaying {
-    [self.playerController stop];
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 
+#pragma mark - amp image
+
+//NSLog(@"%s %ld",__func__,selectedAmpImageIndex);
+//// jwframesandscreens - 3
+////jwscreensandcontrols
+////jwjustscreensandlogos
+//NSLog(@"%s %@",__func__,[[noti userInfo] description]);
+
 -(void)updateAmpImage {
-    NSLog(@"%s %ld",__func__,selectedAmpImageIndex);
-    
-    // jwframesandscreens - 3
-    //jwscreensandcontrols
-    //jwjustscreensandlogos
-    
     UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %ld",selectedAmpImageIndex + 1]];
     dispatch_async(dispatch_get_main_queue(), ^{
         _logoImageView.image = ampImage;
@@ -202,19 +176,18 @@
 }
 
 -(void)didSelectAmpImage:(NSNotification*)noti {
-    
-    NSLog(@"%s %@",__func__,[[noti userInfo] description]);
-    
     NSNumber *selectedIndex = noti.userInfo[@"index"];
-    if (selectedIndex) {
+    if (selectedIndex)
         selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
-    }
+    
     [self updateAmpImage];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+
+#pragma mark - commands
+
+-(void)stopPlaying {
+    [self.playerController stop];
 }
 
 //SCRUBBER CONTROLLER EMBEDED IN SCTV
@@ -227,8 +200,6 @@
     } else if ([segue.identifier isEqualToString:@"JWMixEditEmbed"]){
         self.mixEdit = segue.destinationViewController;
     }
-
-    
 }
 
 #pragma mark - TOOLBAR BUTTON ACTIONS
@@ -237,6 +208,7 @@
     
     if (sender == _playButton) {
         NSLog(@"%s PLAY",__func__);
+        
         _playing = YES;
         [self toolbar2WithPlay:_playing];
         [_playerController play];
@@ -246,13 +218,13 @@
         
     } else  if (sender == _rewindButton) {
         NSLog(@"%s REWIND",__func__);
+
         [_playerController rewind];
         
     } else if (sender == _pauseButton) {
         _playing = NO;
         [self toolbar2WithPlay:_playing];
         [_playerController pause];
-        
     }
     
 }
@@ -262,10 +234,8 @@
 }
 
 -(void)toolbar2WithPlay:(BOOL)playbutton {
-    
     [self setToolbarItems:@[_rewindButton, _fixedSpace, !playbutton ? _playButton : _pauseButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
 }
-
 
 #pragma mark -
 
@@ -273,18 +243,9 @@
     [_delegate save:self cachKey:_detailItem[@"key"]];
 }
 
-- (NSArray *)getTrackSections:(UIBarButtonItem *)sender {
-    
-    NSArray *tracks = [_delegate tracks:self cachKey:_detailItem[@"key"]];
-    self.trackItems = tracks;
-    
-    return tracks;
-}
-
 - (void)updateStatusForItem:(NSDictionary*)item {
     
     NSURL *fileURL = item[@"fileURL"];
-    
     float delay = 0.0;
     id delayItem = item[@"starttime"];
     if (delayItem)
@@ -305,17 +266,17 @@
     if (_sctv.hidden) {
         return CGSizeZero;
     }
-    CGFloat tracksz = 50.0f;
+    
+    CGFloat tracksz = 60.0f;
     NSUInteger nTracks = controller.numberOfTracks;
     if (nTracks == 1) {
         tracksz = 120;
     } else if (nTracks == 2) {
-        tracksz = 75.0f;
+        tracksz = 85.0f;
     } else if (nTracks == 3) {
-        tracksz = 55.0f;
-    } else {
-        tracksz = 45.0f;
+        tracksz = 95.0f;
     }
+    
     CGFloat expectedHeight = (controller.numberOfTracks  * tracksz);// + 40;  // labels on scrubber
     
     self.layoutConstraintScrubberHeight.constant = expectedHeight;
@@ -324,13 +285,11 @@
 }
 
 -(void)save:(JWAudioPlayerController *)controller {
-    
     [self saveAction:nil];
 }
 
 
 -(void)noTrackSelected:(JWAudioPlayerController *)controller {
-    
     _mixeditContainerView.hidden = YES;
     [self toolbar1];
 }
@@ -344,32 +303,15 @@
 -(void)playTillEnd {
     
     _playing = NO;
+    
     if (_mixeditContainerView.hidden == NO) {
         [self toolbar2WithPlay:_playing];
     }
-    
 }
 
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index {
-    
     [self clipActions];
-    
 }
-
-
-
--(void)editingButtons{
-    
-    if (self.editing) {
-        [self.effectsButton setTitle:@"Clip"];
-//        [self.exportButton setTitle:@"Cancel"];
-    } else {
-        [self.effectsButton setTitle:@"Effects"];
-//        [self.exportButton setTitle:@"Export"];
-    }
-}
-
-
 
 -(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
     
@@ -380,9 +322,18 @@
     }
 }
 
-#pragma mark -
+#pragma mark - ActionSheets and ALert
 
-#pragma mark clip actions
+-(void)editingButtons{
+    if (self.editing) {
+        [self.effectsButton setTitle:@"Clip"];
+        //        [self.exportButton setTitle:@"Cancel"];
+    } else {
+        [self.effectsButton setTitle:@"Effects"];
+        //        [self.exportButton setTitle:@"Export"];
+    }
+}
+
 
 -(void)clipActions {
     UIAlertController* actionController =
@@ -456,6 +407,7 @@
 }
 
 
+
 -(void)addEffectAction {
     NSLog(@"%s", __func__);
     
@@ -498,8 +450,8 @@
     UIAlertAction *addEffectAction;
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
     UIAlertAction *addNodeAction = [UIAlertAction actionWithTitle:@"Add Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        
-        
+
+        NSLog(@"%s ADD NODE not implemented",__func__);
     }];
     
     if (self.mixeditContainerView.hidden == YES) {
@@ -508,11 +460,11 @@
     } else {
         title = @"Add Effect or Node";
         message = @"Can Add Up To 3 Nodes And 4 Effects Each Node";
-        addEffectAction = [UIAlertAction actionWithTitle:@"Add Effect" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            
-            [self addEffectAction];
-            
-        }];
+        addEffectAction =
+        [UIAlertAction actionWithTitle:@"Add Effect" style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction *action) {
+                                   [self addEffectAction];
+                               }];
     }
     
     UIAlertController *addNodeOrEffect = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
@@ -522,16 +474,13 @@
     [addNodeOrEffect addAction:cancel];
     
     [self presentViewController:addNodeOrEffect animated:YES completion:nil];
-
 }
-
 
 
 - (IBAction)effectsAction:(id)sender {
     NSLog(@"%s",__func__);
     
     if (self.editing) {
-        
         [self clipActionsEditing];
 
     } else {
@@ -563,15 +512,14 @@
             [self.playerController deSelectTrack];
             
         }
-        
     }
 
 }
 
 
-- (IBAction)exportAction:(id)sender {
+- (IBAction)exportAction:(id)sender
+{
     NSLog(@"%s",__func__);
-
 }
 
 
@@ -579,16 +527,38 @@
 @end
 
 
+//    CGFloat tracksz = 50.0f;
+//    NSUInteger nTracks = controller.numberOfTracks;
+//    if (nTracks == 1) {
+//        tracksz = 120;
+//    } else if (nTracks == 2) {
+//        tracksz = 75.0f;
+//    } else if (nTracks == 3) {
+//        tracksz = 55.0f;
+//    } else {
+//        tracksz = 45.0f;
+//    }
 
 
+//- (NSArray *)getTrackSections:(UIBarButtonItem *)sender {
+//    NSArray *tracks =
+//    self.trackItems = [_delegate tracks:self cachKey:_detailItem[@"key"]];
+//    return tracks;
+//}
 
 
+//    double delayInSecs = 0.5;
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        _scrubberContainerView.hidden = NO;
+//        [_scrubberActivity stopAnimating];
+//    });
 
+//    _scrubberContainerView.hidden = NO;
+//    [_scrubberActivity stopAnimating];
 
-
-
-
-
-
-
+//    [UIView transitionWithView:_scrubberContainerView duration:0.5 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+//        _scrubberContainerView.hidden = NO;
+//    } completion:^(BOOL fini){
+//        [_scrubberActivity stopAnimating];
+//    }];
 
