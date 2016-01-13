@@ -132,9 +132,12 @@
     
     // set the session category
     //    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayback error:&error];
-    
+
+//withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth
+
     bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord
-                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
+                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth
+                                          error:&error];
     
     if (!success) NSLog(@"Error setting AVAudioSession category! %@\n", [error localizedDescription]);
     
@@ -164,6 +167,8 @@
                                                object:sessionInstance];
     
     // activate the audio session
+    
+    // MICROPHONE
     success = [sessionInstance setActive:YES error:&error];
     if (!success) NSLog(@"Error setting session active! %@\n", [error localizedDescription]);
     
@@ -171,12 +176,60 @@
     AVAudioSessionPortDescription* builtInMicrophone;
     for (AVAudioSessionPortDescription* input in inputs) {
         NSLog(@" %@", input.portType);
-        if ([input.portType isEqualToString:@"MicrophoneBuiltIn"]) {
+        
+        if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+            NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
             builtInMicrophone = input;
+        }
+
+    }
+
+    // FIND FRONT
+    // loop over the built-in mic's data sources and attempt to locate the front microphone
+    AVAudioSessionDataSourceDescription* frontDataSource = nil;
+    for (AVAudioSessionDataSourceDescription* source in builtInMicrophone.dataSources)
+    {
+        if ([source.orientation isEqual:AVAudioSessionOrientationFront])
+        {
+            frontDataSource = source;
+            break;
+        }
+    } // end data source iteration
+    
+    if (frontDataSource)
+    {
+        NSLog(@"Currently selected source is \"%@\" for port \"%@\"", builtInMicrophone.selectedDataSource.dataSourceName, builtInMicrophone.portName);
+        //NSLog(@"Attempting to select source \"%@\" on port \"%@\"", frontDataSource, builtInMicrophone.portName);
+
+        // Set a preference for the front data source.
+        NSError *theError = nil;
+        BOOL result = [builtInMicrophone setPreferredDataSource:frontDataSource error:&theError];
+        if (!result)
+        {
+            // an error occurred. Handle it!
+            NSLog(@"setPreferredDataSource failed");
         }
     }
     
     [sessionInstance setPreferredInput:builtInMicrophone error:&error];
+    
+    
+    // ROUTE DESCRIPTION and SPEAKER Informational
+    
+//    NSLog(@"si outputDataSources %@ %@", sessionInstance.outputDataSources,[sessionInstance.outputDataSources description]);
+  
+    AVAudioSessionPortDescription* outp;
+    for (AVAudioSessionPortDescription* output in sessionInstance.outputDataSources) {
+        if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+            NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
+            outp = output;
+        }
+        if ([output.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+            NSLog(@" found AVAudioSessionPortBluetoothHFP %@", output.portType);
+//            outp = output;
+        }
+        NSLog(@" %@ %@", output.portType,output.portName);
+    }
     
     AVAudioSessionRouteDescription* currentRoute = sessionInstance.currentRoute;
     NSLog(@"Current Route:\n ");
@@ -189,6 +242,28 @@
     NSLog(@"Output Channels: %li", (long)sessionInstance.outputNumberOfChannels);
     NSLog(@"Max Number of Outputs: %lu", (unsigned long)numberOfOutputs);
 }
+
+
+//        if ([input.portType isEqualToString:@"MicrophoneBuiltIn"]) {
+//            builtInMicrophone = input;
+//        }
+
+
+/*
+AVAudioSessionPortLineOut   Line-level output to the dock connector. Available in iOS 6.0 and later.
+AVAudioSessionPortHeadphones   Output to a wired headset. Available in iOS 6.0 and later.
+AVAudioSessionPortBluetoothA2DP   Output to a Bluetooth A2DP device. Available in iOS 6.0 and later.
+AVAudioSessionPortBuiltInReceiver   Output to a speaker intended to be held near the ear. Typically, this speaker is available only on iPhone devices. Available in iOS 6.0 and later.
+AVAudioSessionPortBuiltInSpeaker   Output to the device’s built-in speaker. Available in iOS 6.0 and later.
+AVAudioSessionPortHDMI Output to a device via the High-Definition Multimedia Interface (HDMI) specification. Available in iOS 6.0 and later.
+AVAudioSessionPortAirPlay   Output to a remote device over AirPlay. Available in iOS 6.0 and later.
+AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Available in iOS 7.0 and later.
+ 
+ 
+ AVAudioSessionPortLineIn Line-level input from the dock connector. Available in iOS 6.0 and later.
+ AVAudioSessionPortBuiltInMic   The built-in microphone on a device.  Available in iOS 6.0 and later.
+ AVAudioSessionPortHeadsetMic   A microphone that is built-in to a wired headset. Available in iOS 6.0 and later.
+*/
 
 
 - (void)handleInterruption:(NSNotification *)notification
@@ -237,10 +312,96 @@
         case AVAudioSessionRouteChangeReasonCategoryChange:
             NSLog(@"     CategoryChange");
             NSLog(@" New Category: %@", [[AVAudioSession sharedInstance] category]);
+        {
+            
+//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+//            
+//            // INPUTS
+//            NSArray* inputs = routeDescription.inputs;
+//            AVAudioSessionPortDescription* builtInMicrophone;
+//            for (AVAudioSessionPortDescription* input in inputs) {
+//                NSLog(@" %@", input.portType);
+//                if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+//                    NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
+//                    builtInMicrophone = input;
+//                }
+//            }
+//            
+//            // OUTPUTS
+//            NSLog(@"si %@ %@", sessionInstance.outputDataSources,[sessionInstance.outputDataSources description]);
+//            NSLog(@"rd %@ %@", routeDescription.outputs,[routeDescription.outputs description]);
+//            AVAudioSessionPortDescription* outp;
+//            for (AVAudioSessionPortDescription* output in routeDescription.outputs) {
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
+//                    outp = output;
+//                    break;
+//                }
+//                NSLog(@"type and name %@ %@", output.portType,output.portName);
+//            }
+//            
+//            if (outp) {
+//                NSLog(@" %@",[outp description]);
+//                AVAudioSessionDataSourceDescription *selectedDS;
+//                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
+//                    NSLog(@" %@ %@", outpds,[outpds description]);
+//                    selectedDS = outpds;
+//                }
+//                for(AVAudioSessionDataSourceDescription *outpds in sessionInstance.outputDataSources){
+//                    NSLog(@" %@ %@", outpds,[outpds description]);
+//                    selectedDS = outpds;
+//                }
+//                if (selectedDS) {
+//                    NSError *error;
+//                    [sessionInstance setOutputDataSource:selectedDS error:&error];
+//                }
+//            }
+        }
+
             break;
         case AVAudioSessionRouteChangeReasonOverride:
             NSLog(@"     Override");
+            
+        {
+//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+//            
+//            NSArray* inputs = routeDescription.inputs;
+//            AVAudioSessionPortDescription* builtInMicrophone;
+//            for (AVAudioSessionPortDescription* input in inputs) {
+//                NSLog(@" %@", input.portType);
+//                if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+//                    NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
+//                    builtInMicrophone = input;
+//                }
+//
+//            }
+//            
+//            NSArray* outputs = routeDescription.outputs;
+//            AVAudioSessionPortDescription* outp;
+//            for (AVAudioSessionPortDescription* output in outputs) {
+//                NSLog(@" %@ %@", output.portType,output.portName);
+//                
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+//                    outp = output;
+//                }
+//            }
+//            if (outp) {
+//                
+//                AVAudioSessionDataSourceDescription *selectedDS;
+//                for(AVAudioSessionDataSourceDescription *outpds in sessionInstance.outputDataSources){
+//                    NSLog(@" %@ %@", outpds,[outpds description]);
+//                    
+//                }
+//                
+//                if (selectedDS) {
+//                    NSError *error;
+//                    [sessionInstance setOutputDataSource:selectedDS error:&error];
+//                }
+//            }
+        }
+            
             break;
+            
         case AVAudioSessionRouteChangeReasonWakeFromSleep:
             NSLog(@"     WakeFromSleep");
             break;
@@ -274,4 +435,37 @@
 }
 
 @end
+
+
+/*
+2016-01-12 12:38:54.734 JamWDev[940:510821] Route change:
+2016-01-12 12:38:54.741 JamWDev[940:510821]      CategoryChange
+2016-01-12 12:38:54.743 JamWDev[940:510821]  New Category: AVAudioSessionCategoryPlayAndRecord
+2016-01-12 12:38:54.744 JamWDev[940:510821] Previous route:
+2016-01-12 12:38:54.749 JamWDev[940:510821] <AVAudioSessionRouteDescription: 0x13921f420,
+inputs = (
+          "<AVAudioSessionPortDescription: 0x1346a9bf0, type = MicrophoneBuiltIn; name = iPhone Microphone; UID = Built-In Microphone; selectedDataSource = Front>"
+          );
+outputs = (
+           "<AVAudioSessionPortDescription: 0x1346359d0, type = Speaker; name = Speaker; UID = Speaker; selectedDataSource = (null)>"
+           )>
+2016-01-12 12:38:54.756 JamWDev[940:510821] Route change:
+2016-01-12 12:38:54.757 JamWDev[940:510821]      Override
+2016-01-12 12:38:54.758 JamWDev[940:510821] Previous route:
+2016-01-12 12:38:54.758 JamWDev[940:510821] <AVAudioSessionRouteDescription: 0x139256420,
+inputs = (
+          "<AVAudioSessionPortDescription: 0x1392299c0, type = MicrophoneBuiltIn; name = iPhone Microphone; UID = Built-In Microphone; selectedDataSource = Front>"
+          );
+outputs = (
+           "<AVAudioSessionPortDescription: 0x134635d90, type = BluetoothA2DPOutput; name = JAMBOX by Jawbone; UID = 00:21:3C:51:CE:7B-tacl; selectedDataSource = (null)>"
+           )>
+2016-01-12 12:38:55.053 JamWDev[940:510237] -[DetailViewController viewDidLoad]
+2016-01-12 12:38:55.197 JamWDev[940:510237] -[JWScrubberController reset]
+2016-01-12 12:38:55.207 JamWDev[940:510237] -[JWAudioPlayerController setTrackSet:]
+2016-01-12 12:38:55.525 JamWDev[940:510821] Route change:
+2016-01-12 12:38:55.525 JamWDev[940:510821]      CategoryChange
+2016-01-12 12:38:55.526 JamWDev[940:510821]  New Category: AVAudioSessionCategoryPlayAndRecord
+2016-01-12 12:38:55.527 JamWDev[940:510821] Previous route:
+*/
+
 

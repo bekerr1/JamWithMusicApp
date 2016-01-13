@@ -15,7 +15,6 @@
 #import "JWMixNodes.h"
 
 @interface JWAudioPlayerController () <JWScrubberControllerDelegate, JWMTAudioEngineDelgegate, JWScrubberInfoDelegate, JWMixEditDelegate> {
-    
     BOOL _colorizedTracks;
     BOOL _rewound;
     BOOL _listenToPositionChanges;
@@ -78,15 +77,26 @@
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me withCompletion:(JWPlayerCompletionHandler)completion
 {
-    [self iosColors];
-    _listenToPositionChanges = NO;
+    
+    [self initializePlayerControllerWithScrubberWithAutoplayOn:NO usingScrubberView:svc playerControls:pvc mixEdit:me withCompletion:completion];
+}
 
+-(void) initializePlayerControllerWithScrubberWithAutoplayOn:(BOOL)autoplay
+                                               usingScrubberView:(id)svc playerControls:(id)pvc
+                                                     mixEdit:(id)me
+                                              withCompletion:(JWPlayerCompletionHandler)completion
+{
+    _autoPlay = autoplay;
+//    _listenToPositionChanges = _autoPlay ? NO : YES;
+    _listenToPositionChanges = NO;
     self.metvc = me;
     self.pcvc = (JWPlayerControlsViewController *)pvc;
+    [self iosColors];
+
+    //INITIALIZE ENGINE IN BACKGROUND
 
     dispatch_async (dispatch_get_global_queue( QOS_CLASS_BACKGROUND,0),^{
-
-        //INITIALIZE ENGINE
+        
         self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
         self.audioEngine.engineDelegate = self;
         self.metvc.delegateMixEdit = self;
@@ -97,7 +107,6 @@
             self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc];
             self.sc.delegate = self;
             [self.pcvc initializeWithState:_state withLightBackround:NO];
-
         });
         
         if (completion) {
@@ -125,36 +134,36 @@
     NSLog(@"%s",__func__);
     
     _trackItems = trackSet;
-    
     if (_trackItems) {
-        
-        self.trackItem = nil;
-        
         _state = JWPlayerStateSetToBeg;
-        
-        // BUILD A PLAYER NODE LIST
-        NSMutableArray *nodeList = [NSMutableArray new];
-        
-        for (id item in _trackItems) {
-            NSMutableDictionary *playerNode = [self newEnginePlayerNodeForTrackSetItem:item];
-            if (playerNode)
-                [nodeList addObject:playerNode];
-        }
-        
-        _audioEngine.playerNodeList = nodeList;
-        
-        [_audioEngine initializeAudio];
-        [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
-        [self configureScrubbers:NO];
-//        [_sc refresh];
-        self.state = JWPlayerStatePlayFromBeg;
+        [self rebuildPlayerNodeListAndPlayIfAutoplay];
     }
-    
 }
 
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [self configureScrubbers:NO];
-//        });
+// PLAYER NODE LIST AND PLAY IF AUTOPLAY
+
+-(void)rebuildPlayerNodeListAndPlayIfAutoplay {
+    
+    NSMutableArray *nodeList = [NSMutableArray new];
+    for (id item in _trackItems) {
+        NSMutableDictionary *playerNode = [self newEnginePlayerNodeForTrackSetItem:item];
+        if (playerNode)
+            [nodeList addObject:playerNode];
+    }
+    _audioEngine.playerNodeList = nodeList;
+    [_audioEngine initializeAudio];
+    [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
+    [self configureScrubbers:NO];
+    self.state = JWPlayerStatePlayFromBeg;
+    
+    if (_autoPlay) {
+        double delayInSecs = 0.25;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self play];
+        });
+    }
+
+}
 
 - (NSMutableDictionary*) newEnginePlayerNodeForTrackSetItem:(NSDictionary*)item {
     
@@ -217,32 +226,40 @@
     if (referenceFileItem)
         playerNode[@"referencefile"] = referenceFileItem;
     
-    
-    //TODO: fill this in
-    
-    NSArray *effectsArray =
-    @[
-      @{@"type" : @(JWEffectNodeTypeReverb),
-        @"title" : @"Reverb",
-        @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
-        },
-      
-      @{@"type" : @(JWEffectNodeTypeDistortion),
-        @"title" : @"Distortion",
-        @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
-        @"pregain" : @(0.0)
-        }
-      
-      ];
-    
-    if (effectsArray) {
-        //    playerNode[@"effects"] = effectsArray;
+    id effects = item[@"effects"];
+    if (effects) {
+        NSArray *effectsArray =
+        @[
+          @{@"type" : @(JWEffectNodeTypeReverb),
+            @"title" : @"Reverb",
+            @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
+            },
+          
+          @{@"type" : @(JWEffectNodeTypeDistortion),
+            @"title" : @"Distortion",
+            @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
+            @"pregain" : @(0.0)
+            }
+          ];
+        
+        playerNode[@"effects"] = effectsArray;
     }
     
-    return playerNode;
     
+    id confignode = item[@"config"];
+    if (confignode) {
+        playerNode[@"config"] = confignode; //  slider values
+    }
+
+    NSLog(@"node type %ld title %@  fname %@  ",[playerNode[@"type"] unsignedIntegerValue],
+          titleValue?titleValue:@"notitle",
+          fileURL?[fileURL lastPathComponent]:@"nofilurl");
+    
+    return playerNode;
 }
 
+
+// SAMPLE EFFECTS CONFIG
 //    @{@"type" : @(JWEffectNodeTypeReverb),
 //      @"title" : @"Reverb",
 //      @"factorypreset" : @(AVAudioUnitReverbPresetMediumRoom),
@@ -273,28 +290,24 @@
 
 #pragma mark - old setTracks
 // -----------------------------------
-// old track itesms
+// old track itesms Did not contain JWPlayerNodeType
 -(void)setTrackItems:(id)trackItems {
     NSLog(@"%s NO LONGER USED use trackSet",__func__);
     _trackItems = trackItems;
 }
-
 -(void)setTrackItem:(id)trackItem {
     _trackItem = trackItem;
-    if (trackItem != nil) {
+    if (trackItem) {
+        self.trackItems = @[_trackItem];  // 1 trackItem
+    } else {
         NSLog(@"%s NO LONGER USED use trackSet",__func__);
     }
-//    if (trackItem) {
-//        NSArray *trackItems = @[trackItem];
-//        self.trackItems = trackItems;
-//    }
 }
 - (NSMutableDictionary*) newEnginePlayerNodeForItem:(NSDictionary*)item {
     NSLog(@"%s NO LONGER USED use trackSet",__func__);
     NSMutableDictionary *playerNode;
     return playerNode;
 }
-
 
 #pragma mark -
 
@@ -407,19 +420,19 @@
                 [_sc play:nil];
             
             break;
+
+        case JWPlayerStateSetToPos:
             
+            [_audioEngine pauseAllActivePlayerNodes];
+            [_sc stopPlaying:nil];
+            
+            break;
+
         case JWPlayerStateSetToBeg:
             
             _listenToPositionChanges = NO;
             [_sc stopPlaying:nil rewind:YES];
             [_audioEngine stopAllActivePlayerNodes];
-            
-            break;
-            
-        case JWPlayerStateSetToPos:
-            
-            [_audioEngine pauseAllActivePlayerNodes];
-            [_sc stopPlaying:nil];
             
             break;
             
@@ -449,167 +462,178 @@
     _listenToPositionChanges = YES;
 }
 
+-(void)scrubberConfigurePlayer:(id)playerNode withFileURL:(NSURL*)fileURL {
+    
+    float delay = 0.0;
+    id delayItem = playerNode[@"starttime"];
+    if (delayItem)
+        delay = [delayItem floatValue];
+    
+    NSDictionary * fileReference;
+    id referenceFileItem = playerNode[@"referencefile"];
+    if (referenceFileItem)
+        fileReference = referenceFileItem;
+    
+    SampleSize ssz =  SampleSize14;
+    VABKindOptions kind =  VABOptionCenter;
+    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
+    
+    SamplingOptions so = SamplingOptionDualChannel;
+    if (_sc.pulseBackLight)
+        so &= SamplingOptionCollectPulseData;
+    
+    //If its a player node that has a file url that buffer info can be recieved
+    if (fileURL) {
+        NSString *sid =
+        [_sc prepareScrubberFileURL:fileURL
+                     withSampleSize:ssz
+                            options:so
+                               type:kind
+                             layout:layout
+                             colors:nil
+                      referenceFile:fileReference
+                          startTime:delay
+                       onCompletion:nil];
+        
+        [playerNode setValue:sid forKey:@"trackid"];
+        
+    } else {
+        // no file URL for player
+        NSLog(@"%s NO file url for Player Node at index",__func__);
+    }
+}
 
-//    SampleSize ssz =  [[_scrubberOptions valueForKey:@"size"] unsignedIntegerValue];
-//    VABKindOptions kind =  [[_scrubberOptions valueForKey:@"kind"] unsignedIntegerValue];
-//    VABLayoutOptions layout =  [[_scrubberOptions valueForKey:@"layout"] unsignedIntegerValue];
-// Update the user interface for the detail item.
+
+-(void)scrubberConfigurePlayerRecorder:(id)playerNode atIndex:(NSUInteger)index withFileURL:(NSURL*)fileURL playerOnly:(BOOL)playerOnly {
+    
+    float delay = 0.0;
+    id delayItem = playerNode[@"starttime"];
+    if (delayItem)
+        delay = [delayItem floatValue];
+    
+    NSDictionary * fileReference;
+    id referenceFileItem = playerNode[@"referencefile"];
+    if (referenceFileItem)
+        fileReference = referenceFileItem;
+    
+    
+    BOOL usePlayerScrubber = YES;  // determine whther to use player or recorder for scrubber
+    //TODO: B resolve this.
+    if (fileURL == nil)
+        usePlayerScrubber = NO; // USE recorder There is no file, no audio
+    
+    NSLog(@"usePlayerScrubber for recorderplayer %@ at index %lu",usePlayerScrubber?@"YES":@"NO",index);
+    //If recorder has audio file, dont need to listen to it, should just play its audio
+    if (usePlayerScrubber) {
+        NSString *sid =
+        [_sc prepareScrubberFileURL:fileURL
+                     withSampleSize:SampleSize14
+                            options:SamplingOptionDualChannel
+                               type:VABOptionNone
+                             layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine
+                             colors:nil
+                      referenceFile:fileReference
+                          startTime:delay
+                       onCompletion:nil];
+        
+        [playerNode setValue:sid forKey:@"trackid"];
+        
+    } else if (playerOnly == NO) {
+
+        // use recorder
+
+        // This recorder has no audio and is used to record user audio
+        // While Exporting Dont show the Recorder when playerOnly = YES
+        // A Recorder uses a different config than a tap on The Mixer
+        
+        NSString *recorderTrackId =
+        [_sc prepareScrubberListenerSource:nil
+                            withSampleSize:SampleSize8
+                                   options:SamplingOptionDualChannel
+                                      type:VABOptionCenter
+                                    layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples
+                                    colors:
+         @{
+           JWColorScrubberTopPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
+           JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+           JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+           JWColorScrubberBottomPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
+           }
+                              onCompletion:nil];
+        
+        
+        [_audioEngine registerController:_sc withTrackId:recorderTrackId forPlayerRecorderAtIndex:index];
+        
+        [playerNode setValue:recorderTrackId forKey:@"trackid"];
+    }
+}
+
 
 - (void)configureScrubbers:(BOOL)tap {
-    
+
+    _listenToPositionChanges = NO;
+
     BOOL recordAudio = NO;
     BOOL recordMix = NO;
-    
     BOOL tapMixer = tap;
     if (recordAudio)
         tapMixer = NO;
     if (recordMix)
         tapMixer = YES;
 
+    // STEP 1 CONFIGURE SCRUBBER SETTINGS before reset
     
-    _listenToPositionChanges = NO;
-    // STEP 2 CONFIGURE SCRUBBER SETTINGS
-    [_sc reset];
-    
-    [self performSelector:@selector(startListening) withObject:nil afterDelay:0.25];
-    
-    _sc.useGradient = YES;
+    _sc.useGradient      = YES;
     _sc.useTrackGradient = YES;
-    _sc.pulseBackLight = YES;
+    _sc.pulseBackLight   = NO;
+
+    [_sc reset];
+
+    // STEP 2 SET OPTIONS FOR NEW SCRUBBERS
 
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
-    
-    [self configureScrubberColors];
-    [_sc setViewOptions:ScrubberViewOptionDisplayFullView];
-    
     _sc.numberOfTracks = [playerNodeList count] + (tapMixer ? 1 : 0);
     
+    [_sc setViewOptions:ScrubberViewOptionDisplayFullView];
     _sc.scrubberControllerSize = [_delegate updateScrubberHeight:self];
     
-    SampleSize ssz =  SampleSize14;
-    VABKindOptions kind =  VABOptionCenter;
-    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
-    NSDictionary * fileReference;
-    NSURL * fileURL;
+    [self configureScrubberColors];
+    
+    
+    // STEP 3 CONFIGURE THE SCRUBBERS
 
-    int index = 0;
+    NSUInteger index = 0;
+    
     for (NSMutableDictionary *item in playerNodeList) {
-        
-        float delay = 0.0;
-        id delayItem = item[@"starttime"];
-        if (delayItem)
-            delay = [delayItem floatValue];
-        
-        id referenceFileItem = item[@"referencefile"];
-        if (referenceFileItem)
-            fileReference = referenceFileItem;
-        
-       
-        fileURL = [_audioEngine playerNodeFileURLAtIndex:index];
-        
+
         JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
         
         if (nodeType == JWMixerNodeTypePlayer) {
-            
-            SamplingOptions so = SamplingOptionDualChannel ;
-            if (_sc.pulseBackLight) {
-                so = SamplingOptionDualChannel | SamplingOptionCollectPulseData;
-            }
-            
-            //If its a player node that has a file url that buffer info can be recieved
-            if (fileURL) {
-//                NSLog(@"%s file at index %d\n%@",__func__,index,[fileURL lastPathComponent]);
-                
-                NSString *sid =
-                [_sc prepareScrubberFileURL:fileURL
-                             withSampleSize:ssz
-                                    options:so
-                                       type:kind
-                                     layout:layout
-                                     colors:nil
-                              referenceFile:fileReference
-                                  startTime:delay
-                               onCompletion:nil];
-                
-                [item setValue:sid forKey:@"trackid"];
-                
-            } else {
-                // no file URL for player
-                NSLog(@"%s NO file url at index %d",__func__,index);
-            }
-            
-            //        colorizedTracks
-            //        ? @{
-            //            JWColorScrubberTopAvg : [[UIColor blueColor] colorWithAlphaComponent:0.8] ,
-            //            JWColorScrubberBottomAvg : [[UIColor blueColor] colorWithAlphaComponent:0.5],
-            //            }:nil
-        }
-        
-        
-        // PLAYER RECORDER
-        else if (nodeType == JWMixerNodeTypePlayerRecorder) {
-            
-            BOOL usePlayerScrubber = YES;  // determine whther to use player or recorder for scrubber
-            //TODO: resolve this
-            if (fileURL == nil) {
-                // USE recorder
-                usePlayerScrubber = NO;
-            }
-            
-            NSLog(@"%s usePlayerScrubber for recorderplayer %@ at index %d",__func__,usePlayerScrubber?@"YES":@"NO",index);
-            //If recorder has audio file, dont need to listen to it, should just play its audio
-            if (usePlayerScrubber) {
-                // PLAYER - YELLOW / YELLOW
-                
-                NSString *sid =
-                [_sc prepareScrubberFileURL:fileURL
-                             withSampleSize:SampleSize14
-                                    options:SamplingOptionDualChannel
-                                       type:VABOptionNone
-                                     layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine
-                                     colors:nil
-                              referenceFile:fileReference
-                                  startTime:delay
-                               onCompletion:nil];
-                
-                [item setValue:sid forKey:@"trackid"];
+            // PLAYER
 
-                
-            } else {
-                //This recorder has no audio and is used to record user audio
-                if (recordMix == NO) {
-                    // use recorder
-                    NSString *recorderTrackId =
-                    [_sc prepareScrubberListenerSource:nil
-                                        withSampleSize:SampleSize8
-                                               options:SamplingOptionDualChannel
-                                                  type:VABOptionCenter
-                                                layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples
-                                                colors:
-                     @{
-                       JWColorScrubberTopPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
-                       JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-                       JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-                       JWColorScrubberBottomPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
-                       }
+            [self scrubberConfigurePlayer:item withFileURL:[_audioEngine playerNodeFileURLAtIndex:index]];
+            
+        } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
 
-                                          onCompletion:nil];
-                    
-                    [_audioEngine registerController:_sc withTrackId:recorderTrackId forPlayerRecorderAtIndex:index];
-                    
-                    [item setValue:recorderTrackId forKey:@"trackid"];
+            // PLAYER RECORDER
 
-                  //This recorder doesnt have audio and is used to record a mix
-                }
-            }
+            //This recorder has no audio and is used to record user audio
+            // While Exporting Dont show the Recorder
+            // A Recorder uses a different config than a tap on The Mixer
+            
+            [self scrubberConfigurePlayerRecorder:item atIndex:index
+                                      withFileURL:[_audioEngine playerNodeFileURLAtIndex:index]
+                                       playerOnly:recordMix];
         }
      
-        index++;
-    }
+        index++;  // increment playerNode index
+        
+    } // End iterating
 
     
+    // Finally, optionally configure the tap on the Mixer
+    
     if (tapMixer) {
-        
         NSString *trackidMixerTap =
         [_sc prepareScrubberListenerSource:nil
                             withSampleSize:SampleSize14
@@ -626,9 +650,17 @@
         [_audioEngine registerController:_sc withTrackId:trackidMixerTap forPlayerRecorder:@"mixer"];
     }
     
+    
+    // STEP 4 REFRESH THE MIXEDIT
+    
     [_metvc refresh];
+
+    
+    //    [self performSelector:@selector(startListening) withObject:nil afterDelay:0.25];
     
 }
+
+
 
 
 // PLAYER
@@ -964,6 +996,31 @@
 }
 
 
+-(void)scrubberPlayHeadTapped:(JWScrubberController*)controller {
+    
+    NSLog(@"%s",__func__);
+    
+//case JWPlayerStatePlayFromPos:
+//    if ([_audioEngine playAllActivePlayerNodes])
+//        [_sc play:nil];
+//case JWPlayerStateSetToPos:
+//    [_audioEngine pauseAllActivePlayerNodes];
+//    [_sc stopPlaying:nil];
+
+ 
+    if (self.state == JWPlayerStateSetToBeg || self.state == JWPlayerStatePlayFromBeg) {
+        self.state = JWPlayerStatePlayFromPos;
+    } else if (self.state != JWPlayerStatePlayFromPos ) {
+        self.state = JWPlayerStatePlayFromPos;
+    } else {
+        self.state = JWPlayerStateSetToPos;
+    }
+
+    
+}
+
+
+
 #pragma mark - ENGINE DELEGATE
 
 -(void)completedPlayingAtPlayerIndex:(NSUInteger)index {
@@ -1146,3 +1203,98 @@
 //                
 //                return playerNode;
 //}
+
+
+
+//    SampleSize ssz =  SampleSize14;
+//    VABKindOptions kind =  VABOptionCenter;
+//    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
+//    NSDictionary * fileReference;
+//    NSURL * fileURL;
+//        float delay = 0.0;
+//        id delayItem = item[@"starttime"];
+//        if (delayItem)
+//            delay = [delayItem floatValue];
+//
+//        id referenceFileItem = item[@"referencefile"];
+//        if (referenceFileItem)
+//            fileReference = referenceFileItem;
+
+//            SamplingOptions so = SamplingOptionDualChannel;
+//            if (_sc.pulseBackLight)
+//                so &= SamplingOptionCollectPulseData;
+//
+//            //If its a player node that has a file url that buffer info can be recieved
+//            if (fileURL) {
+//                NSString *sid =
+//                [_sc prepareScrubberFileURL:fileURL
+//                             withSampleSize:ssz
+//                                    options:so
+//                                       type:kind
+//                                     layout:layout
+//                                     colors:nil
+//                              referenceFile:fileReference
+//                                  startTime:delay
+//                               onCompletion:nil];
+//
+//                [item setValue:sid forKey:@"trackid"];
+//
+//            } else {
+//                // no file URL for player
+//                NSLog(@"%s NO file url for Player Node at index %d",__func__,index);
+//            }
+
+//        colorizedTracks
+//        ? @{
+//            JWColorScrubberTopAvg : [[UIColor blueColor] colorWithAlphaComponent:0.8] ,
+//            JWColorScrubberBottomAvg : [[UIColor blueColor] colorWithAlphaComponent:0.5],
+//            }:nil
+//            BOOL usePlayerScrubber = YES;  // determine whther to use player or recorder for scrubber
+//            //TODO: B resolve this.
+//            if (fileURL == nil)
+//                usePlayerScrubber = NO; // USE recorder There is no file, no audio
+//
+//            NSLog(@"%s usePlayerScrubber for recorderplayer %@ at index %d",__func__,usePlayerScrubber?@"YES":@"NO",index);
+//            //If recorder has audio file, dont need to listen to it, should just play its audio
+//            if (usePlayerScrubber) {
+//                NSString *sid =
+//                [_sc prepareScrubberFileURL:fileURL
+//                             withSampleSize:SampleSize14
+//                                    options:SamplingOptionDualChannel
+//                                       type:VABOptionNone
+//                                     layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine
+//                                     colors:nil
+//                              referenceFile:fileReference
+//                                  startTime:delay
+//                               onCompletion:nil];
+//
+//                [item setValue:sid forKey:@"trackid"];
+//
+//            } else if (recordMix == NO) {
+//
+//                //This recorder has no audio and is used to record user audio
+//                // While Exporting Dont show the Recorder
+//                // A Recorder uses a different config than a tap on The Mixer
+//
+//                // use recorder
+//                NSString *recorderTrackId =
+//                [_sc prepareScrubberListenerSource:nil
+//                                    withSampleSize:SampleSize8
+//                                           options:SamplingOptionDualChannel
+//                                              type:VABOptionCenter
+//                                            layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples
+//                                            colors:
+//                 @{
+//                   JWColorScrubberTopPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
+//                   JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+//                   JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+//                   JWColorScrubberBottomPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
+//                   }
+//
+//                                      onCompletion:nil];
+//
+//                [_audioEngine registerController:_sc withTrackId:recorderTrackId forPlayerRecorderAtIndex:index];
+//
+//                [item setValue:recorderTrackId forKey:@"trackid"];
+//            }
+

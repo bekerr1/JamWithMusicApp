@@ -1018,6 +1018,12 @@ EDITING PROTOCOL PUBLIC API
 }
 
 
+-(void)playHeadTapped {
+    
+    [_delegate scrubberPlayHeadTapped:self];
+
+}
+
 
 #pragma mark edit delegate
 

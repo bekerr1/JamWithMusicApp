@@ -155,7 +155,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FJe-Yq-33r" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1401" y="3"/>
+            <point key="canvasLocation" x="1633" y="69"/>
         </scene>
         <!--Split View Controller-->
         <scene sceneID="Nki-YV-4Qg">
@@ -169,7 +169,7 @@
                 </splitViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cZU-Oi-B1e" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-732" y="-1006"/>
+            <point key="canvasLocation" x="-716" y="-1622"/>
         </scene>
         <!--Master-->
         <scene sceneID="smW-Zh-WAh">
@@ -425,11 +425,13 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="hdu-nr-w1u">
-                                            <rect key="frame" x="15" y="9" width="31.5" height="19.5"/>
+                                            <rect key="frame" x="15" y="9" width="36" height="19.5"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                            <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                            <fontDescription key="fontDescription" name="Helvetica-Bold" family="Helvetica" pointSize="16"/>
+                                            <color key="textColor" red="1" green="0.50196081400000003" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                             <nil key="highlightedColor"/>
+                                            <color key="shadowColor" red="0.50196081400000003" green="0.25098040700000002" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                            <size key="shadowOffset" width="1" height="-1"/>
                                         </label>
                                         <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Subtitle" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="8LP-5G-4cS">
                                             <rect key="frame" x="15" y="28.5" width="50" height="17"/>
@@ -451,7 +453,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qwJ-v4-co0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1677" y="-811"/>
+            <point key="canvasLocation" x="1493" y="-827"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="r7l-gg-dq7">
@@ -466,7 +468,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SLD-UC-DBI" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="705" y="3"/>
+            <point key="canvasLocation" x="761" y="51"/>
         </scene>
         <!--Scrubber View Controller-->
         <scene sceneID="FTf-0k-BEg">
@@ -651,7 +653,7 @@
                     </connections>
                 </tapGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="2167" y="-245"/>
+            <point key="canvasLocation" x="2423" y="-179"/>
         </scene>
         <!--Player Controls View Controller-->
         <scene sceneID="1Zf-en-XEf">
@@ -726,7 +728,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="bJP-eu-D68" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2183" y="-70"/>
+            <point key="canvasLocation" x="2415" y="-4"/>
         </scene>
         <!--Mix Edit Table View Controller-->
         <scene sceneID="hGj-vF-j8E">
@@ -1100,16 +1102,20 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="igu-QZ-hKv" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2191" y="244"/>
+            <point key="canvasLocation" x="2447" y="310"/>
         </scene>
         <!--MP3 Files-->
         <scene sceneID="FIj-V7-X2j">
             <objects>
                 <tableViewController title="MP3 Files" id="HJc-7q-soU" customClass="JWSourceAudioFilesTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="52" sectionHeaderHeight="28" sectionFooterHeight="28" id="rfF-Du-zig">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="440"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="478"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" red="0.40000000600000002" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
+                        <imageView key="tableFooterView" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="jwjustscreensandlogos - 2" id="PZl-ue-rHJ">
+                            <rect key="frame" x="0.0" y="80" width="600" height="400"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        </imageView>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="JWSourceAudioCellImage" textLabel="9VG-HS-SkR" detailTextLabel="CZv-aG-xXJ" style="IBUITableViewCellStyleSubtitle" id="HKs-jt-BMi">
                                 <rect key="frame" x="0.0" y="28" width="600" height="52"/>
@@ -1147,12 +1153,12 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="69c-Ln-VIc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2977" y="-2899"/>
+            <point key="canvasLocation" x="1769" y="-2099"/>
         </scene>
-        <!--Source Audio FIles-->
+        <!--Source Audio FIles Lists-->
         <scene sceneID="mcu-L1-XgP">
             <objects>
-                <viewController title="Source Audio FIles" id="GZR-q7-E1v" customClass="JWSourceAudioListsViewController" sceneMemberID="viewController">
+                <viewController title="Source Audio FIles" id="GZR-q7-E1v" userLabel="Source Audio FIles Lists" customClass="JWSourceAudioListsViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="FH9-kW-NtC"/>
                         <viewControllerLayoutGuide type="bottom" id="Gw4-XO-ohd"/>
@@ -1162,13 +1168,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="8ms-Wz-99i" userLabel="Left Container View">
-                                <rect key="frame" x="0.0" y="48" width="600" height="440"/>
+                                <rect key="frame" x="0.0" y="48" width="600" height="478"/>
                                 <connections>
                                     <segue destination="HJc-7q-soU" kind="embed" identifier="JWSourceAudioArranged" id="EIZ-ID-0Je"/>
                                 </connections>
                             </containerView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Vio-YM-oq9" userLabel="Right Container View">
-                                <rect key="frame" x="0.0" y="48" width="600" height="440"/>
+                                <rect key="frame" x="0.0" y="48" width="600" height="478"/>
                                 <connections>
                                     <segue destination="Tq5-t0-o2E" kind="embed" identifier="JWSourceAudioAll" id="7ls-K3-AFD"/>
                                 </connections>
@@ -1194,12 +1200,20 @@
                             <constraint firstAttribute="trailingMargin" secondItem="cXv-Kb-rQ3" secondAttribute="trailing" constant="30" id="Q5h-x6-eaO"/>
                             <constraint firstItem="cXv-Kb-rQ3" firstAttribute="top" secondItem="FH9-kW-NtC" secondAttribute="bottom" constant="10" id="c34-FF-rk8"/>
                             <constraint firstItem="cXv-Kb-rQ3" firstAttribute="leading" secondItem="k8t-YD-WOn" secondAttribute="leadingMargin" constant="30" id="dMR-9A-pnK"/>
+                            <constraint firstItem="Gw4-XO-ohd" firstAttribute="top" secondItem="8ms-Wz-99i" secondAttribute="bottom" constant="10" id="dOC-pj-CBx"/>
                             <constraint firstItem="8ms-Wz-99i" firstAttribute="top" secondItem="cXv-Kb-rQ3" secondAttribute="bottom" constant="10" id="n9h-0z-IsT"/>
                             <constraint firstItem="Vio-YM-oq9" firstAttribute="width" secondItem="k8t-YD-WOn" secondAttribute="width" id="nDN-L1-ciH"/>
                             <constraint firstItem="8ms-Wz-99i" firstAttribute="centerY" secondItem="k8t-YD-WOn" secondAttribute="centerY" id="ppd-EO-yxJ"/>
+                            <constraint firstItem="Gw4-XO-ohd" firstAttribute="top" secondItem="Vio-YM-oq9" secondAttribute="bottom" constant="10" id="ree-c4-u8V"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="ppd-EO-yxJ"/>
+                                <exclude reference="BKu-a9-HKs"/>
+                            </mask>
+                        </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout" bottom="YES"/>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <connections>
                         <outlet property="leftContainerView" destination="8ms-Wz-99i" id="Dl7-Gc-Tcl"/>
@@ -1209,14 +1223,14 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Sak-MB-uWt" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1599" y="-2878"/>
+            <point key="canvasLocation" x="1463" y="-2798"/>
         </scene>
         <!--MP3 Files-->
         <scene sceneID="q6y-wh-bwQ">
             <objects>
                 <tableViewController title="MP3 Files" id="Tq5-t0-o2E" customClass="JWSourceAudioFilesTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="52" sectionHeaderHeight="28" sectionFooterHeight="28" id="j6J-uq-TZV">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="440"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="478"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
@@ -1256,7 +1270,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="A3e-xC-mgW" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2339" y="-2558"/>
+            <point key="canvasLocation" x="2405" y="-2662"/>
         </scene>
         <!--Clip-->
         <scene sceneID="3t7-T9-jSm">
@@ -1479,15 +1493,16 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="udD-2T-xyv" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2621" y="-1648"/>
+            <point key="canvasLocation" x="2405" y="-1604"/>
         </scene>
     </scenes>
     <resources>
+        <image name="jwjustscreensandlogos - 2" width="1072" height="774"/>
         <image name="jwjustscreensandlogos - 2.png" width="1072" height="774"/>
     </resources>
     <inferredMetricsTieBreakers>
+        <segue reference="Qjb-bz-KQS"/>
         <segue reference="IZu-7m-M9T"/>
-        <segue reference="6S0-TO-JiA"/>
     </inferredMetricsTieBreakers>
     <color key="tintColor" red="1" green="1" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
 </document>

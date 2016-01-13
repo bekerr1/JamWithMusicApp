@@ -133,6 +133,7 @@
 -(void)trackSelected:(NSUInteger)track;
 -(void)trackNotSelected;
 -(void)longPressOnTrack:(NSUInteger)track;
+-(void)playHeadTapped;
 
 -(CGSize)viewSize;
 -(BOOL)isPlaying;

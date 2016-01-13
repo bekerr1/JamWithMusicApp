@@ -23,13 +23,20 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @property (nonatomic, readonly) PlayerControllerState state;
 @property (nonatomic, readonly) NSUInteger numberOfTracks;
 @property (nonatomic) id <JWAudioPlayerControllerDelegate> delegate;
+@property (nonatomic) BOOL autoPlay;
 
 
 -(void)setTrackSet:(id)trackSet;
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me;
 
--(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me withCompletion:(JWPlayerCompletionHandler)completion;
+-(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc
+                                       mixEdit:(id)me withCompletion:(JWPlayerCompletionHandler)completion;
+
+-(void) initializePlayerControllerWithScrubberWithAutoplayOn:(BOOL)autoplay
+                                           usingScrubberView:(id)svc playerControls:(id)pvc
+                                                     mixEdit:(id)me withCompletion:(JWPlayerCompletionHandler)completion;
+
 
 -(void) selectValidTrack;
 -(void) deSelectTrack;

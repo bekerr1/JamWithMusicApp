@@ -2724,25 +2724,56 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 
+-(void) bouncePlayhead {
+    
+    
+    CATransform3D scaleTrans = CATransform3DMakeScale(1.4, 1.0, 1.0);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _playHeadWindow.alpha = 1.0;
+        [UIView animateWithDuration:.150f delay:0.0
+                            options: UIViewAnimationOptionAutoreverse | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _playHeadWindow.transform = CATransform3DGetAffineTransform(scaleTrans);
+                             //_playHeadWindow.layer.transform = scaleTrans;
+                             _playHeadWindow.alpha = 0.5f;
+                             //_playHeadWindow.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.5];
+                         } completion:^(BOOL fini){
+                             _playHeadWindow.transform = CATransform3DGetAffineTransform(CATransform3DIdentity);
+                             //_playHeadWindow.layer.transform = CATransform3DIdentity;
+                             _playHeadWindow.alpha = 1.0;
+                             //_playHeadWindow.backgroundColor = restoreColor;
+                         }];
+    });
+}
+
+
 - (IBAction)didTap:(id)sender {
-    NSLog(@"%s",__func__);
+    
     UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
     
-    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
-          NSStringFromCGPoint([tap locationInView:self.view]));
-    
+//    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
+//          NSStringFromCGPoint([tap locationInView:self.view]));
     //    self.topLayoutScrollViewConstraint.constant = 38; // just below numbers
     //    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
     
-    CGPoint touchPoint = [tap locationInView:self.scrollView];
+    CGPoint phTouchPoint = [tap locationInView:self.playHeadWindow];
     
-    if (_editType == ScrubberEditNone) {
+    if (CGRectContainsPoint(_playHeadWindow.bounds, phTouchPoint)){
         
-        CGSize size = [_delegate viewSize];
+        [self bouncePlayhead];
+        
+        [_delegate playHeadTapped];
+        
+    } else if (_editType == ScrubberEditNone) {
+        // NOT EDITING
+        
+        CGPoint touchPoint = [tap locationInView:self.scrollView];
         
         NSUInteger touchTrack = 0;
         for (int i = 0; i < _numberOfTracks; i++){
-            CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
+            CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:[_delegate viewSize].height];
+
             if (CGRectContainsPoint(trackFrame, touchPoint)){
                 touchTrack = i+1;
                 break;
@@ -2751,7 +2782,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         
         if (touchTrack > 0) {
             NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
-            
             if (_selectedTrack == touchTrack) {
                 // DESELECT if SELECTED
                 [self deSelectTrack];
@@ -2763,8 +2793,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                 [_delegate trackSelected:_selectedTrack];
             }
         }
-    } else {
-        // EDITING
     }
 }
 

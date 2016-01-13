@@ -62,6 +62,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     if (_allFiles) {
         _allFilesSections = @[@[],@[]];  // 2 empties
     }
+    self.refreshControl.tintColor = [UIColor colorWithWhite:0.95 alpha:1.0];
   
     [self.refreshControl beginRefreshing];
     [self loadData];
@@ -336,7 +337,11 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 #pragma mark - Table view delegate
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
-    return 50;
+    return 55;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return 20;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath{

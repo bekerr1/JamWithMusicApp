@@ -20,6 +20,8 @@
 @interface MasterViewController () <JWDetailDelegate,JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFieldDelegate>
 {
     BOOL _isAddingNewObject;
+    BOOL _isAutoSelecting;
+
 }
 @property NSIndexPath *selectedIndexPath;
 @property NSMutableArray *objectCollections;  // collects objects
@@ -56,7 +58,9 @@
     if (_homeControllerSections == nil) {
         _homeControllerSections = [self newHomeMenuLists];
     }
-    
+
+    _isAutoSelecting = NO;
+
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -67,6 +71,18 @@
 
     if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         [self.detailViewController stopPlaying];
+    }
+
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (_isAutoSelecting) {
+        // AUTO SELECT
+        self.selectedIndexPath = [NSIndexPath indexPathForRow:2
+                                                    inSection:[self indexOfSectionOfType:JWHomeSectionTypeAudioFiles]];
+        [self.tableView selectRowAtIndexPath:_selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
+        [self performSegueWithIdentifier:@"showDetail" sender:self];
     }
 }
 
@@ -572,7 +588,12 @@
         controller.navigationItem.leftItemsSupplementBackButton = YES;
         self.detailViewController = controller;
         
-        self.selectedIndexPath = indexPath;
+        if (_isAutoSelecting) {
+            [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+            _isAutoSelecting = NO;
+        }
+//        self.selectedIndexPath = indexPath;
+        
         
     } else if ([[segue identifier] isEqualToString:@"JWShowAudioFiles"]) {
         
@@ -604,7 +625,7 @@
 
             [controller setTrackSet:trackObjectSet];
 
-            self.selectedIndexPath = indexPath;
+//            self.selectedIndexPath = indexPath;
         }
         
     } else if ([segue.identifier isEqualToString:@"JWClipAudio"]) {

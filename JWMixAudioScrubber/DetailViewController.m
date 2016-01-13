@@ -129,11 +129,20 @@
     
 //    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
     
-    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit
-                                                   withCompletion:^{
-                                                       [self configureView];
-                                                       [self.navigationController setToolbarHidden:NO];
-                                                   }];
+//    _playerController.autoPlay = YES;
+//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit
+//                                                   withCompletion:^{
+//                                                       [self configureView];
+//                                                       [self.navigationController setToolbarHidden:NO];
+//                                                   }];
+
+    [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:NO
+                                                              usingScrubberView:_scrubber
+                                                                 playerControls:_playerControls mixEdit:_mixEdit
+                                                                 withCompletion:^{
+                                                                     [self configureView];
+                                                                     [self.navigationController setToolbarHidden:NO];
+                                                                 }];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
 
