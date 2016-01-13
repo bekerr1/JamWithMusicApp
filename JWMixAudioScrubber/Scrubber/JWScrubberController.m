@@ -10,10 +10,11 @@
 #import "JWScrubberViewController.h"
 #import "JWBufferSampler.h"
 #import "JWPlayerFileInfo.h"
+#import "JWScrubberTackModify.h"
 
 const int scMaxTracks = 10;
 
-@interface JWScrubberController () <ScrubberDelegate> {
+@interface JWScrubberController () <ScrubberDelegate, JWScrubberTackModifyDelegate > {
     dispatch_queue_t _bufferReceivedQueue;
     dispatch_queue_t _bufferSampledQueue;
     dispatch_queue_t _bufferReceivedPerformanceQueue;
@@ -343,6 +344,30 @@ const int scMaxTracks = 10;
     self.selectedTrack = nil;
     self.selectedTrackId = nil;
     [_scrubber deSelectTrack];
+}
+
+
+- (id <JWEffectsModifyingProtocol>) trackNodeControllerForTrackId:(NSString*)tid {
+   
+    id <JWEffectsModifyingProtocol> result;
+    
+    NSUInteger track = 0;
+    if (tid){
+        id trackmod = _tracks[tid][@"trackmod"];
+        if (trackmod) {
+            result = trackmod;
+        } else {
+            track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
+
+            JWScrubberTackModify *trackModify = [JWScrubberTackModify new];
+            trackModify.delegate = self;
+            trackModify.track = track;
+            _tracks[tid][@"trackmod"] = trackModify;
+            result = trackModify;
+        }
+    }
+    
+    return result;
 }
 
 
@@ -1154,6 +1179,14 @@ EDITING PROTOCOL PUBLIC API
 
 
 
+#pragma mark - Scrubber track delegate
+
+-(void)volumeAdjusted:(JWScrubberTackModify*)controller forTrack:(NSUInteger)track withValue:(float)value {
+    [_scrubber modifyTrack:track volume:value];
+}
+-(void)panAdjusted:(JWScrubberTackModify*)controller forTrack:(NSUInteger)track withValue:(float)value {
+    [_scrubber modifyTrack:track pan:value];
+}
 
 #pragma mark - modify
 

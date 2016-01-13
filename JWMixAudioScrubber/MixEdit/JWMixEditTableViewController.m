@@ -368,13 +368,21 @@
             [sliderCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
             
             id <JWEffectsModifyingProtocol> node = [_effectsHandler playerNodeAtIndex:nodeSection];
+
+            id <JWEffectsModifyingProtocol> tnode = [_delegateMixEdit trackNodeControllerForNodeAtIndex:nodeSection];
             
             // PLAYER VOLUME
             if (indexPath.row ==0) {
                 sliderCell.slider.minimumValue = 0.0;
                 sliderCell.slider.maximumValue = 1.0;
                 sliderCell.slider.value = [node floatValue1];
-                [sliderCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
+                [sliderCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:)
+                            forControlEvents:UIControlEventValueChanged];
+
+                [tnode adjustFloatValue1:[node floatValue1]];
+                [sliderCell.slider addTarget:tnode action:@selector(adjustFloatValue1WithSlider:)
+                            forControlEvents:UIControlEventValueChanged];
+
                 sliderCell.sliderLabel.text = @"volume";
                 cell = sliderCell;
                 
@@ -385,7 +393,13 @@
                 sliderCell.slider.minimumValue = -1.0;
                 sliderCell.slider.maximumValue = 1.0;
                 sliderCell.slider.value = [node floatValue2];
-                [sliderCell.slider addTarget:node action:@selector(adjustFloatValue2WithSlider:) forControlEvents:UIControlEventValueChanged];
+                [sliderCell.slider addTarget:node action:@selector(adjustFloatValue2WithSlider:)
+                            forControlEvents:UIControlEventValueChanged];
+                
+                [tnode adjustFloatValue2:[node floatValue2]];
+                [sliderCell.slider addTarget:tnode action:@selector(adjustFloatValue2WithSlider:)
+                            forControlEvents:UIControlEventValueChanged];
+
                 sliderCell.sliderLabel.text = @"pan";
                 cell = sliderCell;
             }
@@ -401,10 +415,18 @@
                     JWSliderTableViewCell *sliderCell = [tableView dequeueReusableCellWithIdentifier:@"JWMixEditSliderCell" forIndexPath:indexPath];
                     [sliderCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
                     id <JWEffectsModifyingProtocol> node = [_effectsHandler playerNodeAtIndex:nodeSection];
+                    id <JWEffectsModifyingProtocol> tnode = [_delegateMixEdit trackNodeControllerForNodeAtIndex:nodeSection];
+                    
                     sliderCell.slider.minimumValue = 0.0;
                     sliderCell.slider.maximumValue = 1.0;
                     sliderCell.slider.value = [node floatValue1];
+                    
                     [sliderCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
+                    
+                    [tnode adjustFloatValue1:[node floatValue1]];
+                    [sliderCell.slider addTarget:tnode action:@selector(adjustFloatValue1WithSlider:)
+                                forControlEvents:UIControlEventValueChanged];
+
                     sliderCell.sliderLabel.text = @"volume";
                     cell = sliderCell;
                     
@@ -416,10 +438,16 @@
                     JWSliderTableViewCell *sliderCell = [tableView dequeueReusableCellWithIdentifier:@"JWMixEditSliderCell" forIndexPath:indexPath];
                     [sliderCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
                     id <JWEffectsModifyingProtocol> node = [_effectsHandler playerNodeAtIndex:nodeSection];
+                    id <JWEffectsModifyingProtocol> tnode = [_delegateMixEdit trackNodeControllerForNodeAtIndex:nodeSection];
+
                     sliderCell.slider.minimumValue = -1.0;
                     sliderCell.slider.maximumValue = 1.0;
                     sliderCell.slider.value = [node floatValue2];
                     [sliderCell.slider addTarget:node action:@selector(adjustFloatValue2WithSlider:) forControlEvents:UIControlEventValueChanged];
+                    [tnode adjustFloatValue2:[node floatValue2]];
+                    [sliderCell.slider addTarget:tnode action:@selector(adjustFloatValue2WithSlider:)
+                                forControlEvents:UIControlEventValueChanged];
+
                     sliderCell.sliderLabel.text = @"pan";
                     cell = sliderCell;
                     

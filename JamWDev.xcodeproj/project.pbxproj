@@ -80,6 +80,7 @@
 		55CD12821C3F742A001662CF /* JWTrackSetsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12811C3F742A001662CF /* JWTrackSetsViewController.m */; };
 		55CD12841C3F7B31001662CF /* JWMedia.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12831C3F7B31001662CF /* JWMedia.xcassets */; };
 		55CD12871C42AD71001662CF /* JWSourceAudioListsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */; };
+		55CD128C1C461D14001662CF /* JWScrubberTackModify.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD128B1C461D14001662CF /* JWScrubberTackModify.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -242,6 +243,8 @@
 		55CD12831C3F7B31001662CF /* JWMedia.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = JWMedia.xcassets; sourceTree = "<group>"; };
 		55CD12851C42AD71001662CF /* JWSourceAudioListsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWSourceAudioListsViewController.h; sourceTree = "<group>"; };
 		55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWSourceAudioListsViewController.m; sourceTree = "<group>"; };
+		55CD128A1C461D14001662CF /* JWScrubberTackModify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWScrubberTackModify.h; path = Scrubber/JWScrubberTackModify.h; sourceTree = "<group>"; };
+		55CD128B1C461D14001662CF /* JWScrubberTackModify.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWScrubberTackModify.m; path = Scrubber/JWScrubberTackModify.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -409,6 +412,8 @@
 				5525FEDD1C37295C0081FB23 /* JWScalingVisualAudioBufferView.m */,
 				5525FEE31C37295C0081FB23 /* JWScrubberDemoController.h */,
 				5525FEE41C37295C0081FB23 /* JWScrubberDemoController.m */,
+				55CD128A1C461D14001662CF /* JWScrubberTackModify.h */,
+				55CD128B1C461D14001662CF /* JWScrubberTackModify.m */,
 			);
 			name = Scrubber;
 			sourceTree = "<group>";
@@ -692,6 +697,7 @@
 				55CD12771C3F6D84001662CF /* JWClipAudioController.m in Sources */,
 				5525FF281C3729980081FB23 /* AVAudioUnitDelay+JW.m in Sources */,
 				5525FF2E1C3729980081FB23 /* JWEffectsClipAudioEngine.m in Sources */,
+				55CD128C1C461D14001662CF /* JWScrubberTackModify.m in Sources */,
 				55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */,
 				5525FEEF1C37295C0081FB23 /* JWScrubberController.m in Sources */,
 				55CD126B1C3F6D71001662CF /* JWJamMP3TableViewController.m in Sources */,

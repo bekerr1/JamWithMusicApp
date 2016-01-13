@@ -1216,11 +1216,10 @@
             [pn play];
             NSLog(@"%s audioPlayerNode PLAY",__func__);
         }
-        
         return YES;
         
     } else {
-        NSLog(@"No Active palyer nodes to play.");
+        NSLog(@"No Active player nodes to play.");
         return NO;        
     }
 }
@@ -1236,11 +1235,10 @@
             [pn pause];
             NSLog(@"%s audioPlayerNode PAUSE",__func__);
         }
-        
         return YES;
         
     } else {
-        NSLog(@"No Active palyer nodes to PAUSE.");
+        NSLog(@"No Active player nodes to PAUSE.");
         return NO;
     }
 }
@@ -1269,7 +1267,7 @@
         return YES;
         
     } else {
-        NSLog(@"No Active palyer nodes to play.");
+        NSLog(@"No Active player nodes to stop.");
         return NO;
     }
 }

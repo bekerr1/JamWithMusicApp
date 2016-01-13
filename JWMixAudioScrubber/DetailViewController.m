@@ -136,7 +136,7 @@
 //                                                       [self.navigationController setToolbarHidden:NO];
 //                                                   }];
 
-    [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:NO
+    [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:YES
                                                               usingScrubberView:_scrubber
                                                                  playerControls:_playerControls mixEdit:_mixEdit
                                                                  withCompletion:^{

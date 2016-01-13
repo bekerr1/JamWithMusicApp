@@ -50,12 +50,13 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @property (nonatomic) UIColor *backLightColor;  // use as hue layer
 @property (nonatomic) BOOL darkBackground;
 @property (nonatomic) BOOL pulseBackLight;
-
 @property (nonatomic) NSString *selectedTrack;
 
 - (void)deSelectTrack;
 - (void)selectTrack:(NSString*)tid;
 @property (nonatomic) NSString *selectedTrackId;
+
+- (id <JWEffectsModifyingProtocol>) trackNodeControllerForTrackId:(NSString*)tid;
 
 -(void)configureScrubberColors:(NSDictionary*)scrubberColors;
 

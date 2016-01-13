@@ -28,6 +28,8 @@
 
 - (void)doneWithMixEdit:(JWMixEditTableViewController*)mixEdit;
 
+- (id <JWEffectsModifyingProtocol>) trackNodeControllerForNodeAtIndex:(NSUInteger)index;
+
 @end
 
 

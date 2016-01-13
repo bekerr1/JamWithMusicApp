@@ -131,13 +131,11 @@
     NSError *error;
     
     // set the session category
-    //    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayback error:&error];
-
-//withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth
 
     bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord
-                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth
+                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
                                           error:&error];
+
     
     if (!success) NSLog(@"Error setting AVAudioSession category! %@\n", [error localizedDescription]);
     
@@ -166,6 +164,8 @@
                                                  name:AVAudioSessionMediaServicesWereResetNotification
                                                object:sessionInstance];
     
+    
+    BOOL preferFrontMic = NO;
     // activate the audio session
     
     // MICROPHONE
@@ -181,57 +181,41 @@
             NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
             builtInMicrophone = input;
         }
-
     }
 
-    // FIND FRONT
-    // loop over the built-in mic's data sources and attempt to locate the front microphone
-    AVAudioSessionDataSourceDescription* frontDataSource = nil;
-    for (AVAudioSessionDataSourceDescription* source in builtInMicrophone.dataSources)
-    {
-        if ([source.orientation isEqual:AVAudioSessionOrientationFront])
+    if (preferFrontMic) {
+        // FIND FRONT
+        // loop over the built-in mic's data sources and attempt to locate the front microphone
+        AVAudioSessionDataSourceDescription* frontDataSource = nil;
+        for (AVAudioSessionDataSourceDescription* source in builtInMicrophone.dataSources)
         {
-            frontDataSource = source;
-            break;
-        }
-    } // end data source iteration
-    
-    if (frontDataSource)
-    {
-        NSLog(@"Currently selected source is \"%@\" for port \"%@\"", builtInMicrophone.selectedDataSource.dataSourceName, builtInMicrophone.portName);
-        //NSLog(@"Attempting to select source \"%@\" on port \"%@\"", frontDataSource, builtInMicrophone.portName);
-
-        // Set a preference for the front data source.
-        NSError *theError = nil;
-        BOOL result = [builtInMicrophone setPreferredDataSource:frontDataSource error:&theError];
-        if (!result)
+            if ([source.orientation isEqual:AVAudioSessionOrientationFront])
+            {
+                frontDataSource = source;
+                break;
+            }
+        } // end data source iteration
+        
+        if (frontDataSource)
         {
-            // an error occurred. Handle it!
-            NSLog(@"setPreferredDataSource failed");
+            NSLog(@"Currently selected source is \"%@\" for port \"%@\"", builtInMicrophone.selectedDataSource.dataSourceName, builtInMicrophone.portName);
+            //NSLog(@"Attempting to select source \"%@\" on port \"%@\"", frontDataSource, builtInMicrophone.portName);
+            
+            // Set a preference for the front data source.
+            NSError *theError = nil;
+            BOOL result = [builtInMicrophone setPreferredDataSource:frontDataSource error:&theError];
+            if (!result)
+            {
+                // an error occurred. Handle it!
+                NSLog(@"setPreferredDataSource failed");
+            }
         }
     }
     
     [sessionInstance setPreferredInput:builtInMicrophone error:&error];
     
+    AVAudioSessionRouteDescription *currentRoute = [sessionInstance currentRoute];
     
-    // ROUTE DESCRIPTION and SPEAKER Informational
-    
-//    NSLog(@"si outputDataSources %@ %@", sessionInstance.outputDataSources,[sessionInstance.outputDataSources description]);
-  
-    AVAudioSessionPortDescription* outp;
-    for (AVAudioSessionPortDescription* output in sessionInstance.outputDataSources) {
-        if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
-            NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
-            outp = output;
-        }
-        if ([output.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
-            NSLog(@" found AVAudioSessionPortBluetoothHFP %@", output.portType);
-//            outp = output;
-        }
-        NSLog(@" %@ %@", output.portType,output.portName);
-    }
-    
-    AVAudioSessionRouteDescription* currentRoute = sessionInstance.currentRoute;
     NSLog(@"Current Route:\n ");
     NSLog(@"%@", currentRoute);
     
@@ -258,11 +242,14 @@ AVAudioSessionPortBuiltInSpeaker   Output to the device’s built-in speaker. Av
 AVAudioSessionPortHDMI Output to a device via the High-Definition Multimedia Interface (HDMI) specification. Available in iOS 6.0 and later.
 AVAudioSessionPortAirPlay   Output to a remote device over AirPlay. Available in iOS 6.0 and later.
 AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Available in iOS 7.0 and later.
- 
- 
- AVAudioSessionPortLineIn Line-level input from the dock connector. Available in iOS 6.0 and later.
+ --------
+ AVAudioSessionPortLineIn  Line-level input from the dock connector. Available in iOS 6.0 and later.
  AVAudioSessionPortBuiltInMic   The built-in microphone on a device.  Available in iOS 6.0 and later.
  AVAudioSessionPortHeadsetMic   A microphone that is built-in to a wired headset. Available in iOS 6.0 and later.
+ --------
+ AVAudioSessionPortBluetoothHFP  Input or output on a Bluetooth Hands-Free Profile device. Available in iOS 6.0 and later.
+ AVAudioSessionPortUSBAudio  Input or output on a Universal Serial Bus device. Available in iOS 6.0 and later.
+ AVAudioSessionPortCarAudio  Input or output via Car Audio. Available in iOS 7.0 and later
 */
 
 
@@ -300,6 +287,7 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
 {
     UInt8 reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
     AVAudioSessionRouteDescription *routeDescription = [notification.userInfo valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
+//    AVAudioSessionRouteDescription *rrouteDescription = [notification.userInfo valueForKey:AVAudioSessionSilenceSecondaryAudioHintTypeKey];
     
     NSLog(@"Route change:");
     switch (reasonValue) {
@@ -313,24 +301,24 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
             NSLog(@"     CategoryChange");
             NSLog(@" New Category: %@", [[AVAudioSession sharedInstance] category]);
         {
-            
 //            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//            
-//            // INPUTS
-//            NSArray* inputs = routeDescription.inputs;
-//            AVAudioSessionPortDescription* builtInMicrophone;
-//            for (AVAudioSessionPortDescription* input in inputs) {
-//                NSLog(@" %@", input.portType);
-//                if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
-//                    NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
-//                    builtInMicrophone = input;
-//                }
-//            }
-//            
-//            // OUTPUTS
-//            NSLog(@"si %@ %@", sessionInstance.outputDataSources,[sessionInstance.outputDataSources description]);
-//            NSLog(@"rd %@ %@", routeDescription.outputs,[routeDescription.outputs description]);
+//            AVAudioSessionRouteDescription *currentRoute = [sessionInstance currentRoute];
+//
+//            NSLog(@"cr  %@", currentRoute.outputs);
+//
 //            AVAudioSessionPortDescription* outp;
+//            for (AVAudioSessionPortDescription* output in currentRoute.outputs) {
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
+//                    outp = output;
+//                    break;
+//                }
+//                NSLog(@"type and name %@ %@", output.portType,output.portName);
+//            }
+//
+//            NSLog(@"rd  %@", routeDescription.outputs);
+////            NSLog(@"rrd %@", rrouteDescription.outputs);
+//            
 //            for (AVAudioSessionPortDescription* output in routeDescription.outputs) {
 //                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
 //                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
@@ -339,32 +327,82 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
 //                }
 //                NSLog(@"type and name %@ %@", output.portType,output.portName);
 //            }
-//            
+////
 //            if (outp) {
-//                NSLog(@" %@",[outp description]);
+//
+//                NSLog(@" outp %@",[outp description]);
 //                AVAudioSessionDataSourceDescription *selectedDS;
 //                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
 //                    NSLog(@" %@ %@", outpds,[outpds description]);
 //                    selectedDS = outpds;
 //                }
-//                for(AVAudioSessionDataSourceDescription *outpds in sessionInstance.outputDataSources){
+//                
+//                if (selectedDS) {
+//                    NSError *error;
+//                    [outp setPreferredDataSource:selectedDS error:&error];
+//                }
+
+//                AVAudioSessionDataSourceDescription *selectedDS;
+//                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
 //                    NSLog(@" %@ %@", outpds,[outpds description]);
 //                    selectedDS = outpds;
 //                }
+////                for(AVAudioSessionDataSourceDescription *outpds in sessionInstance.outputDataSources){
+////                    NSLog(@" %@ %@", outpds,[outpds description]);
+////                    selectedDS = outpds;
+////                }
 //                if (selectedDS) {
 //                    NSError *error;
 //                    [sessionInstance setOutputDataSource:selectedDS error:&error];
 //                }
+                
 //            }
         }
-
+            
             break;
+            
+            
         case AVAudioSessionRouteChangeReasonOverride:
             NSLog(@"     Override");
-            
-        {
+//        {
 //            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//            
+//            AVAudioSessionRouteDescription *currentRoute = [sessionInstance currentRoute];
+//            AVAudioSessionPortDescription* outp;
+//            NSLog(@"cr  %@", currentRoute.outputs);
+//            for (AVAudioSessionPortDescription* output in currentRoute.outputs) {
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
+//                    outp = output;
+//                    break;
+//                }
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+//                    NSLog(@" found AVAudioSessionPortBluetoothHFP %@", output.portType);
+//                    outp = output;
+//                    break;
+//                }
+//
+//                NSLog(@"type and name %@ %@", output.portType,output.portName);
+//            }
+
+//            NSLog(@"rd  %@", routeDescription.outputs);
+////            NSLog(@"rrd %@", rrouteDescription.outputs);
+//            for (AVAudioSessionPortDescription* output in routeDescription.outputs) {
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
+//                    outp = output;
+//                    break;
+//                } else
+//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+//                    NSLog(@" found AVAudioSessionPortBluetoothHFP %@", output.portType);
+//                    outp = output;
+//                    break;
+//
+//                }
+//
+//                NSLog(@"type and name %@ %@", output.portType,output.portName);
+//            }
+
+//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
 //            NSArray* inputs = routeDescription.inputs;
 //            AVAudioSessionPortDescription* builtInMicrophone;
 //            for (AVAudioSessionPortDescription* input in inputs) {
@@ -388,17 +426,17 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
 //            if (outp) {
 //                
 //                AVAudioSessionDataSourceDescription *selectedDS;
-//                for(AVAudioSessionDataSourceDescription *outpds in sessionInstance.outputDataSources){
+//                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
 //                    NSLog(@" %@ %@", outpds,[outpds description]);
-//                    
+//                    selectedDS = outpds;
 //                }
 //                
 //                if (selectedDS) {
 //                    NSError *error;
-//                    [sessionInstance setOutputDataSource:selectedDS error:&error];
+//                    [outp setPreferredDataSource:selectedDS error:&error];
 //                }
 //            }
-        }
+//        }
             
             break;
             
@@ -415,6 +453,24 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
     NSLog(@"Previous route:\n");
     NSLog(@"%@", routeDescription);
 }
+
+
+//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+//            // INPUTS
+//            NSArray* inputs = routeDescription.inputs;
+//            AVAudioSessionPortDescription* builtInMicrophone;
+//            for (AVAudioSessionPortDescription* input in inputs) {
+//                NSLog(@" %@", input.portType);
+//                if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+//                    NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
+//                    builtInMicrophone = input;
+//                }
+//            }
+//
+//            // OUTPUTS
+//            NSLog(@"si %@ %@", sessionInstance.outputDataSources,[sessionInstance.outputDataSources description]);
+//            NSLog(@"rd %@ %@", routeDescription.outputs,[routeDescription.outputs description]);
+
 
 - (void)handleMediaServicesReset:(NSNotification *)notification
 {

@@ -79,7 +79,13 @@
 -(void)update {
     
     [self loadAllData];
-    NSLog(@"%s  %ld, %ld, %ld\ndownl %ld\njamtrack %ld",__func__,
+    
+    NSLog(@"%s\
+          \n _recordingsFiles         %ld\
+          \n _clipsFiles              %ld\
+          \n _finalsFiles             %ld\
+          \n _downloadedJamTrackFiles %ld\
+          \n _jamTrackFiles           %ld",__func__,
           [_recordingsFilesData count],
           [_clipsFilesData count],
           [_finalsFilesData count],
@@ -555,7 +561,7 @@
     
     [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]] atomically:YES];
     
-    NSLog(@"%sLINKSCOUNT[%ld] MP3INFOCOUNT[%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
+    NSLog(@"%s LINKSCOUNT [%ld]  MP3INFOCOUNT [%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
     //    NSLog(@"\n%s\nLINKS\n%@\nMP3INFO\n%@",__func__,[_linksDirector description],[_mp3FilesInfo description]);
 }
 -(void)readMetaData {
@@ -572,17 +578,17 @@
     //    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
     //                     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
     
-    NSLog(@"%sLINKSCOUNT[%ld] MP3INFOCOUNT[%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
+    NSLog(@"%s LINKSCOUNT [%ld]  MP3INFOCOUNT [%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
 }
 
 -(void)saveDescriptions {
     [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
-    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
+    NSLog(@"%s MP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
 }
 -(void)readDescriptions {
     _mp3FilesDescriptions = [[NSMutableDictionary alloc] initWithContentsOfURL:
                              [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
-    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
+    NSLog(@"%s MP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
 }
 
 -(void)saveUserOrderedList {
@@ -590,12 +596,12 @@
      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
                     atomically:YES];
     
-    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
 }
 -(void)readUserOrderedList {
     _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
                       [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
-    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
 }
 
 @end
