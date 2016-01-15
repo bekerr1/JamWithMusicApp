@@ -126,7 +126,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.bounces = NO;
     self.recordingProgressView.hidden = YES;
     self.recordingProgressView.layer.transform = CATransform3DMakeScale(1.0, 6.2, 1.0);
-    self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 5.2, 1.0);
+    self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 7.4, 1.0);
     self.scrubberProgressView.progress = 0.0;
 }
 
@@ -2338,7 +2338,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)transitionToPlay {
     if (_usePulse)
         _pulseBlocked = NO;
-
     [CATransaction begin];
     [CATransaction setAnimationDuration:0.9];
 //    _scrubberEffectsLayer.color1 = [[UIColor blueColor] colorWithAlphaComponent:0.5];
@@ -2350,47 +2349,68 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //    self.playHeadWindow.backgroundColor = [UIColor clearColor];
 //    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.18];
 //    self.playHeadWindow.alpha = 0.0;
-    
     self.scrollView.userInteractionEnabled = NO;
+    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.10];
 }
 
 -(void)transitionToStopPlaying {
     if (_usePulse)
         _pulseBlocked=YES;
+    
     [CATransaction begin];
-    [CATransaction setAnimationDuration:1.6];
+    [CATransaction setAnimationDuration:0.8];
 //    _scrubberEffectsLayer.color1 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.5];
 //    _scrubberEffectsLayer.color2 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.2];
     [CATransaction commit];
     self.pulseBaseLayer.backgroundColor = [UIColor clearColor].CGColor;
-    
 //    self.pulseLightLayer.backgroundColor = [UIColor clearColor].CGColor;
-    
     self.scrollView.userInteractionEnabled = YES;
-
     self.recordingProgressView.progress = 0.0;
     self.recordingProgressView.hidden = YES;
+    self.playHeadWindow.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.15];
 }
 
 -(void)transitionToRecording {
-    
     if (_usePulse)
         _pulseBlocked = NO;
-
     [CATransaction begin];
     [CATransaction setAnimationDuration:1.2];
-
 //    _scrubberEffectsLayer.color1 = [[UIColor redColor] colorWithAlphaComponent:0.5];
 //    _scrubberEffectsLayer.color2 = [[UIColor redColor] colorWithAlphaComponent:0.2];
     [CATransaction commit];
     self.scrollView.userInteractionEnabled = NO;
     self.recordingProgressView.hidden = NO;
-
+    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.10];
 }
+
 -(void)transitionToPlayTillEnd {
 
     [self.scrubberProgressView setProgress:0.0 animated:YES];
+
+//    [self adjustGradientColorsBack];
 }
+
+-(void)adjustGradientColorsBack {
+    _headerLayer.color1 = [[UIColor blueColor] colorWithAlphaComponent:0.7];
+    _headerLayer.color2 = [[UIColor blackColor] colorWithAlphaComponent:0.95];
+    [CATransaction begin];
+    [CATransaction setAnimationDuration:0.9];
+    [_headerLayer render];
+    [CATransaction commit];
+    double delayInSecs = 0.5;
+    //    NSLog(@"%3f",delayInSecs);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor darkGrayColor];
+        UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor blackColor];
+        _headerLayer.color1 = [hg1 colorWithAlphaComponent:1.0];
+        _headerLayer.color2 = [hg2 colorWithAlphaComponent:0.81];
+        [CATransaction begin];
+        [CATransaction setAnimationDuration:.55];
+        [_headerLayer render];
+        [CATransaction commit];
+    });
+}
+
 #pragma mark -
 
 -(void)viewDidLayoutSubviews {
@@ -2442,12 +2462,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (_headerLayer == nil) {
             JWScrubberGradientLayer *headerLayer =
             [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindTopToBottom];
-            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor blueColor];
-            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor greenColor];
+//            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor blueColor];
+//            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor greenColor];
 //            UIColor * hg1 =  [UIColor blueColor];
 //            UIColor * hg2 =  [UIColor greenColor];
-//            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor darkGrayColor];
-//            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor blackColor];
+            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor darkGrayColor];
+            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor blackColor];
 
             headerLayer.color1 = [hg1 colorWithAlphaComponent:1.0];
             headerLayer.color2 = [hg2 colorWithAlphaComponent:0.81];
@@ -2761,23 +2781,44 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void) bouncePlayhead {
     
     
-    CATransform3D scaleTrans = CATransform3DMakeScale(1.4, 1.0, 1.0);
-    
+    CATransform3D scaleTrans = CATransform3DMakeScale(1.1, 1.0, 1.0);
+
+    UIColor *playHColor;
+    if ([_delegate isPlaying]) {
+        playHColor= [[UIColor cyanColor] colorWithAlphaComponent:0.10];
+    } else {
+        playHColor = [[UIColor redColor] colorWithAlphaComponent:0.15];
+    }
+
     dispatch_async(dispatch_get_main_queue(), ^{
         _playHeadWindow.alpha = 1.0;
-        [UIView animateWithDuration:.150f delay:0.0
-                            options: UIViewAnimationOptionAutoreverse | UIViewAnimationOptionBeginFromCurrentState
+        [UIView animateWithDuration:.250f delay:0.0
+                            options: UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut
                          animations:^{
                              _playHeadWindow.transform = CATransform3DGetAffineTransform(scaleTrans);
                              //_playHeadWindow.layer.transform = scaleTrans;
-                             _playHeadWindow.alpha = 0.5f;
+                             _playHeadWindow.alpha = 0.55f;
                              //_playHeadWindow.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.5];
                          } completion:^(BOOL fini){
-                             _playHeadWindow.transform = CATransform3DGetAffineTransform(CATransform3DIdentity);
-                             //_playHeadWindow.layer.transform = CATransform3DIdentity;
-                             _playHeadWindow.alpha = 1.0;
-                             //_playHeadWindow.backgroundColor = restoreColor;
+                             
+                             [UIView animateWithDuration:.150f delay:0.00
+                                                 options: UIViewAnimationOptionCurveEaseIn
+                                              animations:^{
+                                                  _playHeadWindow.transform = CATransform3DGetAffineTransform(CATransform3DIdentity);
+                                                  //_playHeadWindow.layer.transform = CATransform3DIdentity;
+                                                  _playHeadWindow.alpha = 1.0;
+                                                  
+                                                  _playHeadWindow.backgroundColor = playHColor;
+
+                                                  //_playHeadWindow.backgroundColor = restoreColor;
+
+                                              } completion:^(BOOL fini){
+                                              }];
+
                          }];
+        
+//        _playHeadWindow.transform = CATransform3DGetAffineTransform(CATransform3DIdentity);
+
     });
 }
 
@@ -2794,10 +2835,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGPoint phTouchPoint = [tap locationInView:self.playHeadWindow];
     
     if (CGRectContainsPoint(_playHeadWindow.bounds, phTouchPoint)){
-        
-        [self bouncePlayhead];
-        
         [_delegate playHeadTapped];
+        [self bouncePlayhead];
         
     } else if (_editType == ScrubberEditNone) {
         // NOT EDITING
@@ -2806,21 +2845,17 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         
         NSUInteger touchTrack = 0;
         for (int i = 0; i < _numberOfTracks; i++){
-            CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:[_delegate viewSize].height];
-
-            if (CGRectContainsPoint(trackFrame, touchPoint)){
+            if (CGRectContainsPoint([self frameForTrack:i+1 allTracksHeight:[_delegate viewSize].height], touchPoint)){
                 touchTrack = i+1;
                 break;
             }
         }
         
         if (touchTrack > 0) {
-            NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
             if (_selectedTrack == touchTrack) {
                 // DESELECT if SELECTED
                 [self deSelectTrack];
                 [_delegate trackNotSelected];
-                
             } else {
                 // SELECT TRACK
                 [self selectTrack:touchTrack];

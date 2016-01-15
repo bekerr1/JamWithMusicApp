@@ -53,23 +53,18 @@
 -(void)setTrackSet:(id)trackSet {
     
     NSLog(@"%s",__func__);
-    
     self.objectCollections = [[NSMutableArray alloc] init];
     self.jamTracks = [[NSMutableArray alloc] init];
 
     if (trackSet) {
-        
         for(id jamTrack in trackSet) {
             id trackNodes = jamTrack[@"trackobjectset"];
             if (trackNodes)
                 [_objectCollections addObject:jamTrack[@"trackobjectset"]];
-            
             [_jamTracks addObject:jamTrack];
         }
     }
-    
 }
-
 
 - (void)insertNewObject:(id)sender {
     if (!self.objectCollections) {
@@ -91,35 +86,27 @@
         NSMutableDictionary *trackObject = [self newTrackObject];
         if (trackObject) {
             NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-            
             if (selected) {
                 objectCollection = _objectCollections[selected.section];
-                
                 [objectCollection insertObject:trackObject atIndex:0];
                 NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:selected.section];
-                
                 [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-                
             } else {
-                
                 [objectCollection insertObject:trackObject atIndex:0];
                 [_objectCollections insertObject:objectCollection atIndex:0];
                 [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
             }
         }
-
     }
     
 //    [self saveUserOrderedList];
     
 }
 
-
 -(NSMutableDictionary*)newTrackObject {
     NSMutableDictionary *result = nil;
     return result;
 }
-
 -(NSMutableArray*)newTrackObjectSet {
     NSMutableArray *result = nil;
     return result;
@@ -134,16 +121,12 @@
         
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         NSDictionary *object = _jamTracks[indexPath.section];
-        
         DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
         controller.delegate = self;
-        
         [controller setDetailItem:object];
-        
         controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
         controller.navigationItem.leftItemsSupplementBackButton = YES;
         self.detailViewController = controller;
-        
         self.selectedIndexPath = indexPath;
     }
 }
@@ -229,12 +212,11 @@
 }
 
 
--(NSArray*)tracksForKey:(NSString*)key
-{
+-(NSArray*)tracksForKey:(NSString*)key {
     NSArray *result = nil;
     NSUInteger collectionIndex = 0;
-    
     BOOL found = NO;
+    
     for (id jamTrack in _jamTracks) {
         if ([key isEqualToString:jamTrack[@"key"]]) {
             // found it
@@ -280,14 +262,23 @@
     if (fileURLValue)
         fileName = [[(NSURL*)fileURLValue path] lastPathComponent];
     
+    id titleValue = object[@"title"];
+    id titleTypeValue = object[@"titletype"];
+
     cell.textLabel.text = [NSString stringWithFormat:@"%@%@",
                            [object[@"key"] substringToIndex:5],
                            [fileName length] > 0 ? [NSString stringWithFormat:@"  %@",fileName ] : fileName
                            ];
     
     cell.detailTextLabel.text =
-    [NSString stringWithFormat:@"startTime %00.2f hasRef %@",startTime,object[@"referencefile"]?@"YES":@"NO"];
+    [NSString stringWithFormat:@"startTime %00.2f, Ref %@, %@ %@",
+     startTime,
+     object[@"referencefile"]?@"YES":@"NO",
+     titleTypeValue ? titleTypeValue : @"",
+     titleValue ? titleValue : @""
+     ];
     
+    cell.selectionStyle = UITableViewCellSelectionStyleBlue;
     return cell;
 }
 
@@ -324,10 +315,9 @@
 //    return @"tracks section";
 //}
 
-- (CGFloat )tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 42.0f;
-    
-}
+//- (CGFloat )tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+//    return 42.0f;
+//}
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
 
