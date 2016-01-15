@@ -202,25 +202,38 @@ const int scMaxTracks = 10;
 
 -(void)play:(NSString*)sid {
     
-    if (_playerTimer) {
-        if ([_playerTimer isValid])
-            [_playerTimer invalidate];
-    }
+    if ([_playerTimer isValid])
+        [_playerTimer invalidate];
     
     if (sid == nil) {
-
         [_scrubber prepareToPlay:1 atPosition:[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:nil]];
-//        [_scrubber prepareToPlay:1];
+        //        [_scrubber prepareToPlay:1];
     }
-
+    
     [self startPlayTimer];
+    [_scrubber transitionToPlay];
     
-    
-    if ([self hasRecording]) {
-        [_scrubber transitionToRecording];
-    } else {
-        [_scrubber transitionToPlay];
+    if ( (_scrubber.viewOptions == ScrubberViewOptionDisplayLabels)
+        || (_scrubber.viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            //                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",0.0];
+            //                if ([_delegate respondsToSelector:@selector( durationInSecondsOfAudioFile:forScrubberId:)]) {
+            //                    _scrubber.remainingValueStr =
+            //                    [NSString stringWithFormat:@"%.2f s",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
+            //                }
+            if ([_delegate respondsToSelector:@selector( processingFormatStr:forScrubberId:)]) {
+                _scrubber.formatValueStr = [_delegate processingFormatStr:self forScrubberId:sid];
+            }
+        });
     }
+    
+
+}
+
+-(void)playRecord:(NSString*)sid {
+    
+    [self play:sid];
+    [_scrubber transitionToRecording];
 }
 
 -(void)stopPlaying:(NSString*)sid
@@ -237,6 +250,12 @@ const int scMaxTracks = 10;
         [self rewind:sid];
     }
 }
+
+
+-(void)playedTillEnd:(NSString*)sid {
+    [_scrubber transitionToPlayTillEnd];
+}
+
 
 -(void)reset {
     
@@ -2090,6 +2109,15 @@ EDITING PROTOCOL PUBLIC API
                         channel2Samples:(NSArray*)samples2 averageSamples2:(NSArray*)averageSamples2
                             andDuration:(NSTimeInterval)duration forTrackId:(NSString*)tid
 {
+//    NSNumber * lastSample = [averageSamples lastObject];
+//    NSNumber * firstSample = [averageSamples firstObject];
+    
+    NSNumber * lastSample = [samples lastObject];
+    NSNumber * firstSample = [samples firstObject];
+    [_scrubber pulseRecording:[firstSample floatValue] endValue:[lastSample floatValue] duration:duration];
+    return;
+    
+
     NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
     SamplingOptions options = [self configOptionsForTrack:tid];
     VABLayoutOptions layoutOptions = [self layoutOptionsForTrack:tid];
@@ -2102,15 +2130,11 @@ EDITING PROTOCOL PUBLIC API
         autoAdvance = YES;
     
     _buffersReceivedCounts[track]++;
-    
     _durationForTrack[track] += duration;
     
     float startDuration = _durationForTrack[track];
-
     NSUInteger bufferNo = _buffersReceivedCounts[track];
-
 //    NSLog(@"%s track %ld nsamples %ld ",__func__,track,(unsigned long)[samples count]);
-
     dispatch_async(_bufferReceivedPerformanceQueue, ^{
         dispatch_async(_bufferSampledPerformanceQueue, ^{
             

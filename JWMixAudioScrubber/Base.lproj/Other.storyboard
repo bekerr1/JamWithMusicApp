@@ -158,7 +158,7 @@
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="58" sectionHeaderHeight="28" sectionFooterHeight="28" id="Iy7-ad-5c5">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" red="0.80000001190000003" green="0.80000001190000003" blue="0.80000001190000003" alpha="1" colorSpace="calibratedRGB"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="JWFileItem" textLabel="ECx-UZ-agU" detailTextLabel="wT4-BD-ueh" style="IBUITableViewCellStyleSubtitle" id="0mv-L1-LhC">
                                 <rect key="frame" x="0.0" y="92" width="600" height="58"/>
@@ -193,52 +193,8 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Filesystem" id="MHS-Na-Ko7"/>
-                    <connections>
-                        <outlet property="ampImageView" destination="Drq-w0-79b" id="Xj0-hf-Zue"/>
-                        <outlet property="backgroundViewWithImage" destination="wbI-VF-iar" id="9Wm-QX-fYf"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kZt-o9-oYt" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <view contentMode="scaleToFill" id="wbI-VF-iar">
-                    <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    <subviews>
-                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="jwscreensandcontrols - 3" translatesAutoresizingMaskIntoConstraints="NO" id="Drq-w0-79b">
-                            <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
-                        </imageView>
-                        <visualEffectView opaque="NO" alpha="0.65000000000000002" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FZy-9g-yYb">
-                            <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
-                            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="KIi-Zl-pbx">
-                                <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <subviews>
-                                    <visualEffectView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZXD-9N-COA">
-                                        <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
-                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" ambiguous="YES" id="5Kl-AY-JKs">
-                                            <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                        </view>
-                                        <vibrancyEffect>
-                                            <blurEffect style="light"/>
-                                        </vibrancyEffect>
-                                    </visualEffectView>
-                                </subviews>
-                            </view>
-                            <blurEffect style="light"/>
-                        </visualEffectView>
-                    </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                    <constraints>
-                        <constraint firstItem="FZy-9g-yYb" firstAttribute="width" secondItem="wbI-VF-iar" secondAttribute="width" id="4Z9-du-EeB"/>
-                        <constraint firstItem="Drq-w0-79b" firstAttribute="width" secondItem="wbI-VF-iar" secondAttribute="width" id="5Oi-N8-j9h"/>
-                        <constraint firstItem="Drq-w0-79b" firstAttribute="centerX" secondItem="wbI-VF-iar" secondAttribute="centerX" id="dry-gL-Q6c"/>
-                        <constraint firstItem="Drq-w0-79b" firstAttribute="centerY" secondItem="wbI-VF-iar" secondAttribute="centerY" id="hVE-RF-VsT"/>
-                        <constraint firstItem="Drq-w0-79b" firstAttribute="height" secondItem="wbI-VF-iar" secondAttribute="height" id="hsw-Wy-cnw"/>
-                        <constraint firstItem="FZy-9g-yYb" firstAttribute="height" secondItem="wbI-VF-iar" secondAttribute="height" id="oEI-78-gHx"/>
-                        <constraint firstItem="FZy-9g-yYb" firstAttribute="centerY" secondItem="wbI-VF-iar" secondAttribute="centerY" id="qeZ-uv-cvT"/>
-                        <constraint firstItem="FZy-9g-yYb" firstAttribute="centerX" secondItem="wbI-VF-iar" secondAttribute="centerX" id="wDi-iO-hDx"/>
-                    </constraints>
-                </view>
             </objects>
             <point key="canvasLocation" x="-4374" y="-2189"/>
         </scene>
@@ -421,6 +377,5 @@
     </scenes>
     <resources>
         <image name="jwscreensandcontrols - 2" width="1076" height="949"/>
-        <image name="jwscreensandcontrols - 3" width="840" height="588"/>
     </resources>
 </document>

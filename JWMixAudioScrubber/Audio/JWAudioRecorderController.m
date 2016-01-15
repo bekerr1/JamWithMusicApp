@@ -235,14 +235,14 @@
 -(void)startMeteringTimer
 {
     self.lastMeterTimeStamp = [NSDate date];
-    self.meteringTimer = [NSTimer timerWithTimeInterval:0.05 target:self selector:@selector(meteringTimerFired:) userInfo:nil repeats:YES];
+    self.meteringTimer = [NSTimer timerWithTimeInterval:0.10 target:self selector:@selector(meteringTimerFired:) userInfo:nil repeats:YES];
     [[NSRunLoop mainRunLoop] addTimer:_meteringTimer forMode:NSRunLoopCommonModes];
 }
 
 -(void)meteringTimerFired:(NSTimer*)timer {
     
     if (timer.valid) {
-        NSTimeInterval meteringInterval = 0.33;
+        NSTimeInterval meteringInterval = 0.15;
         /*
         The current peak power, in decibels, for the sound being recorded. 
          A return value of 0 dB indicates full scale, or maximum power; a return value of -160 dB indicates minimum power (that is, near silence).
@@ -276,9 +276,9 @@
         if (avgSample > 0 ) {
             avgNormalizedValue = 1.00f;
         } else {
-            // - 60   is quiet
-            if ((avgSample + maxDB) > subtractValue)
-                avgSample -= subtractValue;
+//            // - 60   is quiet
+//            if ((avgSample + maxDB) > subtractValue)
+//                avgSample -= subtractValue;
 
             avgNormalizedValue = (maxDB + avgSample) / maxDB;
         }
@@ -290,10 +290,8 @@
         if (peakSample > 0 ){
             peakNormalizedValue = 1.00f;
         }else {
-            if ((peakSample + maxDB)  > subtractValue)
-                peakSample -= subtractValue;
-
-
+//            if ((peakSample + maxDB)  > subtractValue)
+//                peakSample -= subtractValue;
 //            if (peakSample <  -subtractValue)
 //                peakSample += subtractValue;
             peakNormalizedValue = (maxDB + peakSample) / maxDB;
@@ -328,7 +326,6 @@
                                                              forTrackId:_scrubberTrackIds[@"recorder"] ];
 
 //            NSLog(@"peakcount %ld avg %ld",[_meterPeakSamples[0] count],[_meterSamples[0] count]);
-
             // Whole new arrays as the other array objects were passed and being processed
             _meterSamples[0] = [@[] mutableCopy];
             _meterPeakSamples[0] = [@[] mutableCopy];

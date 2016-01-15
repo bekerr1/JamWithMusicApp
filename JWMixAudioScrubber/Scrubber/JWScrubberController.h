@@ -127,8 +127,12 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 
 // suppprts autoplay
 -(void)play:(NSString*)sid;
+-(void)playRecord:(NSString*)sid;
+
 -(void)stopPlaying:(NSString*)sid;
 -(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind;
+
+-(void)playedTillEnd:(NSString*)sid;
 
 -(void)seekToPosition:(NSString*)sid;
 -(void)seekToPosition:(NSString*)sid animated:(BOOL)animated;

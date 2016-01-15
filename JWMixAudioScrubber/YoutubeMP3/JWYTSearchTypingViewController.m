@@ -26,7 +26,7 @@
 @property (nonatomic) NSMutableDictionary* images;
 @property (nonatomic) NSString* searchString;
 @property (nonatomic) NSDate *lastKeyHitTimeStamp;
-
+@property NSIndexPath *selectedDetailIndexPath;
 @property (strong, nonatomic) IBOutlet UISearchBar *youTubeSearchQuery;
 @end
 
@@ -43,15 +43,6 @@
     return _youTubeData;
 }
 
-//-(NSMutableArray *)channelsDataArray {
-//    if (!_channelsDataArray) {
-//        _channelsDataArray = [[NSMutableArray alloc] init];
-//        _images = [@{} mutableCopy];
-//    }
-//    return _channelsDataArray;
-//}
-
-
 - (void)viewDidLoad {
 
     [super viewDidLoad];
@@ -62,7 +53,7 @@
     [(UITextField*)txfSearchField addTarget:self
                                      action:@selector(textFieldDidChange:)
                            forControlEvents:UIControlEventEditingChanged];
-    
+    _youTubeSearchQuery.delegate = self;
     
     _channelsDataArray = [[NSMutableArray alloc] init];
     _images = [@{} mutableCopy];
@@ -138,26 +129,32 @@
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    //UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell_ID" forIndexPath:indexPath];
-    UITableViewCell* cell;
-    // Configure the cell...
-    if (cell == nil) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell_ID"];
-    }
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JWYoutubeSearchResultCell" forIndexPath:indexPath];
+//    UITableViewCell* cell;
+//    // Configure the cell...
+//    if (cell == nil) {
+//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"JWYoutubeSearchResultCell"];
+//    }
     @synchronized(_channelsDataArray) {
         
         if (indexPath.row < self.channelsDataArray.count) {
             
-            NSDictionary* tempDict = self.channelsDataArray[indexPath.row];
-            cell.textLabel.text = [tempDict valueForKey:(NSString*)JWDbKeyVideoTitle];
+            NSDictionary* ytVideoInfo = self.channelsDataArray[indexPath.row];
+            cell.textLabel.text = [ytVideoInfo valueForKey:(NSString*)JWDbKeyVideoTitle];
+
+            id description = ytVideoInfo[@"ytdescriptionsnippet"];
+            cell.detailTextLabel.text = description;
             
+            _youtubeVideoTitle = [self.channelsDataArray[indexPath.row] valueForKey:(NSString*)JWDbKeyVideoTitle];
+
             @synchronized(_images) {
                 //            cell.imageView.image = _images[[tempDict valueForKey:@"videoID"]];
-                cell.imageView.image = _images[[tempDict valueForKey:@"ytvideoid"]];
+                cell.imageView.image = _images[ ytVideoInfo[@"ytvideoid"] ];
             }
             
         } else {
             cell.textLabel.text = @"Load More ...";
+            cell.detailTextLabel.text = @"if you dare";
         }
     }
     
@@ -179,6 +176,57 @@
         _newSearchResults = NO;
         
         [self getYoutubeDataFromSearchText:_searchString];
+    }
+}
+
+
+- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
+    
+    self.selectedDetailIndexPath = indexPath;
+    [self namePrompt];
+}
+
+
+#pragma mark -
+
+-(void)namePrompt {
+    
+    if (_selectedDetailIndexPath.row < self.channelsDataArray.count) {
+        
+        NSString *title;
+        NSMutableString *message = [NSMutableString new];
+
+        NSDictionary* ytVideoInfo = self.channelsDataArray[_selectedDetailIndexPath.row];
+        
+        NSString *videoTitleValue = ytVideoInfo[JWDbKeyVideoTitle];
+        if  (videoTitleValue) {
+            title = [NSString stringWithFormat:@"Youtube Video\n %@",videoTitleValue];
+        } else {
+            title = @"Youtube Video";
+        }
+        
+        id description = ytVideoInfo[@"ytdescriptionsnippet"];
+        if (description) {
+            [message appendString:@"\n"];
+            [message appendString:description];
+        }
+        
+        id videoId = ytVideoInfo[@"ytvideoid"];
+        if (videoId) {
+            [message appendString:@"\n\n"];
+            [message appendString:[NSString stringWithFormat:@"Youtube Videoid %@",videoId]];
+        }
+        
+        UIAlertController* actionController =
+        [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* okAction =
+        [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+            self.selectedDetailIndexPath = nil;
+        }];
+        
+        [actionController addAction:okAction];
+        [self presentViewController:actionController animated:YES completion:nil];
     }
 }
 
@@ -259,6 +307,10 @@
 //    }
 
 
+//-(void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
+//    [searchBar resignFirstResponder];
+//}
+
 -(void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     
     NSLog(@"%s",__func__);
@@ -277,6 +329,10 @@
     //        _images = [@{} mutableCopy];
     [self getYoutubeDataFromSearchText:_searchString];
     
+    [searchBar resignFirstResponder];
+
+//    UITextField *txfSearchField = [_youTubeSearchQuery valueForKey:@"_searchField"];
+//    [txfSearchField resignFirstResponder];
     
 }
 

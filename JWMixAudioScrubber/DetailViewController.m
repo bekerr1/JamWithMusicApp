@@ -124,6 +124,14 @@
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
 
+//    [[self.navigationController navigationBar]  setBarStyle:UIBarStyleBlack];
+  
+    [[self.navigationController navigationBar]  setBackgroundImage:[UIImage new]
+                       forBarPosition:UIBarPositionAny
+                           barMetrics:UIBarMetricsDefault];
+    [[self.navigationController navigationBar] setShadowImage:[UIImage new]];
+    [[self.navigationController navigationBar]  setBackgroundColor:[UIColor blackColor]];
+
     self.playerController = [JWAudioPlayerController new];
     self.playerController.delegate = self;
     
@@ -154,13 +162,19 @@
     [self updateAmpImage];
 }
 
--(void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
 }
 
--(void)delloc
+-(void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+//    [self.playerController stop];
+//    self.playerController = nil;  // kill the player controller
+}
+
+-(void)dealloc
 {
-    [self.playerController stop];
+    NSLog(@"%s",__func__);
 }
 
 - (void)didReceiveMemoryWarning {
@@ -197,6 +211,7 @@
 
 -(void)stopPlaying {
     [self.playerController stop];
+    self.playerController = nil;  // kill the player controller
 }
 
 //SCRUBBER CONTROLLER EMBEDED IN SCTV

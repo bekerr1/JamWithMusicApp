@@ -562,24 +562,22 @@ UIGestureRecognizerDelegate
     
     [super viewDidLoad];
     
-    self.songProgress.layer.transform = CATransform3DMakeScale(1.0, 4.2, 1.0);
-
-    self.clipProgressBar.layer.transform = CATransform3DMakeScale(1.0, 9.2, 1.0);
-
-    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
-    [self.activity stopAnimating];
-
+    [self initAVAudioSession];
     
+    self.songProgress.layer.transform = CATransform3DMakeScale(1.0, 4.2, 1.0);
+    self.clipProgressBar.layer.transform = CATransform3DMakeScale(1.0, 9.2, 1.0);
+    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
     self.clipProgressBar.layer.opacity = 0.75f;
     self.songProgress.layer.opacity = 0.85f;
-    
+
+    [self.activity stopAnimating];
+
 //    _ampImageView.alpha = 1.0f;
     
     _trackTimeInterval = 7;
 
-    if (!_trackName) {
+    if (!_trackName)
         _trackName = @"Unknown Track Name";
-    }
     
     self.audioClipper = [JWClipAudioController new];
     _audioClipper.delegate = self;
@@ -630,6 +628,33 @@ UIGestureRecognizerDelegate
         [recordJamController setTrimmedAudioURL:[_audioClipper trimmedFileURL] andFiveSecondURL:[_audioClipper fiveSecondFileURL]];
         recordJamController.delegate = self;
     }
+}
+
+
+#pragma mark - AVAudioSession
+
+- (void)initAVAudioSession
+{
+    // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
+    // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
+    
+    // Configure the audio session
+    AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+    NSError *error;
+    // set the session category
+    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayback
+                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
+                                          error:&error];
+    
+    if (!success) NSLog(@"Error setting AVAudioSession category! %@\n", [error localizedDescription]);
+    
+    double hwSampleRate = 44100.0;
+    success = [sessionInstance setPreferredSampleRate:hwSampleRate error:&error];
+    if (!success) NSLog(@"Error setting preferred sample rate! %@\n", [error localizedDescription]);
+    
+    NSTimeInterval ioBufferDuration = 0.0029;
+    success = [sessionInstance setPreferredIOBufferDuration:ioBufferDuration error:&error];
+    if (!success) NSLog(@"Error setting preferred io buffer duration! %@\n", [error localizedDescription]);
 }
 
 

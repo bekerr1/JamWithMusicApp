@@ -375,10 +375,8 @@
 
 
 - (void)saveUserList {
-    [self readMetaData];
-    [self readUserOrderedList];
+    [self saveUserOrderedList];
 }
-
 
 #pragma mark -
 
@@ -596,12 +594,12 @@
      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
                     atomically:YES];
     
-    NSLog(@"%s USERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT [%ld]",__func__,[_userOrderList count]);
 }
 -(void)readUserOrderedList {
     _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
                       [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
-    NSLog(@"%s USERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT [%ld]",__func__,[_userOrderList count]);
 }
 
 @end

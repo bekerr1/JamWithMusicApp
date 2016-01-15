@@ -13,6 +13,7 @@
 @property NSIndexPath *selectedIndexPath;
 @property NSMutableArray *objectCollections;  // collects objects
 @property NSMutableArray *jamTracks;  // keys to collections
+@property DetailViewController *detailViewController;
 @end
 
 
@@ -28,8 +29,17 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        
+    } else {
+        self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
+    }
+    
     [super viewWillAppear:animated];
+    
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        [self.detailViewController stopPlaying];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -123,7 +133,6 @@
     if ([[segue identifier] isEqualToString:@"JWShowDetailFromFiles"]) {
         
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        
         NSDictionary *object = _jamTracks[indexPath.section];
         
         DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
@@ -133,6 +142,7 @@
         
         controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
         controller.navigationItem.leftItemsSupplementBackButton = YES;
+        self.detailViewController = controller;
         
         self.selectedIndexPath = indexPath;
     }

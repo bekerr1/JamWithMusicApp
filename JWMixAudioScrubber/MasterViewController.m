@@ -42,7 +42,6 @@
     [super viewDidLoad];
 
     _isAddingNewObject = NO;
-
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
     self.navigationItem.rightBarButtonItem = addButton;
@@ -50,7 +49,6 @@
     self.detailViewController =
     (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 
-    
 //    _homeControllerSections = [self newHomeMenuLists];
 //    [self saveHomeMenuLists];
     
@@ -64,14 +62,20 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
-    [super viewWillAppear:animated];
     
-    _isAddingNewObject = NO;
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        self.clearsSelectionOnViewWillAppear = YES;
+    } else {
+        self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
+    }
+    
+    [super viewWillAppear:animated];
 
     if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         [self.detailViewController stopPlaying];
     }
+
+    _isAddingNewObject = NO;
 
 }
 
@@ -84,6 +88,12 @@
         [self.tableView selectRowAtIndexPath:_selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
         [self performSegueWithIdentifier:@"showDetail" sender:self];
     }
+    
+//    NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+//    if (indexPath) {
+//        [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+//    }
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -172,6 +182,8 @@
             if (object) {
                 object[@"usertitle"] = _nameChangeString;
                 
+                [self saveHomeMenuLists];
+
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self.tableView beginUpdates];
                     [self.tableView reloadRowsAtIndexPaths:@[_selectedDetailIndexPath]
@@ -233,6 +245,8 @@
         
         [jamTracks insertObject:jamTrack atIndex:0];
         
+        [self saveHomeMenuLists];
+
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:insertSection];
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.navigationController popToRootViewControllerAnimated:NO];
@@ -517,11 +531,11 @@
           @"trackobjectset":[self newDownloadedJamTracks],
           } mutableCopy],
        [@{
-          @"title":@"YoutubeSearch",
+          @"title":@"Source Audio",
           @"type":@(JWHomeSectionTypeYoutube)
           } mutableCopy],
        [@{
-          @"title":@"Audio FIles",
+          @"title":@"Audio Files",
           @"type":@(JWHomeSectionTypeAudioFiles),
           @"trackobjectset":[self newJamTracks],
           } mutableCopy],
@@ -592,7 +606,7 @@
             [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
             _isAutoSelecting = NO;
         }
-//        self.selectedIndexPath = indexPath;
+        self.selectedIndexPath = indexPath;
         
         
     } else if ([[segue identifier] isEqualToString:@"JWShowAudioFiles"]) {
@@ -625,7 +639,7 @@
 
             [controller setTrackSet:trackObjectSet];
 
-//            self.selectedIndexPath = indexPath;
+            self.selectedIndexPath = indexPath;
         }
         
     } else if ([segue.identifier isEqualToString:@"JWClipAudio"]) {
@@ -1237,29 +1251,87 @@
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.
-    return YES;
+//    return YES;
+    
+    BOOL result = NO;
+    NSUInteger section = indexPath.section;
+    NSUInteger count = 0;
+    // Compute base rows for section
+    if (section < [_homeControllerSections count]) {
+        JWHomeSectionType sectionType = [self typeForSection:section];
+        if (sectionType == JWHomeSectionTypeAudioFiles) {
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeYoutube) {
+            count ++;
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeOther) {
+            count ++;
+        }
+    }
+    
+    if (indexPath.row < count) {
+        // baserow
+    } else {
+        result = YES;
+    }
+    
+    return result;
+
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        NSMutableArray *objectCollection = _objectCollections[indexPath.section];
         
-        [objectCollection removeObjectAtIndex:indexPath.row];
+        NSLog(@"%s",__func__);
         
-        if ([objectCollection count] == 0) {
-            [_objectCollections removeObjectAtIndex:indexPath.section];
-            [tableView beginUpdates];
-            [tableView deleteSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
-            [tableView endUpdates];
-        } else {
-            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        if (indexPath.section < [_homeControllerSections count]) {
+            
+            id objectSection = _homeControllerSections[indexPath.section];
+            
+            JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
+            
+            BOOL isTrackItem = YES;;
+            NSUInteger virtualRow = indexPath.row;
+            
+            if (sectionType == JWHomeSectionTypeAudioFiles) {
+                if (indexPath.row > 0) {
+                    virtualRow--;
+                } else {
+                    isTrackItem = NO;
+                }
+            }
+            else if (sectionType == JWHomeSectionTypeYoutube) {
+                if (indexPath.row > 1) {
+                    virtualRow--;
+                    virtualRow--;
+                } else {
+                    isTrackItem = NO;
+                }
+            }
+            
+            if (isTrackItem) {
+                // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
+                id trackObjects = objectSection[@"trackobjectset"];
+                if (trackObjects) {
+                    if (virtualRow < [trackObjects count]) {
+                        
+                        [trackObjects removeObjectAtIndex:virtualRow];
+                        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+
+                    }
+                }
+            }
         }
+
+//        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
         
 //        [self saveUserOrderedList];
         
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
         
+        [self saveHomeMenuLists];
+
     }
 }
 
@@ -1275,7 +1347,9 @@
         
         id titleValue = _homeControllerSections[section][@"title"];
         if (titleValue) {
-            if (section == [self indexOfSectionOfType:JWHomeSectionTypeOther]) {
+            if (section == [self indexOfSectionOfType:JWHomeSectionTypeOther] ||
+                section == [self indexOfSectionOfType:JWHomeSectionTypeYoutube]
+                ) {
                 result = titleValue;
             } else {
                 result = [NSString stringWithFormat:@"%@ %@",titleValue,[NSString stringWithFormat:@"%lu items",(unsigned long)count]];
@@ -1289,25 +1363,130 @@
 // Override to support rearranging the table view.
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
     
-    id moveObject = [_objectCollections[fromIndexPath.section] objectAtIndex:fromIndexPath.row];
+    NSLog(@"%s",__func__);
     
-    [_objectCollections[fromIndexPath.section]  removeObjectAtIndex:fromIndexPath.row];
-    [_objectCollections[toIndexPath.section]  insertObject:moveObject atIndex:toIndexPath.row];
     
-    if ([_objectCollections[fromIndexPath.section] count] == 0) {
-        [_objectCollections removeObjectAtIndex:fromIndexPath.section];
+    id moveObject ;
+    NSUInteger fromIndex = 0;
+    
+    NSIndexPath *indexPath = fromIndexPath;
+    
+    if (indexPath.section < [_homeControllerSections count]) {
         
-        //NSUInteger reloadSection = toIndexPath.section;
-        //        if (fromIndexPath.section < toIndexPath.section) {
-        //            reloadSection--;
-        //        }
-        [tableView beginUpdates];
-        [tableView deleteSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
-        //        [tableView reloadSections:[NSIndexSet indexSetWithIndex:reloadSection]  withRowAnimation:UITableViewRowAnimationAutomatic];
-        [tableView endUpdates];
+        id objectSection = _homeControllerSections[indexPath.section];
+        
+        JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
+        
+        BOOL isTrackItem = YES;;
+        NSUInteger virtualRow = indexPath.row;
+        
+        if (sectionType == JWHomeSectionTypeAudioFiles) {
+            if (indexPath.row > 0) {
+                virtualRow--;
+            } else {
+                isTrackItem = NO;
+            }
+        }
+        else if (sectionType == JWHomeSectionTypeYoutube) {
+            if (indexPath.row > 1) {
+                virtualRow--;
+                virtualRow--;
+            } else {
+                isTrackItem = NO;
+            }
+        }
+        
+        if (isTrackItem) {
+            // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
+            id trackObjects = objectSection[@"trackobjectset"];
+            if (trackObjects) {
+                if (virtualRow < [trackObjects count]) {
+                    
+                    moveObject = trackObjects[virtualRow];
+                    
+                    fromIndex = virtualRow;
+                    
+                }
+            }
+        }
     }
+
+    if (moveObject) {
+        
+        NSIndexPath *indexPath = toIndexPath;
+        if (indexPath.section < [_homeControllerSections count]) {
+            
+            id objectSection = _homeControllerSections[indexPath.section];
+            JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
+            
+            BOOL isTrackItem = YES;;
+            NSUInteger virtualRow = indexPath.row;
+            
+            if (sectionType == JWHomeSectionTypeAudioFiles) {
+                if (indexPath.row > 0) {
+                    virtualRow--;
+                } else {
+                    isTrackItem = NO;
+                }
+            }
+            else if (sectionType == JWHomeSectionTypeYoutube) {
+                if (indexPath.row > 1) {
+                    virtualRow--;
+                    virtualRow--;
+                } else {
+                    isTrackItem = NO;
+                }
+            }
+            
+            if (isTrackItem) {
+                // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
+                id trackObjects = objectSection[@"trackobjectset"];
+                if (trackObjects) {
+                    if (virtualRow < [trackObjects count]) {
+                        
+                        [trackObjects removeObjectAtIndex:fromIndex];
+
+                        [trackObjects insertObject:moveObject atIndex:virtualRow];
+                        
+                        [tableView beginUpdates];
+                        [tableView reloadSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section]  withRowAnimation:UITableViewRowAnimationAutomatic];
+                        
+//                        [tableView reloadRowsAtIndexPaths:@[fromIndexPath, toIndexPath]
+//                                         withRowAnimation:UITableViewRowAnimationAutomatic];
+
+                        [tableView endUpdates];
+                   }
+                }
+            }
+        }
+
+        
+    }
+
+    //        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
     
-    [tableView reloadSectionIndexTitles];
+
+    
+    
+//    id moveObject = [_objectCollections[fromIndexPath.section] objectAtIndex:fromIndexPath.row];
+//    
+//    [_objectCollections[fromIndexPath.section]  removeObjectAtIndex:fromIndexPath.row];
+//    [_objectCollections[toIndexPath.section]  insertObject:moveObject atIndex:toIndexPath.row];
+    
+//    if ([_objectCollections[fromIndexPath.section] count] == 0) {
+//        [_objectCollections removeObjectAtIndex:fromIndexPath.section];
+//        
+//        //NSUInteger reloadSection = toIndexPath.section;
+//        //        if (fromIndexPath.section < toIndexPath.section) {
+//        //            reloadSection--;
+//        //        }
+//        [tableView beginUpdates];
+//        [tableView deleteSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
+//        //        [tableView reloadSections:[NSIndexSet indexSetWithIndex:reloadSection]  withRowAnimation:UITableViewRowAnimationAutomatic];
+//        [tableView endUpdates];
+//    }
+    
+//    [tableView reloadSectionIndexTitles];
     
 //    [self saveUserOrderedList];
 }
@@ -1315,13 +1494,60 @@
 // Override to support conditional rearranging of the table view.
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the item to be re-orderable.
-    return YES;
+    BOOL result = NO;
+    
+    NSUInteger section = indexPath.section;
+    NSUInteger count = 0;
+    // Compute base rows for section
+    if (section < [_homeControllerSections count]) {
+        JWHomeSectionType sectionType = [self typeForSection:section];
+        if (sectionType == JWHomeSectionTypeAudioFiles) {
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeYoutube) {
+            count ++;
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeOther) {
+            count ++;
+        }
+    }
+    
+    if (indexPath.row < count) {
+        // baserow
+    } else {
+        result = YES;
+    }
+    return result;
 }
 
 -(NSIndexPath *)tableView:(UITableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)sourceIndexPath toProposedIndexPath:(NSIndexPath *)proposedDestinationIndexPath {
     
-    NSLog(@"%s",__func__);
+//    NSLog(@"%s",__func__);
     // Allow the proposed destination.
+    
+    NSUInteger section = sourceIndexPath.section;
+    NSUInteger count = 0;
+    // Compute base rows for section
+    if (section < [_homeControllerSections count]) {
+        JWHomeSectionType sectionType = [self typeForSection:section];
+        if (sectionType == JWHomeSectionTypeAudioFiles) {
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeYoutube) {
+            count ++;
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeOther) {
+            count ++;
+        }
+    }
+
+    
+    
+    if (sourceIndexPath.section == proposedDestinationIndexPath.section)
+    {
+        
+    } else {
+        proposedDestinationIndexPath = sourceIndexPath;
+    }
+    
     return proposedDestinationIndexPath;
 }
 
@@ -1449,7 +1675,7 @@
     
     [self serializeInJamTracks];
 
-    NSLog(@"%s homeObjects[%ld]",__func__,[_homeControllerSections count]);
+    NSLog(@"%s HOMEOBJECTS [%ld]",__func__,[_homeControllerSections count]);
 }
 
 -(void)readHomeMenuLists {
@@ -1458,7 +1684,7 @@
     [self serializeInJamTracks];
     
 //    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
-    NSLog(@"%s homeObjects[%ld]",__func__,[_homeControllerSections count]);
+    NSLog(@"%s HOMEOBJECTS [%ld]",__func__,[_homeControllerSections count]);
 }
 
 @end

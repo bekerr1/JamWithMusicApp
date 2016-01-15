@@ -136,6 +136,7 @@ HTTP GET request on the googleapis/youtube URL and once the request is complete 
                     singleItemResult[@"ytvideoid"] = item[@"id"][@"videoId"];   //  key videoID  == ytvideoid
                     singleItemResult[@"videoTitle"] = item[@"snippet"][@"title"];
                     singleItemResult[@"thumbnail"] = item[@"snippet"][@"thumbnails"][@"default"][@"url"];
+                    singleItemResult[@"ytdescriptionsnippet"] = item[@"snippet"][@"description"];
                     
                     [result addObject:singleItemResult];
                     

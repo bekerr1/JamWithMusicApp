@@ -17,7 +17,6 @@
     AVAudioPlayerNode *_playerNode;
     NSUInteger selectedAmpImageIndex;
 }
-@property (strong, nonatomic) IBOutlet UIView *backgroundViewWithImage;
 @property (strong, nonatomic) IBOutlet UIImageView *ampImageView;
 @property (nonatomic) NSMutableArray *filesData;
 @property (nonatomic) NSMutableArray *recordingsFilesData;
@@ -31,13 +30,16 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
+    [self initAVAudioSession];
+
     // Uncomment the following line to preserve selection between presentations.
-     self.clearsSelectionOnViewWillAppear = NO;
-//     Uncomment the following line to display an Edit button in the navigation bar for this view controller.
+//     self.clearsSelectionOnViewWillAppear = NO;
      self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
+    
+
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -220,7 +222,9 @@
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
             [_playerNode stop];
         } else {
-            [self playFileInEngine: _filesData[indexPath.section][indexPath.row][@"furl"]];
+            if ([self playFileInEngine: _filesData[indexPath.section][indexPath.row][@"furl"]] == NO) {
+                [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            }
         }
     }
     else if (indexPath.section == 1) {
@@ -238,7 +242,9 @@
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
             [_playerNode stop];
         } else {
-            [self playFileInEngine: _filesData[indexPath.section][indexPath.row][@"furl"]];
+            if ([self playFileInEngine: _filesData[indexPath.section][indexPath.row][@"furl"]] == NO) {
+                [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            }
         }
     }
     else if (indexPath.section == 3) {
@@ -246,7 +252,9 @@
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
             [_playerNode stop];
         } else {
-            [self playFileInEngine: _filesData[indexPath.section][indexPath.row][@"furl"]];
+            if ([self playFileInEngine: _filesData[indexPath.section][indexPath.row][@"furl"]] == NO) {
+                [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            }
         }
     }
 
@@ -280,32 +288,69 @@
     playerViewController.player = myPlayer;
     
     playerViewController.showsPlaybackControls = YES;
+    
     [self presentViewController:playerViewController animated:NO completion:^{
         [myPlayer play];
     }];
 }
 
 
--(void)playFileInEngine:(NSURL*)audioFile
+-(BOOL)playFileInEngine:(NSURL*)audioFile
 {
-    _audioEngine = [AVAudioEngine new];
-    AVAudioPlayerNode *player = [AVAudioPlayerNode new];
-    [_audioEngine attachNode:player];
-    
+    BOOL result;
     NSError *error;
     AVAudioFile *file = [[AVAudioFile alloc] initForReading:audioFile error:&error];
-    AVAudioMixerNode *mainMixer = [_audioEngine mainMixerNode];
-    
-    [_audioEngine connect:player to:mainMixer format:file.processingFormat];
-    error = nil;
-    [_audioEngine startAndReturnError:&error];
-    mainMixer.volume = 0.6;
-    // attime nil play immediately
-    [player scheduleFile:file atTime:nil completionHandler:nil];
-    _playerNode = player;
-    [player play];
+    if ([file length] > 0) {
+        _audioEngine = [AVAudioEngine new];
+        AVAudioPlayerNode *player = [AVAudioPlayerNode new];
+        [_audioEngine attachNode:player];
+
+        AVAudioMixerNode *mainMixer = [_audioEngine mainMixerNode];
+        
+        [_audioEngine connect:player to:mainMixer format:file.processingFormat];
+        error = nil;
+        [_audioEngine startAndReturnError:&error];
+        mainMixer.volume = 0.6;
+        // attime nil play immediately
+        [player scheduleFile:file atTime:nil completionHandler:nil];
+        _playerNode = player;
+        [player play];
+        
+        result = YES;
+    } else {
+        result = NO;
+    }
+    return result;
+
 }
 
+#pragma mark - AVAudioSession
+
+- (void)initAVAudioSession
+{
+    // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
+    // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
+    
+    // Configure the audio session
+    AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+    NSError *error;
+    // set the session category
+    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord
+                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
+                                          error:&error];
+
+    if (!success) NSLog(@"Error setting AVAudioSession category! %@\n", [error localizedDescription]);
+    
+    double hwSampleRate = 44100.0;
+    success = [sessionInstance setPreferredSampleRate:hwSampleRate error:&error];
+    if (!success) NSLog(@"Error setting preferred sample rate! %@\n", [error localizedDescription]);
+    
+    NSTimeInterval ioBufferDuration = 0.0029;
+    success = [sessionInstance setPreferredIOBufferDuration:ioBufferDuration error:&error];
+    if (!success) NSLog(@"Error setting preferred io buffer duration! %@\n", [error localizedDescription]);
+}
+
+#pragma mark -
 
 // Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

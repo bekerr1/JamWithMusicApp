@@ -33,7 +33,7 @@
 @property (nonatomic) NSArray *playerNodes;
 @property (nonatomic,readonly) NSURL* mixOutputFileURL;
 
-@property (nonatomic,assign) id <JWMTAudioEngineDelgegate> engineDelegate;
+@property (nonatomic,weak) id <JWMTAudioEngineDelgegate> engineDelegate;
 
 -(instancetype)initWithPrimaryFileURL:(NSURL*)primaryFileURL fadeInURL:(NSURL*)fadeInFileURL delegate:(id <JWMTAudioEngineDelgegate>) engineDelegate;
 

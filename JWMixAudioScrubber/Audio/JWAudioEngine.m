@@ -1,3 +1,6 @@
+
+
+
 //
 //  JWAudioEngine.m
 //  
@@ -23,6 +26,9 @@
     }
 }
 
+-(void)dealloc {
+    NSLog(@"%s",__func__);
+}
 
 - (void)stopPlayersForInterruption
 {
@@ -59,18 +65,13 @@
     // nothing to connect here
     // leave it to subclasses
     
-    
     /*  The engine will construct a singleton main mixer and connect it to the outputNode on demand,
      when this property is first accessed. You can then connect additional nodes to the mixer.
      
      By default, the mixer's output format (sample rate and channel count) will track the format
      of the output node. You may however make the connection explicitly with a different format. */
     
-    // get the engine's optional singleton main mixer node
-//    AVAudioMixerNode *mainMixer = [self.audioEngine mainMixerNode];
-    
-    // establish a connection between nodes
-    
+
     /*  Nodes have input and output buses (AVAudioNodeBus). Use connect:to:fromBus:toBus:format: to
      establish connections betweeen nodes. Connections are always one-to-one, never one-to-many or
      many-to-one.
@@ -163,11 +164,8 @@
                                              selector:@selector(handleMediaServicesReset:)
                                                  name:AVAudioSessionMediaServicesWereResetNotification
                                                object:sessionInstance];
-    
-    
     BOOL preferFrontMic = NO;
     // activate the audio session
-    
     // MICROPHONE
     success = [sessionInstance setActive:YES error:&error];
     if (!success) NSLog(@"Error setting session active! %@\n", [error localizedDescription]);

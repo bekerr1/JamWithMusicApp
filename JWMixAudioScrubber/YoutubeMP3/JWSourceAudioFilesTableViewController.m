@@ -65,6 +65,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     self.refreshControl.tintColor = [UIColor colorWithWhite:0.95 alpha:1.0];
   
     [self.refreshControl beginRefreshing];
+    
+    [self initAVAudioSession];
+
     [self loadData];
 }
 
@@ -92,8 +95,19 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [_playerNode stop];
-    [[JWFileController sharedInstance] saveUserList];
-//    [self saveUserOrderedList];
+    
+    
+    if (_allFiles) {
+        
+    } else {
+        if (self.presentedViewController) {
+            
+        } else {
+            
+            [[JWFileController sharedInstance] saveUserList];
+            
+        }
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -553,6 +567,8 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 //    NSLog(@"%s %@",__func__,[audioFile lastPathComponent]);
     
     AVPlayer *myPlayer = [AVPlayer playerWithURL:audioFile];
+    myPlayer.volume  = 0.75;
+    
     AVPlayerViewController *playerViewController = [[AVPlayerViewController alloc] init];
     playerViewController.player = myPlayer;
     
@@ -581,6 +597,34 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     _playerNode = player;
     [player play];
 }
+
+
+#pragma mark - AVAudioSession
+
+- (void)initAVAudioSession
+{
+    // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
+    // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
+    
+    // Configure the audio session
+    AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+    NSError *error;
+    // set the session category
+    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord
+                                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
+                                          error:&error];
+
+    if (!success) NSLog(@"Error setting AVAudioSession category! %@\n", [error localizedDescription]);
+    
+    double hwSampleRate = 44100.0;
+    success = [sessionInstance setPreferredSampleRate:hwSampleRate error:&error];
+    if (!success) NSLog(@"Error setting preferred sample rate! %@\n", [error localizedDescription]);
+    
+    NSTimeInterval ioBufferDuration = 0.0029;
+    success = [sessionInstance setPreferredIOBufferDuration:ioBufferDuration error:&error];
+    if (!success) NSLog(@"Error setting preferred io buffer duration! %@\n", [error localizedDescription]);
+}
+
 
 #pragma mark -
 

@@ -67,6 +67,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 @property (strong, nonatomic) IBOutlet UIView *playHeadWindow;
 @property (strong, nonatomic) IBOutlet UIScrollView *scrollView;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *topLayoutScrollViewConstraint;
+@property (strong, nonatomic) IBOutlet UIProgressView *recordingProgressView;
+@property (strong, nonatomic) IBOutlet UIProgressView *scrubberProgressView;
 @property (strong, nonatomic) IBOutlet UILabel *playheadLabel;
 @property (strong, nonatomic) IBOutlet UILabel *playheadValueLabel;
 @property (strong, nonatomic) IBOutlet UILabel *durationLabel;
@@ -122,6 +124,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.backgroundColor = [UIColor clearColor];
     self.scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
     self.scrollView.bounces = NO;
+    self.recordingProgressView.hidden = YES;
+    self.recordingProgressView.layer.transform = CATransform3DMakeScale(1.0, 6.2, 1.0);
+    self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 5.2, 1.0);
+    self.scrubberProgressView.progress = 0.0;
 }
 
 
@@ -787,6 +793,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 - (void)trackScrubberToProgress:(CGFloat)progress {
     [self trackScrubberToProgress:progress timeAnimated:YES];
+    [self.scrubberProgressView setProgress:progress animated:YES];
 }
 
 - (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated {
@@ -1210,9 +1217,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     //CGFloat ltl = [self largestTrackEndPosition];
     CGRect clipfr = _clipEnd.frame;
     clipfr.origin.x = size.width;
-    _clipEnd.frame = clipfr;
     
-    self.scrollView.contentSize = size;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _clipEnd.frame = clipfr;
+        self.scrollView.contentSize = size;
+    });
     
     //CGSizeMake([self largestTrackEndPosition] , scrubberViewSize.height - self.topLayoutScrollViewConstraint.constant - bottomLayoutOffset);
 }
@@ -2254,7 +2263,16 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.view.backgroundColor = [UIColor colorWithWhite:value alpha:1.0];
 }
 
-
+-(void)pulseRecording:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.recordingProgressView setProgress:(pulseStartValue * .6) * .7 animated:YES];
+    });
+    double delayInSecs = duration;
+//    NSLog(@"%3f",delayInSecs);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.recordingProgressView setProgress:endValue * .7 animated:YES];
+    });
+}
 
 //#define TRACEPULSE
 /*
@@ -2316,6 +2334,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 #pragma mark - transition to 
 
+
 -(void)transitionToPlay {
     if (_usePulse)
         _pulseBlocked = NO;
@@ -2349,7 +2368,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     self.scrollView.userInteractionEnabled = YES;
 
-
+    self.recordingProgressView.progress = 0.0;
+    self.recordingProgressView.hidden = YES;
 }
 
 -(void)transitionToRecording {
@@ -2364,10 +2384,14 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //    _scrubberEffectsLayer.color2 = [[UIColor redColor] colorWithAlphaComponent:0.2];
     [CATransaction commit];
     self.scrollView.userInteractionEnabled = NO;
+    self.recordingProgressView.hidden = NO;
 
 }
+-(void)transitionToPlayTillEnd {
 
-
+    [self.scrubberProgressView setProgress:0.0 animated:YES];
+}
+#pragma mark -
 
 -(void)viewDidLayoutSubviews {
     if (_useGradient)
@@ -2381,12 +2405,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)gradientConfiguration {
 
     CGRect sfr = self.scrollView.frame; // scroll vie wframe
+    
     sfr.origin = CGPointZero;
 
     CGPoint gcenter = CGPointZero;
-    CGFloat width = 0;
-    CGFloat height = 0;
-    CGRect gfr = CGRectZero;
+    CGRect plhGfr = CGRectZero;
 
     BOOL usesHue = (_hueColor != nil);
 
@@ -2395,6 +2418,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (usesHue && _hueNeedsUpdate) {
             needsRectUpdate = YES;
             gcenter = self.scrollView.center;
+            plhGfr = CGRectMake(0,0,CGRectGetWidth(self.playHeadWindow.frame),
+                                CGRectGetHeight(self.playHeadWindow.frame));  // gradient frame
         }
         
     } else {
@@ -2403,24 +2428,30 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
         _lastRect = sfr;
 
-        width = self.playHeadWindow.frame.size.width;
-        height = CGRectGetHeight(self.playHeadWindow.frame);
-        gfr = CGRectMake(0,0,width,height);  // gradient frame
+        plhGfr = CGRectMake(0,0,CGRectGetWidth(self.playHeadWindow.frame),
+                            CGRectGetHeight(self.playHeadWindow.frame));  // gradient frame
     }
     
     
 //    NSLog(@"%s %@ needsRectUpdate %@",__func__,NSStringFromCGRect(self.scrollView.frame),needsRectUpdate?@"YES":@"NO");
 
     if (_hueAndGradientsConfigured == NO) {
-        
+        needsRectUpdate = YES;
+
         // HEADER
         if (_headerLayer == nil) {
-            JWScrubberGradientLayer *headerLayer =  [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindTopToBottom];
-            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor darkGrayColor];
-            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor blackColor];
-            headerLayer.color1 = [hg1 colorWithAlphaComponent:0.9];
-            headerLayer.color2 = [hg2 colorWithAlphaComponent:0.6];
-            headerLayer.breakingPoint1 = .50;
+            JWScrubberGradientLayer *headerLayer =
+            [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindTopToBottom];
+            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor blueColor];
+            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor greenColor];
+//            UIColor * hg1 =  [UIColor blueColor];
+//            UIColor * hg2 =  [UIColor greenColor];
+//            UIColor * hg1 = _headerColor1 ? _headerColor1 : [UIColor darkGrayColor];
+//            UIColor * hg2 = _headerColor2 ? _headerColor2 : [UIColor blackColor];
+
+            headerLayer.color1 = [hg1 colorWithAlphaComponent:1.0];
+            headerLayer.color2 = [hg2 colorWithAlphaComponent:0.81];
+            headerLayer.breakingPoint1 = .15;
             self.headerLayer = headerLayer;
         }
         
@@ -2428,14 +2459,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (usesHue && _hueLayer == nil) {
             JWScrubberGradientLayer *hueLayer =  [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindTopToBottom];
             hueLayer.breakingPoint1 = .10;
-            _hueNeedsUpdate = YES;
+            _hueNeedsUpdate = YES; // configure colors below
             self.hueLayer = hueLayer;
         }
-
-        //            UIColor * hg1 = _hueGradientColor1 ? _hueGradientColor1 : _hueColor;
-        //            UIColor * hg2 = _hueGradientColor2 ? _hueGradientColor2 : _hueColor;
-        //            hueLayer.color1 = [hg1 colorWithAlphaComponent:0.7];
-        //            hueLayer.color2 = [hg2 colorWithAlphaComponent:0.3];
 
         // TRACK GRADIENT
         if (_useTrackGradient && _trackGradients == nil) {
@@ -2443,15 +2469,17 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             _trackGradients = [@[] mutableCopy];
             
             for (int i = 0 ; i<_numberOfTracks;i++) {
-                JWScrubberGradientLayer *effectsLayer =  [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindCenteredBreaking];
+                JWScrubberGradientLayer *effectsLayer =
+                [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindCenteredBreaking];
                 effectsLayer.color1 = _trackGradientColor1 ? _trackGradientColor1 : [UIColor blackColor];
-                effectsLayer.color2 = _trackGradientColor2 ? _trackGradientColor2 : [[UIColor blackColor] colorWithAlphaComponent:0.5];
-                effectsLayer.color3 = _trackGradientColor3 ? _trackGradientColor3 : [[UIColor whiteColor] colorWithAlphaComponent:0.5];
+                effectsLayer.color2 = _trackGradientColor2 ? _trackGradientColor2 : [[UIColor blackColor] colorWithAlphaComponent:0.8];
+                effectsLayer.color3 = _trackGradientColor3 ? _trackGradientColor3 : [UIColor clearColor];
+
 //                effectsLayer.breakingPoint1 = 0.12f;
 //                effectsLayer.breakingPoint2 = 0.35;  // allows .30  to include spread at .50
 //                effectsLayer.centeredBreakingCenterSpread = 0.09f;  // prob should be less than opening in pulseLayer
 
-                effectsLayer.breakingPoint1 = 0.20f;
+                effectsLayer.breakingPoint1 = 0.30f;
                 effectsLayer.breakingPoint2 = 0.40;  // allows .30  to include spread at .50
                 effectsLayer.centeredBreakingCenterSpread = 0.08f;  // prob should be less than opening in pulseLayer
 
@@ -2502,15 +2530,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         UIColor * hg2 = _hueGradientColor2 ? _hueGradientColor2 : _hueColor;
         _hueLayer.color1 = [hg1 colorWithAlphaComponent:0.6];
         _hueLayer.color2 = [hg2 colorWithAlphaComponent:0.3];
-        _hueLayer.breakingPoint1 = .10;
+        _hueLayer.breakingPoint1 = .30;
         _hueNeedsUpdate = NO;
     }
 
     
     if (needsRectUpdate) {
+        
+        CGSize sz = [_delegate viewSize];
+        sfr.size.height = sz.height - _topLayoutScrollViewConstraint.constant;
+        
 //        NSLog(@"%s needs rect update",__func__);
         if (_usePulse) {
-            _pulseBaseLayer.frame = gfr;
+            _pulseBaseLayer.frame = plhGfr;
             [_pulseBaseLayer render];
             _pulseBaseLayer.position = gcenter;
         }
@@ -2518,15 +2550,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (_useTrackGradient) {
             for (int i = 0 ; i<_numberOfTracks;i++) {
                 // GET the frame for the track
-                CGRect trect = [self frameForTrack:i+1 allTracksHeight:CGRectGetHeight(sfr)];
+                CGRect trect = [self frameForTrack:i+1 allTracksHeight:sz.height];
                 // Remember the Y
-                CGFloat trackY = trect.origin.y;
+                CGFloat trackY = trect.origin.y + _topLayoutScrollViewConstraint.constant;
                 
                 trect.origin = CGPointZero;
                 trect.size.width = CGRectGetWidth(sfr);
-                
+
+//                trect.size.height = CGRectGetHeight(sfr) - _topLayoutScrollViewConstraint.constant;
+
                 [(CALayer*)_trackGradients[i] setFrame:trect];
+                
                 [(JWScrubberGradientLayer*)_trackGradients[i] render];
+                
                 [(CALayer*)_trackGradients[i] setPosition:CGPointMake(CGRectGetWidth(trect)/2, trackY + CGRectGetHeight(trect)/2)];
             }
         }
@@ -2540,19 +2576,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (_headerLayer) {
             CGRect hfr = sfr;
             hfr.size.height = _topLayoutScrollViewConstraint.constant;
-            
+            hfr.origin = CGPointZero;
             CGPoint hcenter = gcenter;
             hcenter.y = _topLayoutScrollViewConstraint.constant/2;
             
+            NSLog(@"_headerLayer %@",NSStringFromCGRect(hfr));
+            NSLog(@"_headerLayer %@",NSStringFromCGPoint(hcenter));
+
             _headerLayer.frame = hfr;
             [_headerLayer render];
             _headerLayer.position = hcenter;
         }
     }
-    
-    
 }
-
 
 #pragma mark - Configure Edit Layer / BOOK End Clips
 
@@ -2566,7 +2602,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (_editType == ScrubberEditLeft )
     {
         [self configureEditLayerLeft:size];
-        
     } else if (_editType == ScrubberEditStart ||  _editType == ScrubberEditRight ) {
 
         [self configureEditLayerRight:size];
@@ -2588,7 +2623,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         _editLayerLeft = [UIView new];
 //        _editLayerLeft.backgroundColor = [UIColor blueColor];
 //        _editLayerLeft.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.40];
-
         _editLayerLeft.backgroundColor = [UIColor darkGrayColor];
         _editLayerLeft.clipsToBounds = YES;
         _editLayerLeft.userInteractionEnabled = NO;

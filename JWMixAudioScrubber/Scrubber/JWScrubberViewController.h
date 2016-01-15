@@ -81,7 +81,9 @@
 - (void)transitionToPlay;
 - (void)transitionToStopPlaying;
 - (void)transitionToRecording;
-- (void)scaleBuffers;
+- (void)transitionToPlayTillEnd;
+
+-(void)pulseRecording:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
 
 -(void)pulseBackLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
 -(void)pulseLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
@@ -118,6 +120,9 @@
             layout:(VABLayoutOptions)layoutOptions
               kind:(VABKindOptions)kindOptions
    allTracksHeight:(CGFloat)allTracksHeight;
+
+- (void)scaleBuffers;  // not working
+
 
 @end
 
