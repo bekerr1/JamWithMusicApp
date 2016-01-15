@@ -392,7 +392,21 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
                 [_playerNode stop];
             }
             
-            [self playFileUsingAVPlayer:fileURL];
+            if (_allFiles) {
+                UIImage *ampImage =
+                [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %u",(1 + 1)]];
+                [self playFileUsingAVPlayer:fileURL image:ampImage imageURL:nil];
+                
+            } else {
+                NSString *dbKey = _userOrderList[indexPath.row];
+                id mp3DataRecord =  _mp3FilesInfo[dbKey];
+                NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
+                
+                [self playFileUsingAVPlayer:fileURL image:self.images[_userOrderList[indexPath.row]] imageURL:imageURL];
+            }
+            
+
+//            [self playFileUsingAVPlayer:fileURL];
         }
         
         // SET it as the CurrentWork item if file exists
@@ -563,7 +577,12 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 #pragma mark -
 
+
 -(void)playFileUsingAVPlayer:(NSURL*)audioFile {
+    [self playFileUsingAVPlayer:audioFile image:nil imageURL:nil];
+}
+
+-(void)playFileUsingAVPlayer:(NSURL*)audioFile image:(UIImage*)image imageURL:(NSURL*)imageURL {
 //    NSLog(@"%s %@",__func__,[audioFile lastPathComponent]);
     
     AVPlayer *myPlayer = [AVPlayer playerWithURL:audioFile];
@@ -573,10 +592,60 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     playerViewController.player = myPlayer;
     
     playerViewController.showsPlaybackControls = YES;
+    
     [self presentViewController:playerViewController animated:NO completion:^{
         [myPlayer play];
+
+        if (imageURL) {
+            NSLog(@"DISPATCH %@",[imageURL absoluteString]);
+            dispatch_async(_imageRetrievalQueue, ^{
+                UIImage* youtubeThumb = [UIImage imageWithData:[NSData dataWithContentsOfURL:imageURL]];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIImageView *iv = [[UIImageView alloc] initWithImage:youtubeThumb];
+                    iv.backgroundColor = [UIColor blackColor];
+                    iv.contentMode = UIViewContentModeScaleAspectFit;
+                    iv.frame = CGRectMake(0, 0, playerViewController.view.bounds.size.width,
+                                          playerViewController.view.bounds.size.height);
+                    
+                    [playerViewController.contentOverlayView addSubview:iv];
+                });
+            });
+        } else {
+            if (image) {
+                UIImageView *iv = [[UIImageView alloc] initWithImage:image];
+                iv.backgroundColor = [UIColor blackColor];
+                iv.contentMode = UIViewContentModeScaleAspectFit;
+                iv.frame = CGRectMake(0, 0, playerViewController.view.bounds.size.width,
+                                      playerViewController.view.bounds.size.height);
+                
+                [playerViewController.contentOverlayView addSubview:iv];
+            }
+        }
     }];
 }
+
+-(NSURL*)bestImageURLForMP3Record:(NSDictionary*)mp3DataRecord {
+    if (mp3DataRecord == nil) {
+        return nil;
+    }
+    id urlStr;
+    //    urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailMaxres];
+    //    if (!urlStr)
+    urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailHigh];
+    if (!urlStr)
+        urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailMedium];
+    if (!urlStr)
+        urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailDefault];
+    
+    //    urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"high"][@"url"];
+    //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+    //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+    
+    NSURL *imageURL = urlStr ? [NSURL URLWithString:urlStr] : nil;
+    NSLog(@"%s %@",__func__,[imageURL absoluteString]);
+    return imageURL;
+}
+
 
 -(void)playFileInEngine:(NSURL*)audioFile {
     

@@ -33,13 +33,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="jwjustscreensandlogos - 2.png" translatesAutoresizingMaskIntoConstraints="NO" id="XpK-I1-BEA">
-                                <rect key="frame" x="0.0" y="140" width="600" height="252"/>
+                                <rect key="frame" x="0.0" y="170" width="600" height="222"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </imageView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GaD-5G-Xyx">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="140"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="170"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="140" id="Lbe-yA-CDZ"/>
+                                    <constraint firstAttribute="height" constant="170" id="Lbe-yA-CDZ"/>
                                 </constraints>
                                 <connections>
                                     <segue destination="0H5-SC-ezN" kind="embed" identifier="JWScrubberView" id="ogG-79-2RA"/>
@@ -54,14 +54,21 @@
                                     <segue destination="fig-ql-ORV" kind="embed" identifier="JWPlayerControlsView" id="Xfu-Ln-4N6"/>
                                 </connections>
                             </containerView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZAt-Yo-npn">
+                                <rect key="frame" x="20" y="238" width="560" height="60"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="60" id="QyO-4W-3gx"/>
+                                </constraints>
+                            </view>
                             <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hfu-o8-ebw" userLabel="mixedit Container View">
-                                <rect key="frame" x="0.0" y="140" width="600" height="352"/>
+                                <rect key="frame" x="0.0" y="170" width="600" height="322"/>
                                 <connections>
                                     <segue destination="L8l-WD-inX" kind="embed" identifier="JWMixEditEmbed" id="kXU-z2-rAC"/>
                                 </connections>
                             </containerView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="zgs-S7-B1B">
-                                <rect key="frame" x="290" y="60" width="20" height="20"/>
+                                <rect key="frame" x="290" y="75" width="20" height="20"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" red="0.40000000600000002" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -71,15 +78,18 @@
                             <constraint firstItem="GAO-Cl-Wes" firstAttribute="top" secondItem="hfu-o8-ebw" secondAttribute="bottom" id="8cu-mW-fsB"/>
                             <constraint firstItem="GaD-5G-Xyx" firstAttribute="centerX" secondItem="svH-Pt-448" secondAttribute="centerX" id="CUe-yk-kuX"/>
                             <constraint firstItem="GaD-5G-Xyx" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" id="Fzm-hp-H5D"/>
+                            <constraint firstItem="ZAt-Yo-npn" firstAttribute="centerX" secondItem="svH-Pt-448" secondAttribute="centerX" id="MA7-sb-EEK"/>
                             <constraint firstItem="XpK-I1-BEA" firstAttribute="centerX" secondItem="svH-Pt-448" secondAttribute="centerX" id="R4N-4o-tOa"/>
                             <constraint firstItem="hfu-o8-ebw" firstAttribute="centerX" secondItem="svH-Pt-448" secondAttribute="centerX" id="SSj-VO-aYQ"/>
                             <constraint firstItem="6MV-Z9-70J" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" id="XhT-LK-68L"/>
                             <constraint firstItem="XpK-I1-BEA" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" id="XsB-IP-kDm"/>
                             <constraint firstItem="hfu-o8-ebw" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" id="Y6n-2k-Nxa"/>
+                            <constraint firstItem="ZAt-Yo-npn" firstAttribute="centerY" secondItem="svH-Pt-448" secondAttribute="centerY" id="Zba-aO-Lfg"/>
                             <constraint firstItem="hfu-o8-ebw" firstAttribute="top" secondItem="GaD-5G-Xyx" secondAttribute="bottom" id="dog-Gr-qdA"/>
                             <constraint firstItem="6MV-Z9-70J" firstAttribute="top" secondItem="XpK-I1-BEA" secondAttribute="bottom" id="gZR-2N-jkM"/>
                             <constraint firstItem="GAO-Cl-Wes" firstAttribute="top" secondItem="6MV-Z9-70J" secondAttribute="bottom" id="gbM-Ly-wAe"/>
                             <constraint firstItem="6MV-Z9-70J" firstAttribute="centerX" secondItem="svH-Pt-448" secondAttribute="centerX" id="hPt-i3-ovc"/>
+                            <constraint firstItem="ZAt-Yo-npn" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" constant="-40" id="i0a-23-JFP"/>
                             <constraint firstItem="XpK-I1-BEA" firstAttribute="top" secondItem="GaD-5G-Xyx" secondAttribute="bottom" id="m6D-9c-kSr"/>
                             <constraint firstItem="GaD-5G-Xyx" firstAttribute="top" secondItem="SYR-Wa-9uf" secondAttribute="bottom" id="s1v-Kg-Spw"/>
                         </constraints>
@@ -151,6 +161,7 @@
                         <outlet property="scrubberActivity" destination="zgs-S7-B1B" id="eV9-n9-afV"/>
                         <outlet property="scrubberContainerView" destination="GaD-5G-Xyx" id="ZA2-Bd-g2o"/>
                         <outlet property="sctv" destination="GaD-5G-Xyx" id="cem-EX-VyW"/>
+                        <outlet property="volumeView" destination="ZAt-Yo-npn" id="ues-AJ-SNM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FJe-Yq-33r" sceneMemberID="firstResponder"/>
@@ -466,11 +477,11 @@
                         <viewControllerLayoutGuide type="bottom" id="HTw-Qv-0Vu"/>
                     </layoutGuides>
                     <view key="view" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="VcL-fG-KnP">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="140"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="170"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="aNa-dT-qI6">
-                                <rect key="frame" x="0.0" y="96" width="600" height="2"/>
+                                <rect key="frame" x="0.0" y="126" width="600" height="2"/>
                                 <color key="progressTintColor" red="0.50196081400000003" green="1" blue="0.0" alpha="0.68322423986486491" colorSpace="calibratedRGB"/>
                                 <color key="trackTintColor" red="0.7019608021" green="0.7019608021" blue="0.7019608021" alpha="0.31255278716216217" colorSpace="calibratedRGB"/>
                             </progressView>
@@ -525,15 +536,15 @@
                                 <size key="shadowOffset" width="-1" height="-1"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kAB-5U-fqa">
-                                <rect key="frame" x="524.5" y="20" width="35.5" height="19.5"/>
+                                <rect key="frame" x="524" y="20" width="35.5" height="19.5"/>
                                 <fontDescription key="fontDescription" name="Avenir-Book" family="Avenir" pointSize="14"/>
                                 <color key="textColor" red="0.90196079019999997" green="0.90196079019999997" blue="0.90196079019999997" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <visualEffectView opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uDH-u1-M28">
-                                <rect key="frame" x="0.0" y="36" width="600" height="104"/>
+                                <rect key="frame" x="0.0" y="36" width="600" height="134"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="J2m-NV-brs">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="104"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="134"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 </view>
                                 <vibrancyEffect>
@@ -541,7 +552,7 @@
                                 </vibrancyEffect>
                             </visualEffectView>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rim-bp-Zgn">
-                                <rect key="frame" x="0.0" y="36" width="600" height="104"/>
+                                <rect key="frame" x="0.0" y="36" width="600" height="134"/>
                             </scrollView>
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Clj-bz-LXm">
                                 <rect key="frame" x="0.0" y="4" width="600" height="2"/>
@@ -549,10 +560,10 @@
                                 <color key="trackTintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </progressView>
                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vuB-kG-N6W" userLabel="PlayHeadView">
-                                <rect key="frame" x="270" y="36" width="60" height="104"/>
+                                <rect key="frame" x="270" y="36" width="60" height="134"/>
                                 <subviews>
                                     <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ejc-zk-uJZ">
-                                        <rect key="frame" x="29" y="0.0" width="2" height="104"/>
+                                        <rect key="frame" x="29" y="0.0" width="2" height="134"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="2" id="K2D-fQ-ZkT"/>
@@ -758,7 +769,7 @@
             <objects>
                 <tableViewController useStoryboardIdentifierAsRestorationIdentifier="YES" id="L8l-WD-inX" customClass="JWMixEditTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" allowsSelection="NO" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="eKj-OR-rrN">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="352"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="322"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="0.80000001190000003" green="0.80000001190000003" blue="0.80000001190000003" alpha="1" colorSpace="calibratedRGB"/>
                         <color key="separatorColor" red="0.50196081400000003" green="0.50196081400000003" blue="0.50196081400000003" alpha="1" colorSpace="calibratedRGB"/>

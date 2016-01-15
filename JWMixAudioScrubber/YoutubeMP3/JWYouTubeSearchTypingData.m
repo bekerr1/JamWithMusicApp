@@ -137,6 +137,11 @@ HTTP GET request on the googleapis/youtube URL and once the request is complete 
                     singleItemResult[@"videoTitle"] = item[@"snippet"][@"title"];
                     singleItemResult[@"thumbnail"] = item[@"snippet"][@"thumbnails"][@"default"][@"url"];
                     singleItemResult[@"ytdescriptionsnippet"] = item[@"snippet"][@"description"];
+
+//                    id mediumThumb = item[@"snippet"][@"thumbnails"][@"medium"][@"url"];
+//                    if (mediumThumb) {
+//                        singleItemResult[@"mthumbnail"] = mediumThumb;
+//                    }
                     
                     [result addObject:singleItemResult];
                     

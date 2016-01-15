@@ -10,6 +10,7 @@
 #import "JWAudioPlayerController.h"
 #import "JWCurrentWorkItem.h"
 
+@import MediaPlayer;
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate> {
     BOOL _playing;
@@ -26,6 +27,7 @@
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *flexSpace2;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *exportButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *effectsButton;
+@property (strong, nonatomic) IBOutlet UIView *volumeView;
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *scrubberActivity;
 @property (strong, nonatomic) IBOutlet UIView *scrubberContainerView;
 @property (strong, nonatomic) IBOutlet UIImageView *logoImageView;
@@ -102,11 +104,11 @@
 
     _scrubberContainerView.alpha = 0;
     _scrubberContainerView.hidden = NO;
-    [UIView animateWithDuration:0.5 delay:0.5 options:UIViewAnimationOptionCurveEaseIn animations:^{
+    [UIView animateWithDuration:0.20 delay:0.75 options:UIViewAnimationOptionCurveLinear animations:^{
         _scrubberContainerView.alpha = 1.0;
     } completion:^(BOOL fini){
     } ];
-    double delayInSecs = 0.6;
+    double delayInSecs = 0.80;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [_scrubberActivity stopAnimating];
     });
@@ -121,6 +123,14 @@
     [[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
     [self toolbar1];
 
+    
+    self.volumeView.backgroundColor = [UIColor clearColor];
+    
+//    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
+//    mpVolume.showsRouteButton = YES;
+//    [_volumeView addSubview:mpVolume];
+    
+    
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
 
