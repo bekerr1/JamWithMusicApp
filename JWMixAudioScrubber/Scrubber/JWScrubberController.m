@@ -37,19 +37,20 @@ const int scMaxTracks = 10;
 @property (nonatomic,strong)  NSDictionary *scrubberColors;
 @property (nonatomic,strong)  NSMutableArray *pulseSamples;
 @property (nonatomic,strong)  NSMutableArray *pulseSamplesDurations;
-@property (nonatomic) float backlightValue;
-
-//@property (nonatomic,strong)  dispatch_queue_t bufferReceivedQueue;
-//@property (nonatomic,strong)  dispatch_queue_t bufferSampledQueue;
-//@property (nonatomic,strong)  dispatch_queue_t bufferReceivedPerformanceQueue;
-//@property (nonatomic,strong)  dispatch_queue_t bufferSampledPerformanceQueue;
-
+@property (nonatomic,readwrite) BOOL isPlaying;
 @end
 
 
 @implementation JWScrubberController
 
--(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController {
+-(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController
+{
+    _backlightValue = 0.33f;
+    return [self initWithScrubber:scrubberViewController andBackLightValue:_backlightValue];
+}
+
+
+-(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue {
 
     if (self = [super init]) {
         _scrubber = scrubberViewController;
@@ -57,7 +58,8 @@ const int scMaxTracks = 10;
         _viewOptions = ScrubberViewOptionNone;
         _scrubber.viewOptions = _viewOptions;
         _scrubber.delegate = self;
-        _backlightValue = 0.5;
+        
+        _backlightValue = backLightValue;
         [_scrubber adjustWhiteBacklightValue:_backlightValue];
         
         [self reset];
@@ -73,23 +75,21 @@ const int scMaxTracks = 10;
         //_bufferReceivedQueue =
         _bufferReceivedQueue =
         dispatch_queue_create("bufferReceived",
-                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INITIATED, -1));
+                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, -1));
     }
     if (_bufferSampledQueue == nil) {
         _bufferSampledQueue =
         dispatch_queue_create("bufferProcessing",
-                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INITIATED, -1));
+                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, -1));
     }
     
     if (_bufferReceivedPerformanceQueue == nil) {
         _bufferReceivedPerformanceQueue =
-//        self.bufferReceivedPerformanceQueue =
         dispatch_queue_create("bufferReceivedP",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, -1));
     }
     if (_bufferSampledPerformanceQueue == nil) {
         _bufferSampledPerformanceQueue =
-//        self.bufferSampledPerformanceQueue =
         dispatch_queue_create("bufferProcessingP",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, -1));
     }
@@ -171,12 +171,9 @@ const int scMaxTracks = 10;
 -(void)adjustFloatValue4WithSlider:(id)sender {
     [self adjustFloatValue4:[(UISlider*)sender value]];
 }
-
 -(void)adjustTimeInterval1WithSlider:(id)sender {
     [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
 }
-
-
 
 #pragma mark -
 
@@ -207,7 +204,7 @@ const int scMaxTracks = 10;
     
     if (sid == nil) {
         [_scrubber prepareToPlay:1 atPosition:[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:nil]];
-        //        [_scrubber prepareToPlay:1];
+        // [_scrubber prepareToPlay:1];
     }
     
     [self startPlayTimer];
@@ -251,27 +248,23 @@ const int scMaxTracks = 10;
     }
 }
 
-
 -(void)playedTillEnd:(NSString*)sid {
     [_scrubber transitionToPlayTillEnd];
 }
 
+-(void)resumePlaying {
+
+    if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
+        [self.scrubber trackScrubberToProgress:[_delegate progressOfAudioFile:self forScrubberId:_playerTrackId] timeAnimated:NO];
+}
 
 -(void)reset {
     
     NSLog(@"%s",__func__);
-    
-    // Discard all work queued
-//    self.bufferSampledQueue = nil;
-//    self.bufferReceivedQueue = nil;
-//    self.bufferSampledPerformanceQueue = nil;
-//    self.bufferReceivedPerformanceQueue = nil;
-
     _bufferSampledQueue = nil;
     _bufferReceivedQueue = nil;
     _bufferSampledPerformanceQueue = nil;
     _bufferReceivedPerformanceQueue = nil;
-
     [self initBufferQueues];
 
     _trackCount = 0;
@@ -286,6 +279,8 @@ const int scMaxTracks = 10;
     }
     
     [self.scrubber resetScrubber];
+    
+    [[NSUserDefaults standardUserDefaults] setValue:@(_backlightValue) forKey:@"backlightvalue"];
 }
 
 
@@ -295,9 +290,6 @@ const int scMaxTracks = 10;
     if (pulseBackLight) {
         _pulseOn = YES;
     }
-//    if (_scrubber) {
-//        [_scrubber setUsePulse: _pulseBackLight];
-//    }
 }
 
 -(void)setUseGradient:(BOOL)useGradient {
@@ -310,15 +302,12 @@ const int scMaxTracks = 10;
     _useTrackGradient = useTrackGradient;
     if (_scrubber) {
         [_scrubber setUseTrackGradient: _useTrackGradient];
-
-//        [_scrubber setUseGradient:_useTrackGradient];
     }
 }
 
 -(void)setBackLightColor:(UIColor*)backLightColor {
     _backLightColor = backLightColor;
     if (_scrubber) {
-//        _scrubber.view.backgroundColor = _backLightColor;
         _scrubber.hueColor = _backLightColor;
         [_scrubber.view setNeedsLayout];
     }
@@ -333,15 +322,16 @@ const int scMaxTracks = 10;
 
 -(void)adjustBackLightValue:(float)value
 {
-    [_scrubber adjustWhiteBacklightValue:value];
+    self.backlightValue = value;
+    [_scrubber adjustWhiteBacklightValue:_backlightValue];
 }
-
 
 -(void)setSelectedTrack:(NSString *)selectedTrack {
     _selectedTrack = selectedTrack;
     if (_selectedTrack) {
         NSUInteger track = [(NSNumber*)_tracks[_selectedTrack][@"tracknum"] unsignedIntegerValue];
-        [_scrubber selectTrack:track];
+        if (track > 0)
+            [_scrubber selectTrack:track];
     } else {
         // nil
         [_scrubber deSelectTrack];
@@ -353,10 +343,10 @@ const int scMaxTracks = 10;
 - (void)selectTrack:(NSString*)tid {
     _selectedTrackId = tid;
     _selectedTrack = _selectedTrackId;
-    NSUInteger track = 0;
     if (tid){
-        track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
-        [_scrubber selectTrack:track];
+        NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
+        if (track > 0)
+            [_scrubber selectTrack:track];
     }
 }
 - (void)deSelectTrack {
@@ -370,19 +360,19 @@ const int scMaxTracks = 10;
    
     id <JWEffectsModifyingProtocol> result;
     
-    NSUInteger track = 0;
     if (tid){
         id trackmod = _tracks[tid][@"trackmod"];
         if (trackmod) {
             result = trackmod;
         } else {
-            track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
-
-            JWScrubberTackModify *trackModify = [JWScrubberTackModify new];
-            trackModify.delegate = self;
-            trackModify.track = track;
-            _tracks[tid][@"trackmod"] = trackModify;
-            result = trackModify;
+            NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
+            if (track > 0) {
+                JWScrubberTackModify *trackModify = [JWScrubberTackModify new];
+                trackModify.delegate = self;
+                trackModify.track = track;
+                _tracks[tid][@"trackmod"] = trackModify;
+                result = trackModify;
+            }
         }
     }
     
@@ -390,21 +380,17 @@ const int scMaxTracks = 10;
 }
 
 
-
 #pragma mark -
 
--(void)seekToPosition:(NSString*)sid
-{
+-(void)seekToPosition:(NSString*)sid {
     NSLog(@"%s NOT IMPLEMENTED",__func__);
 }
 
--(void)seekToPosition:(NSString*)sid animated:(BOOL)animated
-{
+-(void)seekToPosition:(NSString*)sid animated:(BOOL)animated {
     NSLog(@"%s NOT IMPLEMENTED",__func__);
 }
 
--(void)rewind:(NSString*)sid animated:(BOOL)animated
-{
+-(void)rewind:(NSString*)sid animated:(BOOL)animated {
     NSLog(@"%s NOT IMPLEMENTED",__func__);
 }
 
@@ -438,9 +424,8 @@ const int scMaxTracks = 10;
 }
 -(SamplingOptions)configOptionsForTrack:(NSString*)stid {
     id options = _tracks[stid][@"options"];
-    if (options) {
+    if (options)
         return [(NSNumber*)options unsignedIntegerValue];
-    }
     return 0; // not found
 }
 
@@ -449,9 +434,8 @@ const int scMaxTracks = 10;
 }
 -(VABKindOptions)kindOptionsForTrack:(NSString*)stid {
     id options = _tracks[stid][@"kind"];
-    if (options) {
+    if (options)
         return [(NSNumber*)options unsignedIntegerValue];
-    }
     return 0; // not found
 }
 
@@ -460,24 +444,20 @@ const int scMaxTracks = 10;
 }
 -(VABLayoutOptions)layoutOptionsForTrack:(NSString*)stid {
     id options = _tracks[stid][@"layout"];
-    if (options) {
+    if (options)
         return [(NSNumber*)options unsignedIntegerValue];
-    }
     return 0; // not found
 }
 
 #pragma mark - configure
 
 -(void)configureTrackColors:(NSDictionary*)trackColors {
-    
     _trackColorsAllTracks = trackColors;
-    
     _scrubber.userProvidedColorsAllTracks = _trackColorsAllTracks;
 }
 
 -(void)configureTrackColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId {
-
-    if (trackColors != nil) {
+    if (trackColors) {
         if (trackId == nil)
             [self configureColors:trackColors];
         else
@@ -486,18 +466,14 @@ const int scMaxTracks = 10;
 }
 
 -(void)configureColors:(NSDictionary*)trackColors {
-
     [self configureTrackColors:trackColors];
-//    [self configureScrubberColors:trackColors];
 }
 
 -(void)configureColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId {
-
     [self configureTrackColors:trackColors forTackId:trackId];
 }
 
 -(void)configureScrubberColors:(NSDictionary*)scrubberColors {
-
     id color;
     color = scrubberColors[JWColorBackgroundHueColor];
     if (color)
@@ -526,11 +502,12 @@ const int scMaxTracks = 10;
 
     _scrubberColors = scrubberColors;
     
-    [_scrubber.view setNeedsLayout];
+    [_scrubber.view setNeedsLayout];  // to rebuild the gradients
 }
 
 
 -(NSDictionary*)scrubberColorsDefaultConfig1 {
+    
     UIColor *iosColor1 = [UIColor colorWithRed:128/255.0 green:128/255.0 blue:0/255.0 alpha:1.0]; // asparagus
     UIColor *iosColor2 = [UIColor colorWithRed:0/255.0 green:64/255.0 blue:128/255.0 alpha:1.0]; // ocean
     UIColor *iosColor3 = [UIColor colorWithRed:0/255.0 green:128/255.0 blue:255/255.0 alpha:1.0]; // aqua
@@ -555,7 +532,6 @@ const int scMaxTracks = 10;
     //      JWColorBackgroundTrackGradientColor3 : [iosColor3 colorWithAlphaComponent:0.5],
 
     return scrubberColors;
-    
 }
 
 
@@ -1033,39 +1009,30 @@ EDITING PROTOCOL PUBLIC API
 
 -(CGSize)viewSize
 {
-//    NSLog(@"%s %@",__func__,NSStringFromCGSize(_scrubberControllerSize));
     return _scrubberControllerSize;
 }
 
--(void)trackSelected:(NSUInteger)track
-{
-    NSLog(@"%s %ld",__func__,track);
+//NSLog(@"%s %@",__func__,NSStringFromCGSize(_scrubberControllerSize));
+//NSLog(@"%s %ld",__func__,track);
+
+-(void)trackSelected:(NSUInteger)track {
     _selectedTrack = [self trackIdForTrack:track];
-
-    if ([_delegate respondsToSelector:@selector(scrubber:selectedTrack:)]){
+    if ([_delegate respondsToSelector:@selector(scrubber:selectedTrack:)])
         [_delegate scrubber:self selectedTrack:_selectedTrack];
-    }
 }
 
--(void)trackNotSelected
-{
-    NSLog(@"%s",__func__);
-    if ([_delegate respondsToSelector:@selector(scrubberTrackNotSelected:)]){
+-(void)trackNotSelected {
+    if ([_delegate respondsToSelector:@selector(scrubberTrackNotSelected:)])
         [_delegate scrubberTrackNotSelected:self];
-    }
 }
 
--(void)longPressOnTrack:(NSUInteger)track
-{
+-(void)longPressOnTrack:(NSUInteger)track {
     _selectedTrack = [self trackIdForTrack:track];
     [_delegate scrubberDidLongPress:self forScrubberId:_selectedTrack];
 }
 
-
 -(void)playHeadTapped {
-    
     [_delegate scrubberPlayHeadTapped:self];
-
 }
 
 
@@ -1113,11 +1080,9 @@ EDITING PROTOCOL PUBLIC API
 // nil fileReference no change
 -(void)editCompletedForTrack:(NSUInteger)track withTrackInfo:(id)fileReference {
     
-    
-    // GET THE track info and trackId
     NSString *trackId;
     NSMutableDictionary *trackInfo;
-    
+    // GET THE track info and trackId
     for (id item in [_tracks allKeys]) {
         id trackNumberValue = _tracks[item][@"tracknum"];
         NSUInteger tn = [(NSNumber*)trackNumberValue unsignedIntegerValue];
@@ -1151,8 +1116,6 @@ EDITING PROTOCOL PUBLIC API
 
 -(void)editChangeForTrack:(NSUInteger)track withTrackInfo:(id)fileReference{
     
-//    NSLog(@"%s %ld",__func__,track);
-
     // GET THE track info and trackId
     NSString *trackId;
     NSMutableDictionary *trackInfo ;
@@ -1194,7 +1157,6 @@ EDITING PROTOCOL PUBLIC API
  END EDITING PROTOCOL
  ----------------------------------------------------
  */
-
 
 
 
@@ -1319,7 +1281,8 @@ EDITING PROTOCOL PUBLIC API
                             layout:(VABLayoutOptions)layoutOptions
                       onCompletion:(JWScrubberControllerCompletionHandler)completion
 {
-    return [self prepareScrubberFileURL:fileURL withSampleSize:ssz options:options type:typeOptions layout:layoutOptions
+    return [self prepareScrubberFileURL:fileURL withSampleSize:ssz
+                                options:options type:typeOptions layout:layoutOptions
                                  colors:nil
                            onCompletion:completion];
 }
@@ -1366,7 +1329,6 @@ EDITING PROTOCOL PUBLIC API
     
     JWPlayerFileInfo *fileReference = nil;
     if (refFile) {
-//        trackInfo[@"referencefile"] = refFile;
         NSError *error = nil;
         AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
         AVAudioFormat *processingFormat = [audioFile processingFormat];
@@ -1398,6 +1360,7 @@ EDITING PROTOCOL PUBLIC API
     
     
     if (track==1) {
+        
         // Do some first track stuff
         _scrubber.viewOptions = _viewOptions;
         [_scrubber prepareForTracks];
@@ -1412,9 +1375,8 @@ EDITING PROTOCOL PUBLIC API
                     [NSString stringWithFormat:@"%.2f s",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
                 }
                 
-                if ([_delegate respondsToSelector:@selector( processingFormatStr:forScrubberId:)]) {
+                if ([_delegate respondsToSelector:@selector( processingFormatStr:forScrubberId:)])
                     _scrubber.formatValueStr = [_delegate processingFormatStr:self forScrubberId:sid];
-                }
             });
         }
         
@@ -1433,17 +1395,11 @@ EDITING PROTOCOL PUBLIC API
     
     [self audioFileAnalyzerForFile:fileURL forTrackId:sid usingFileReference:fileReference];
     
-    
     if (completion)
         completion();
 
     return sid;
-
 }
-
-//    [self audioFileAnalyzerForFile:fileURL forTrackId:sid];
-
-
 
 
 // prepareScrubberListenerSource
@@ -1516,11 +1472,10 @@ EDITING PROTOCOL PUBLIC API
             }
             
         });
-        
-        if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)]) {
-            [self.scrubber trackScrubberToProgress:[_delegate progressOfAudioFile:self forScrubberId:sid] timeAnimated:NO];
-        }
     }
+
+    if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
+        [self.scrubber trackScrubberToProgress:[_delegate progressOfAudioFile:self forScrubberId:sid] timeAnimated:NO];
 
     
     self.playerTimer = [NSTimer timerWithTimeInterval:0.10 target:self selector:@selector(playTimerFired:) userInfo:nil repeats:YES];
@@ -1528,7 +1483,6 @@ EDITING PROTOCOL PUBLIC API
 }
 
 -(void)playTimerFired:(NSTimer*)timer {
-//    NSLog(@"%s",__func__);
     
     NSString *sid = _playerTrackId;
     
@@ -2109,63 +2063,60 @@ EDITING PROTOCOL PUBLIC API
                         channel2Samples:(NSArray*)samples2 averageSamples2:(NSArray*)averageSamples2
                             andDuration:(NSTimeInterval)duration forTrackId:(NSString*)tid
 {
-//    NSNumber * lastSample = [averageSamples lastObject];
-//    NSNumber * firstSample = [averageSamples firstObject];
-    
     NSNumber * lastSample = [samples lastObject];
     NSNumber * firstSample = [samples firstObject];
     [_scrubber pulseRecording:[firstSample floatValue] endValue:[lastSample floatValue] duration:duration];
-    return;
-    
-
-    NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
-    SamplingOptions options = [self configOptionsForTrack:tid];
-    VABLayoutOptions layoutOptions = [self layoutOptionsForTrack:tid];
-    VABKindOptions typeOptions = [self kindOptionsForTrack:tid];
-    id trackColors = _trackColorsByTrackId[tid];
-    if (trackColors == nil)
-        trackColors = _trackColorsAllTracks;
-    BOOL autoAdvance = NO;
-    if (_numberOfTracks == 1)
-        autoAdvance = YES;
-    
-    _buffersReceivedCounts[track]++;
-    _durationForTrack[track] += duration;
-    
-    float startDuration = _durationForTrack[track];
-    NSUInteger bufferNo = _buffersReceivedCounts[track];
-//    NSLog(@"%s track %ld nsamples %ld ",__func__,track,(unsigned long)[samples count]);
-    dispatch_async(_bufferReceivedPerformanceQueue, ^{
-        dispatch_async(_bufferSampledPerformanceQueue, ^{
-            
-            _elapsedTimesSoFar[track] += (CGFloat)duration;
-
-            [self.scrubber addAudioViewChannelSamples:samples averageSamples:averageSamples
-                                      channel2Samples:samples2 averageSamples2:averageSamples2
-                                              inTrack:track
-                                        startDuration:(NSTimeInterval)startDuration
-                                             duration:duration
-                                              options:options
-                                                 type:typeOptions
-                                               layout:layoutOptions
-                                               colors:trackColors
-                                            bufferSeq:bufferNo
-                                          autoAdvance:autoAdvance
-                                            recording:YES
-                                              editing:NO
-                                                 size:_scrubberControllerSize ];
-            
-            if (autoAdvance) {
-                // is the primary track
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",_elapsedTimesSoFar[track]];
-                });
-            }
-        
-        }); //_bufferReceivedPerformanceQueue
-    }); // _bufferSampledPerformanceQueue
-    
 }
+
+//
+//    NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
+//    SamplingOptions options = [self configOptionsForTrack:tid];
+//    VABLayoutOptions layoutOptions = [self layoutOptionsForTrack:tid];
+//    VABKindOptions typeOptions = [self kindOptionsForTrack:tid];
+//    id trackColors = _trackColorsByTrackId[tid];
+//    if (trackColors == nil)
+//        trackColors = _trackColorsAllTracks;
+//    BOOL autoAdvance = NO;
+//    if (_numberOfTracks == 1)
+//        autoAdvance = YES;
+//    
+//    _buffersReceivedCounts[track]++;
+//    _durationForTrack[track] += duration;
+//    
+//    float startDuration = _durationForTrack[track];
+//    NSUInteger bufferNo = _buffersReceivedCounts[track];
+////    NSLog(@"%s track %ld nsamples %ld ",__func__,track,(unsigned long)[samples count]);
+//    dispatch_async(_bufferReceivedPerformanceQueue, ^{
+//        dispatch_async(_bufferSampledPerformanceQueue, ^{
+//            
+//            _elapsedTimesSoFar[track] += (CGFloat)duration;
+//
+//            [self.scrubber addAudioViewChannelSamples:samples averageSamples:averageSamples
+//                                      channel2Samples:samples2 averageSamples2:averageSamples2
+//                                              inTrack:track
+//                                        startDuration:(NSTimeInterval)startDuration
+//                                             duration:duration
+//                                              options:options
+//                                                 type:typeOptions
+//                                               layout:layoutOptions
+//                                               colors:trackColors
+//                                            bufferSeq:bufferNo
+//                                          autoAdvance:autoAdvance
+//                                            recording:YES
+//                                              editing:NO
+//                                                 size:_scrubberControllerSize ];
+//            
+//            if (autoAdvance) {
+//                // is the primary track
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",_elapsedTimesSoFar[track]];
+//                });
+//            }
+//        
+//        }); //_bufferReceivedPerformanceQueue
+//    }); // _bufferSampledPerformanceQueue
+//    
+//}
 
 
 //    NSLog(@"%s nsamples %ld",__func__,(unsigned long)[samples count]);

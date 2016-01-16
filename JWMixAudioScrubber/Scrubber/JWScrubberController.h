@@ -51,6 +51,10 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @property (nonatomic) BOOL darkBackground;
 @property (nonatomic) BOOL pulseBackLight;
 @property (nonatomic) NSString *selectedTrack;
+@property (nonatomic,readonly) BOOL isPlaying;
+@property (nonatomic) float backlightValue;
+
+-(void)resumePlaying;
 
 - (void)deSelectTrack;
 - (void)selectTrack:(NSString*)tid;
@@ -63,6 +67,8 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)adjustBackLightValue:(float)value;  // always white black
 
 -(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController;
+
+-(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue;
 
 // PLAY
 // one method with Colors the other without

@@ -83,17 +83,11 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     _convertProgressOfTotal = .20f;
     _downloadProgressOfTotal = .80f;
     
-    
     _mp3FilesInfo = [[JWFileController sharedInstance] mp3FilesInfo];
     _linksDirector = [[JWFileController sharedInstance] linksDirector];
     
-//    [self readMetaData];
-//    if (! _mp3FilesInfo)
-//        self.mp3FilesInfo = [NSMutableDictionary new];
-//    if (! _linksDirector)
-//        self.linksDirector = [NSMutableDictionary new];
-    
     [self.activity stopAnimating];
+    
     self.effectsView.hidden = NO;
     self.webView.hidden = YES;
     self.imageView.hidden = YES;
@@ -140,6 +134,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 
 -(void)viewWillAppear:(BOOL)animated {
+
     [super viewWillAppear:animated];
 
     if (self.isMovingToParentViewController) {
@@ -242,10 +237,6 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         }
     }
 
-//    if ([_delegate respondsToSelector:@selector(finishedTrim:withTrimKey:forKey:)]) {
-//        [_delegate finishedTrim:self withTrimKey:key forKey:_currentCacheItem];
-//    }
-    
     NSString * title = nil;
     id ytData = mp3DataRecord[JWDbKeyYouTubeData];
     if (ytData) {
@@ -262,14 +253,12 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark -
 
-
 - (IBAction)didTap:(id)sender {
     
-    if (self.currentMP3FileURL) {
+    if (self.currentMP3FileURL)
         [self proceedForwardAction:nil];
-    } else {
+    else
         [self effectsBackgroundError];
-    }
 }
 
 -(void)proceedForwardAction:(NSString *)dbkey {
@@ -436,7 +425,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         }
         
     } else {
-         // do not retrieveYoutubeData
+        // do not retrieveYoutubeData
         // Since we are not retrieving youtube data we need to proceed normally
         // the same on the completion of retrieving youtube data
         
@@ -447,20 +436,16 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
                     [self proceedForwardAction:dbkey];
                 });
             } else {
-                
                 [self finalStatusMessage:dbkey];
             }
             
         } else if (doesDownload) {
-            
             [self setBestImageForDbKey:dbkey];
-            
             [self downloadTask:downLoadLinkURL  dbKey:dbkey];
         }
     }
 
 }
-
 
 
 -(void)setBestImageForDbKey:(NSString*)dbkey {
@@ -494,17 +479,19 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     if (!urlStr)
         urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailDefault];
     
-//    urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"high"][@"url"];
-//    if (!urlStr)
-//        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
-//    if (!urlStr)
-//        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
-    
     NSURL *imageURL = urlStr ? [NSURL URLWithString:urlStr] : nil;
     
     NSLog(@"%s %@",__func__,[imageURL absoluteString]);
     return imageURL;
 }
+
+
+//    urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"high"][@"url"];
+//    if (!urlStr)
+//        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+//    if (!urlStr)
+//        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+
 
 #pragma mark - retrieveYoutubeData methods
 
@@ -522,10 +509,9 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         id errorInResponse = [responseData valueForKey:@"statuscode"];
         if (errorInResponse) {
             NSLog(@"%s ERROR response%@",__func__,[responseData description]);
-        } else {
             
+        } else {
             [self processTheYoutubeDataRecord:responseData forDbKey:dbkey];
-//            [self saveMetaData];
             [[JWFileController sharedInstance] saveMeta];
             [self saveDescriptions];
         }
@@ -549,9 +535,9 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         id errorInResponse = [responseData valueForKey:@"statuscode"];
         if (errorInResponse) {
             NSLog(@"%s ERROR response%@",__func__,[responseData description]);
+            
         } else {
             [self processTheYoutubeDataRecord:responseData forDbKey:dbkey];
-//            [self saveMetaData];
             [[JWFileController sharedInstance] saveMeta];
             [self saveDescriptions];
         }
@@ -562,8 +548,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
                 self.statusLabel.text = @"";
                 [self proceedForwardAction:dbkey];
             });
-        } else {
             
+        } else {
             [self finalStatusMessage:dbkey];
         }
     }];
@@ -582,15 +568,13 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [videoDataRetriever getVideoDataOnCompletion:^(NSArray *videoDataResult){
         
         id responseData = videoDataResult[0];
-        
         id errorInResponse = [responseData valueForKey:@"statuscode"];
         if (errorInResponse) {
             NSLog(@"%s ERROR response%@",__func__,[responseData description]);
-        } else {
             
+        } else {
             [self processTheYoutubeDataRecord:responseData forDbKey:dbkey];
             [[JWFileController sharedInstance] saveMeta];
-//            [self saveMetaData];
             [self saveDescriptions];
         }
         
@@ -774,6 +758,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     self.currentMP3FileURL = fileUrl;
     
     NSLog(@"\nSAVED\n%@",[_currentMP3FileURL lastPathComponent]);
+    
     [JWCurrentWorkItem sharedInstance].currentAudioFileURL = fileUrl;
     [JWCurrentWorkItem sharedInstance].currentAudioTitle  = fileTitle;
     [JWCurrentWorkItem sharedInstance].timeStamp = [NSDate date];
@@ -823,17 +808,21 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     
     if (dbkey == nil) {
         dbkey = [[NSUUID UUID] UUIDString];
-        _linksDirector[linkKey] = @{JWDbKeyCreationDate:[NSDate date],
-                                    JWDbKey:dbkey};
+        _linksDirector[linkKey] = @{
+                                    JWDbKeyCreationDate:[NSDate date],
+                                    JWDbKey:dbkey
+                                    };
+        
         _mp3FilesInfo[dbkey] = [
                                 @{JWDbKeyCreationDate:[NSDate date],
                                   JWDbKeyYouTubeLinkStr:linkKey,
                                   JWDbKeyArtist:@"unknown",
-                                  JWDbKeyVideoTitle:videoTitle?videoTitle:@"unknown"}
+                                  JWDbKeyVideoTitle:videoTitle?videoTitle:@"unknown"
+                                  }
                                 mutableCopy];
-        if (_youtubeVideoId) {
+        
+        if (_youtubeVideoId)
             _mp3FilesInfo[dbkey][JWDbKeyYouTubeVideoId] = _youtubeVideoId;
-        }
     }
     
     return dbkey;
@@ -844,13 +833,9 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 -(void)didRetrieveFile:(JWYoutubeMP3ConvertController *)controller
 {
-    if (_showsYoutubeMP3){
+    if (_showsYoutubeMP3)
         self.webView.hidden = YES;
-    }
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        self.statusLabel.text = @"Download Complete";
-//    });
-
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.activity stopAnimating];
     });
@@ -860,7 +845,6 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     } else {
         [self finalStatusMessage:controller.dbkey];
     }
-
 }
 
 -(void)didObtainLink:(JWYoutubeMP3ConvertController *)controller linkToMP3String:(NSString*)linkStr {
@@ -868,18 +852,10 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     // We are done converting
 
     NSLog(@"%s\n%@",__func__,linkStr);
+    
     [self.activity stopAnimating];
     
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        self.statusLabel.text = @"Conversion Complete";
-//    });
-//    double delayInSecs = 0.42;
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        self.statusLabel.text = @"Downloading";
-//    });
-
-    
-    NSLog(@"%s%@",__func__,controller.dbkey);
+//    NSLog(@"%s%@",__func__,controller.dbkey);
     
     id mp3DataRecord = _mp3FilesInfo[controller.dbkey];
     if (mp3DataRecord)
@@ -993,10 +969,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         });
     }
 
-    
-//    [self saveMetaData];
     [[JWFileController sharedInstance] saveMeta];
-
     
     [self.activity stopAnimating];
 }
@@ -1092,8 +1065,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 -(void)playFileUsingAudioPlayer
 {
     // Plays in AVAudioPlayer either using data or from file
+
     NSError *error;
-    
     BOOL useData = YES;
     
     if (useData) {
@@ -1128,6 +1101,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 -(void)playBufferedFileInEngine
 {
     [self initAVAudioSession];
+    
     _engine = [AVAudioEngine new];
     AVAudioPlayerNode *player = [AVAudioPlayerNode new];
     

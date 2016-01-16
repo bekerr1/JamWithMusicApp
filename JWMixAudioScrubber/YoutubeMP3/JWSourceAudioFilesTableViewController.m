@@ -16,8 +16,6 @@
 #import "JWDBKeys.h"
 #import "JWClipAudioViewController.h"
 #import "JWFileController.h"
-
-
 @import AVKit;
 @import AVFoundation;
 
@@ -67,15 +65,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     [self.refreshControl beginRefreshing];
     
     [self initAVAudioSession];
-
     [self loadData];
-}
-
--(void) refreshFromControl:(id)sender {
-    
-    if ([(UIRefreshControl*)sender isRefreshing]) {
-        [self loadData];
-    }
 }
 
 
@@ -86,7 +76,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     // And the first time when it is moving to the container
     if (self.isMovingToParentViewController) {
         NSLog(@"%s MOVINGTO",__func__);
-        
     } else {
         NSLog(@"%s STAYING",__func__);
     }
@@ -95,18 +84,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [_playerNode stop];
-    
-    
-    if (_allFiles) {
-        
-    } else {
-        if (self.presentedViewController) {
-            
-        } else {
-            
-            [[JWFileController sharedInstance] saveUserList];
-            
-        }
+
+    if (_allFiles == NO && self.presentedViewController == nil) {
+        [[JWFileController sharedInstance] saveUserList];
     }
 }
 
@@ -115,6 +95,12 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 }
 
 #pragma mark - Table view content
+
+-(void) refreshFromControl:(id)sender {
+    if ([(UIRefreshControl*)sender isRefreshing]) {
+        [self loadData];
+    }
+}
 
 // A listener when other update mp3Info
 -(void)mp3InfoHasBeenUpadated:(NSNotification*)noti
@@ -197,35 +183,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 }
 
-
-//    return;
-
-//    [self readMetaData];
-//    [self readUserOrderedList];
-//    _mp3filesFilesData = [NSMutableDictionary new];
-
-//    if (_userOrderList == nil) {
-//        NSLog(@"%s no userlist, creating new one from dictionary keys",__func__ );
-//        _userOrderList = [NSMutableArray arrayWithArray:[_mp3FilesInfo allKeys]];
-//
-//    } else {
-//        // add items to end of userlist that are not in
-//
-//        for (NSString *item in [_mp3FilesInfo allKeys] ) {
-//            NSUInteger index = [_userOrderList indexOfObject:item];
-//            if (index == NSNotFound) {
-//                NSLog(@"%s add new item to user list",__func__);
-//                [_userOrderList addObject:item];
-//            }
-//        }
-//    }
-//    [self.tableView reloadData];
-
-// Get the images and file Info Asynchrounously dont delay
-
-//    [self fileSystemInfo];
-//
-//    self.images = [@{} mutableCopy];
 
 
 #pragma mark - Table view data source
@@ -360,13 +317,13 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath{
     
-    NSURL *fileURL;
-    if (_allFiles) {
-        fileURL = _allFilesSections[indexPath.section][indexPath.row][@"furl"];
-    } else {
-        fileURL = [self fileURLForCacheItem:_userOrderList[indexPath.row]];
-    }
     self.selectedIndexPath  = indexPath;
+
+    NSURL *fileURL;
+    if (_allFiles)
+        fileURL = _allFilesSections[indexPath.section][indexPath.row][@"furl"];
+    else
+        fileURL = [self fileURLForCacheItem:_userOrderList[indexPath.row]];
     
     if (_previewMode) {
         // NOT Selecting to advance to Clipper, but to simply play
@@ -380,21 +337,20 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
 
             // AVAudioEngine
-            if (_playerNode.isPlaying) {
+            if (_playerNode.isPlaying)
                 [_playerNode stop];
-            } else {
+            else
                 [self playFileInEngine: fileURL];
-            }
             
         } else {
             // AVPLayer
-            if (_playerNode.isPlaying) {
+            if (_playerNode.isPlaying)
                 [_playerNode stop];
-            }
             
             if (_allFiles) {
                 UIImage *ampImage =
                 [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %u",(1 + 1)]];
+
                 [self playFileUsingAVPlayer:fileURL image:ampImage imageURL:nil];
                 
             } else {
@@ -404,9 +360,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
                 
                 [self playFileUsingAVPlayer:fileURL image:self.images[_userOrderList[indexPath.row]] imageURL:imageURL];
             }
-            
-
-//            [self playFileUsingAVPlayer:fileURL];
         }
         
         // SET it as the CurrentWork item if file exists
@@ -434,33 +387,29 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
-    NSString *titleStr;
 
+    NSString *titleStr;
     if (_allFiles) {
-        if (section == 0) {
+        if (section == 0)
             titleStr = [NSString stringWithFormat:@"Source Audio  %ld Files",[_allFilesSections[section] count]];
-        } else if (section == 1) {
+        else if (section == 1)
             titleStr = [NSString stringWithFormat:@"JamTrack Audio %ld Files",[_allFilesSections[section] count]];
-        } else if (section == 2) {
+        else if (section == 2)
             titleStr = [NSString stringWithFormat:@"JamTrack Downloaded %ld Files",[_allFilesSections[section] count]];
-        }
-        
     } else {
-        if (_userOrderList) {
+        if (_userOrderList)
             titleStr = [NSString stringWithFormat:@"Your Source Audio %ld Files",[_userOrderList count]];
-        } else {
+        else
             titleStr = @"Your Source Audio Files";
-        }
     }
+    
     return titleStr;
 }
 
-// Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     return YES;
 }
 
-// Override to support editing the table view.
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
 
@@ -488,21 +437,16 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             if (deleteInfoToo) {
                 [_mp3FilesInfo removeObjectForKey:_userOrderList[indexPath.row]];
                 [[JWFileController sharedInstance] saveMeta];
-
-//                [self saveMetaData];
             }
             
             [_userOrderList removeObjectAtIndex:indexPath.row];
             [[JWFileController sharedInstance] saveUserList];
-
-//            [self saveUserOrderedList];
         }
         
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }
 }
 
- // Override to support rearranging the table view.
  - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
      
      id moveObject = _userOrderList[fromIndexPath.row];
@@ -513,22 +457,17 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
      [[JWFileController sharedInstance] saveUserList];
 
 //     [self saveUserOrderedList];
- }
+}
 
-// Override to support conditional rearranging of the table view.
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the item to be re-orderable.
     return YES;
 }
 
-
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    
     self.selectedDetailIndexPath = indexPath;
     [self namePrompt];
 }
-
-
 
 #pragma mark - Detail
 
@@ -577,7 +516,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 #pragma mark -
 
-
 -(void)playFileUsingAVPlayer:(NSURL*)audioFile {
     [self playFileUsingAVPlayer:audioFile image:nil imageURL:nil];
 }
@@ -624,28 +562,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     }];
 }
 
--(NSURL*)bestImageURLForMP3Record:(NSDictionary*)mp3DataRecord {
-    if (mp3DataRecord == nil) {
-        return nil;
-    }
-    id urlStr;
-    //    urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailMaxres];
-    //    if (!urlStr)
-    urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailHigh];
-    if (!urlStr)
-        urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailMedium];
-    if (!urlStr)
-        urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailDefault];
-    
-    //    urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"high"][@"url"];
-    //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
-    //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
-    
-    NSURL *imageURL = urlStr ? [NSURL URLWithString:urlStr] : nil;
-    NSLog(@"%s %@",__func__,[imageURL absoluteString]);
-    return imageURL;
-}
-
 
 -(void)playFileInEngine:(NSURL*)audioFile {
     
@@ -679,7 +595,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
     NSError *error;
     // set the session category
-    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord
+    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayback
                                     withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
                                           error:&error];
 
@@ -700,7 +616,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     NSLog(@"%s",__func__);
     
-//    JWSourceAllFilesToClipSegue
     if ([segue.identifier isEqualToString:@"JWSourceFilesToClipSegue"]) {
 
         JWClipAudioViewController *clipController = (JWClipAudioViewController*)segue.destinationViewController;
@@ -790,6 +705,28 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 #pragma mark helpers
 
+-(NSURL*)bestImageURLForMP3Record:(NSDictionary*)mp3DataRecord {
+    if (mp3DataRecord == nil) {
+        return nil;
+    }
+    id urlStr;
+    //    urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailMaxres];
+    //    if (!urlStr)
+    urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailHigh];
+    if (!urlStr)
+        urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailMedium];
+    if (!urlStr)
+        urlStr = mp3DataRecord[JWDbKeyYoutubeThumbnailDefault];
+    
+    //    urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"high"][@"url"];
+    //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+    //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+    
+    NSURL *imageURL = urlStr ? [NSURL URLWithString:urlStr] : nil;
+    NSLog(@"%s %@",__func__,[imageURL absoluteString]);
+    return imageURL;
+}
+
 -(NSString*)documentsDirectoryPath {
     NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     return [searchPaths objectAtIndex:0];
@@ -844,8 +781,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 
 @end
-
-
 
 
 

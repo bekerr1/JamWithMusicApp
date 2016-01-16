@@ -37,35 +37,22 @@
 
 @implementation JWClipAudioController
 
-
 static void * XItemStatusContext = &XItemStatusContext;
 
 #pragma mark - public api
 
 -(void)initializeAudioController {
     
-    _volume = 0.25;
     if (!_trackName) {
         _trackName = @"Unknown Track Name";
     }
-    _trackTimeInterval = 7;
 
+    _volume = 0.35;
+    _trackTimeInterval = 7;
     _dbKey = [[NSUUID UUID] UUIDString];
 
-    NSString *cacheKey = _dbKey;
-
-    {
-        NSString *thisfName = @"trimmedMP3";
-        NSString *uniqueFname = [NSString stringWithFormat:@"%@_%@.m4a",thisfName,cacheKey?cacheKey:@""];
-        _trimmedMP3FileName = uniqueFname;
-    }
-    
-    {
-        NSString *thisfName = @"fiveSecondsMP3";
-        NSString *uniqueFname = [NSString stringWithFormat:@"%@_%@.m4a",thisfName,cacheKey?cacheKey:@""];
-        _5secondsBeforeStartFileName = uniqueFname;
-    }
-
+    _trimmedMP3FileName = [NSString stringWithFormat:@"trimmedMP3_%@.m4a",_dbKey?_dbKey:@""];
+    _5secondsBeforeStartFileName = [NSString stringWithFormat:@"fiveSecondsMP3_%@.m4a",_dbKey?_dbKey:@""];
     
     if (_playerObserverQueue == nil) {
         _playerObserverQueue =
@@ -74,14 +61,11 @@ static void * XItemStatusContext = &XItemStatusContext;
     }
 
     [self setupAVPlayerComponents];
-    
-    [self.playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionInitial context:&XItemStatusContext];
 }
 
 
 - (void)dealloc
 {
-    NSLog(@"%s",__func__);
     if (self.playerObserver) {
         NSLog(@"%s removeTimeObserver",__func__);
         [self.player removeTimeObserver:self.playerObserver];
@@ -90,11 +74,11 @@ static void * XItemStatusContext = &XItemStatusContext;
         NSLog(@"%s removed.",__func__);
         self.playerObserver = nil;
     }
-    NSLog(@"%s",__func__);
 }
 
-- (void)killPlayer
-{
+#pragma mark -
+
+- (void)killPlayer {
     NSLog(@"%s",__func__);
     [self.player pause];
     [self.playerItem removeObserver:self forKeyPath:@"status" context:&XItemStatusContext];
@@ -102,20 +86,15 @@ static void * XItemStatusContext = &XItemStatusContext;
     dispatch_sync(_playerObserverQueue, ^{
     });
    self.playerObserver = nil;
-    
-//    self.playerItem = nil;
-//    self.player = nil;
-
 }
 
--(void)setVolume:(float)volume
-{
+-(void)setVolume:(float)volume {
     _volume = volume;
     if (_player) {
         _player.volume = _volume;
     }
-    
 }
+
 - (void)ummmStopPlaying
 {
     [_player pause];
@@ -123,12 +102,11 @@ static void * XItemStatusContext = &XItemStatusContext;
 
 - (void)ummmStartPlaying
 {
-    
-//    [self playWithObserver];
-    
     [_player play];
 }
 
+
+#pragma mark -
 
 -(NSURL*)trimmedFileURL {
     return [NSURL fileURLWithPath:self.trimmedMP3FilePath];
@@ -138,15 +116,11 @@ static void * XItemStatusContext = &XItemStatusContext;
     return [NSURL fileURLWithPath:_5secondsBeforeStartFilePath];
 }
 
-
 -(BOOL)timeIsValid {
-    
-    if (CMTIME_IS_INVALID(self.trackDuration))
-    {
+    if (CMTIME_IS_INVALID(self.trackDuration)) {
         NSLog(@"invalid time");
         return NO;
     }
-//    NSLog(@"%s",__func__);
     return YES;
 }
 
@@ -161,7 +135,6 @@ static void * XItemStatusContext = &XItemStatusContext;
     return progress;
 }
 
-
 #pragma mark -
 
 -(AVURLAsset *)youtubeMp3Asset {
@@ -173,7 +146,6 @@ static void * XItemStatusContext = &XItemStatusContext;
     return _youtubeMp3Asset;
 }
 
-
 -(void)setupAVPlayerComponents {
     
     for (AVAssetTrack* track in self.youtubeMp3Asset.tracks)
@@ -184,6 +156,8 @@ static void * XItemStatusContext = &XItemStatusContext;
     self.playerItem = [AVPlayerItem playerItemWithAsset:self.youtubeMp3Asset];
     self.player = [AVPlayer playerWithPlayerItem:self.playerItem];
     _player.volume = _volume; // 0.25; // Doesnt need to be blasting
+
+    [self.playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionInitial context:&XItemStatusContext];
 }
 
 
@@ -230,13 +204,8 @@ static void * XItemStatusContext = &XItemStatusContext;
     [self.player pause];
     NSLog(@"%s removeTimeObserver",__func__);
     [self.player removeTimeObserver:self.playerObserver];
-    dispatch_sync(_playerObserverQueue, ^{
-    });
     NSLog(@"%s removed",__func__);
     self.playerObserver = nil;
-
-//    [self.player removeTimeObserver:self.playerObserver];
-//    self.playerObserver = nil;
 }
 
 -(void)goAgain
@@ -248,7 +217,6 @@ static void * XItemStatusContext = &XItemStatusContext;
     
     __weak JWClipAudioController *weakself = self;
     
-    NSLog(@"%s addTimeObserver",__func__);
     self.playerObserver =
     [self.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(0.175, NSEC_PER_SEC)
                                               queue:_playerObserverQueue
@@ -261,32 +229,7 @@ static void * XItemStatusContext = &XItemStatusContext;
 }
 
 
-//-(void)completedExportTrimmedFile:(void (^)())completion {
-
--(void)completedExportTrimmedFile:(JWClipExportAudioCompletionHandler)completion {
-    NSLog(@"%s",__func__);
-    exportTimmedFile = YES;
-    if (exportTimmedFile && exportFiveSecondFile)
-    {
-        completion(self.dbKey);
-    }
-}
-
-    
-//-(void)completedExportFiveSecondFile:(void (^)())completion {
-
--(void)completedExportFiveSecondFile:(JWClipExportAudioCompletionHandler)completion {
-    NSLog(@"%s",__func__);
-    exportFiveSecondFile = YES;
-    if (exportTimmedFile && exportFiveSecondFile)
-    {
-        completion(self.dbKey);
-    }
-}
-
-
-//-(void)exportAudioSectionStart:(float)exportStartTime end:(float)exportEndTime fiveSecondsBefore:(float)fiveSecondsBefore withCompletion:(void (^)())completion
-
+#pragma mark - Export
 
 -(void)exportAudioSectionStart:(float)exportStartTime end:(float)exportEndTime fiveSecondsBefore:(float)fiveSecondsBefore withCompletion:(JWClipExportAudioCompletionHandler)completion
 
@@ -333,7 +276,6 @@ static void * XItemStatusContext = &XItemStatusContext;
         //Export 5 seconds before for the fade in audio
     }
     
-    
     // FIVE SECOND FILE export session
     
     AVAssetExportSession* exportSession2 = [AVAssetExportSession exportSessionWithAsset:self.youtubeMp3Asset presetName:AVAssetExportPresetAppleM4A];
@@ -365,12 +307,8 @@ static void * XItemStatusContext = &XItemStatusContext;
         exportSession2.timeRange = CMTimeRangeFromTimeToTime (startTime, endTime);
     }
     
-    
-    
-    NSLog(@"Starting Export");
-
     NSLog(@"Starting Export Trimmed File");
-
+    
     [exportSession1 exportAsynchronouslyWithCompletionHandler:^(void) {
         // Export ended for some reason. Check in status
         NSString* message;
@@ -426,13 +364,23 @@ static void * XItemStatusContext = &XItemStatusContext;
 
 }
 
-
-- (void)something:(JWClipAudioCompletionHandler)completion {
-    
-    completion();
-    
+-(void)completedExportTrimmedFile:(JWClipExportAudioCompletionHandler)completion {
+    NSLog(@"%s",__func__);
+    exportTimmedFile = YES;
+    if (exportTimmedFile && exportFiveSecondFile)
+    {
+        completion(self.dbKey);
+    }
 }
 
+-(void)completedExportFiveSecondFile:(JWClipExportAudioCompletionHandler)completion {
+    NSLog(@"%s",__func__);
+    exportFiveSecondFile = YES;
+    if (exportTimmedFile && exportFiveSecondFile)
+    {
+        completion(self.dbKey);
+    }
+}
 
 @end
 

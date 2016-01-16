@@ -543,9 +543,11 @@ UIGestureRecognizerDelegate
     }
     
 }
+
 -(NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
     return 1;
 }
+
 -(NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
     if (component == 0) {
         return 4;
@@ -572,8 +574,6 @@ UIGestureRecognizerDelegate
 
     [self.activity stopAnimating];
 
-//    _ampImageView.alpha = 1.0f;
-    
     _trackTimeInterval = 7;
 
     if (!_trackName)

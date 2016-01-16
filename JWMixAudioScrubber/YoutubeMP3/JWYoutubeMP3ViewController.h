@@ -11,14 +11,11 @@
 @protocol JWYoutubeMP3ViewDelegate;
 
 @interface JWYoutubeMP3ViewController : UIViewController <UIWebViewDelegate>
-
 @property (nonatomic,weak) id <JWYoutubeMP3ViewDelegate> delegate;
-
 @property (nonatomic) BOOL tapToJam; // as opposed to tap to pla
 @property (nonatomic) NSURL *youTubeLinkURL;
 -(void)setUrlSessionYoutubeString:(NSString *)youtubeString videoId:(NSString *)videoId andVideoTitle:(NSString *)videoTitle;
 @end
-
 
 
 @protocol JWYoutubeMP3ViewDelegate <NSObject>

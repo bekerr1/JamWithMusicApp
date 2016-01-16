@@ -46,6 +46,8 @@ JWMixEditDelegate
 @property (strong, nonatomic) id currentEditTrackInfo;
 @property (nonatomic) CGFloat currentPositionChange;
 @property (nonatomic, readwrite) PlayerControllerState state;
+@property (nonatomic) CGFloat backLightValue;;
+
 @end
 
 
@@ -56,6 +58,10 @@ JWMixEditDelegate
     _listenToPositionChanges = NO;
     [_sc stopPlaying:nil rewind:NO];
     [_audioEngine stopAllActivePlayerNodes];
+    
+    [[NSUserDefaults standardUserDefaults] setValue:@(_sc.backlightValue) forKey:@"backlightvalue"];
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 -(void)stopKill {
@@ -71,7 +77,14 @@ JWMixEditDelegate
     
     [self iosColors];
     _listenToPositionChanges = NO;
-
+    
+    id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
+    if (savedBackLightValue) {
+        _backLightValue = [savedBackLightValue floatValue];
+    } else {
+        _backLightValue = 0.22;
+    }
+    
     //INITIALIZE ENGINE
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
     self.audioEngine.engineDelegate = self;
@@ -80,7 +93,7 @@ JWMixEditDelegate
     self.metvc.delegateMixEdit = self;
     self.metvc.effectsHandler = self.audioEngine;
     
-    self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc];
+    self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc andBackLightValue:_backLightValue];
     self.sc.delegate = self;
     
     self.pcvc = (JWPlayerControlsViewController *)pvc;
@@ -112,6 +125,13 @@ JWMixEditDelegate
     
     [self iosColors];
 
+    id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
+    if (savedBackLightValue) {
+        _backLightValue = [savedBackLightValue floatValue];
+    } else {
+        _backLightValue = 0.22;
+    }
+
     //INITIALIZE ENGINE IN BACKGROUND
 
     dispatch_async (dispatch_get_global_queue( QOS_CLASS_BACKGROUND,0),^{
@@ -123,8 +143,11 @@ JWMixEditDelegate
         self.pcvc.delegate = self;
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc];
+            self.sc = [[JWScrubberController alloc]
+                       initWithScrubber:(JWScrubberViewController*)svc andBackLightValue:_backLightValue];
+            
             self.sc.delegate = self;
+            
             [self.pcvc initializeWithState:_state withLightBackround:NO];
         });
         
@@ -136,7 +159,28 @@ JWMixEditDelegate
     });
     
     // AND RETURN
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(appWillBackground:)
+                                                 name:@"AppWillBackground" object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(appWillForeground:)
+                                                 name:@"AppWillForeground" object:nil];
+
 }
+
+-(void)appWillBackground:(id)noti {
+    NSLog(@"%s",__func__);
+//    [_sc stopPlaying:nil rewind:NO];
+}
+
+-(void)appWillForeground:(id)noti {
+    NSLog(@"%s",__func__);
+    if ([_sc isPlaying])
+        [_sc resumePlaying];
+}
+
 
 
 -(void)iosColors {

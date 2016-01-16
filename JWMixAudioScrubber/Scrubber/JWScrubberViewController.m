@@ -2599,16 +2599,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             hfr.origin = CGPointZero;
             CGPoint hcenter = gcenter;
             hcenter.y = _topLayoutScrollViewConstraint.constant/2;
-            
-            NSLog(@"_headerLayer %@",NSStringFromCGRect(hfr));
-            NSLog(@"_headerLayer %@",NSStringFromCGPoint(hcenter));
-
             _headerLayer.frame = hfr;
             [_headerLayer render];
             _headerLayer.position = hcenter;
         }
     }
 }
+
+//            NSLog(@"_headerLayer %@",NSStringFromCGRect(hfr));
+//            NSLog(@"_headerLayer %@",NSStringFromCGPoint(hcenter));
 
 #pragma mark - Configure Edit Layer / BOOK End Clips
 

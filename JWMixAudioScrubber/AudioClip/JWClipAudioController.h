@@ -35,7 +35,6 @@ typedef void (^JWClipExportAudioCompletionHandler)(NSString *key); //  block (^J
 - (void)prepareToClipAudio;
 - (void)seekToTime:(float)seconds;
 - (void)goAgain;
-- (void)something:(JWClipAudioCompletionHandler)completion;
 - (void)ummmStopPlaying;
 - (void)ummmStartPlaying;
 - (void)killPlayer;

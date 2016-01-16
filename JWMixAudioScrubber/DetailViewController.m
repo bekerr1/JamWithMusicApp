@@ -39,6 +39,7 @@
 @property (strong, nonatomic) IBOutlet UIView *mixeditContainerView;
 @property (nonatomic) NSMutableString *statusString;
 @property (strong, nonatomic) NSArray *trackItems;
+@property (strong, nonatomic) UIColor *restoreColor;
 @end
 
 
@@ -101,35 +102,57 @@
             }
         }
     }
-
-    _scrubberContainerView.alpha = 0;
-    _scrubberContainerView.hidden = NO;
-    [UIView animateWithDuration:0.20 delay:0.75 options:UIViewAnimationOptionCurveLinear animations:^{
-        _scrubberContainerView.alpha = 1.0;
-    } completion:^(BOOL fini){
-    } ];
+    
+    [self revealScrubber];
+    
     double delayInSecs = 0.80;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [_scrubberActivity stopAnimating];
     });
 
+
 }
 
 
+-(void)revealScrubber {
+    [self revealScrubberAnimated:YES];
+}
+
+
+-(void)revealScrubberAnimated:(BOOL)animated {
+    
+    if (animated) {
+        _scrubberContainerView.alpha = 0;
+        _scrubberContainerView.hidden = NO;
+        [UIView animateWithDuration:0.20 delay:0.75 options:UIViewAnimationOptionCurveLinear animations:^{
+            _scrubberContainerView.alpha = 1.0;
+        } completion:^(BOOL fini){
+            [UIView animateWithDuration:0.10 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.view.backgroundColor = self.restoreColor;
+            } completion:nil];
+            
+        }];
+        
+    } else {
+        _scrubberContainerView.alpha = 1.0;
+        _scrubberContainerView.hidden = NO;
+        self.view.backgroundColor = self.restoreColor;
+    }
+}
+
 
 - (void)viewDidLoad {
+    
     [super viewDidLoad];
+    
     NSLog(@"%s",__func__);
     [[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
     [self toolbar1];
 
-    
     self.volumeView.backgroundColor = [UIColor clearColor];
-    
 //    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
 //    mpVolume.showsRouteButton = YES;
 //    [_volumeView addSubview:mpVolume];
-    
     
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
@@ -154,6 +177,8 @@
 //                                                       [self.navigationController setToolbarHidden:NO];
 //                                                   }];
 
+    self.restoreColor = self.view.backgroundColor;
+    self.view.backgroundColor = [UIColor blackColor];
     [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:YES
                                                               usingScrubberView:_scrubber
                                                                  playerControls:_playerControls mixEdit:_mixEdit

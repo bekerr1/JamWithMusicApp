@@ -15,9 +15,7 @@
 @interface JWFilesTableViewController (){
     AVAudioEngine *_audioEngine;
     AVAudioPlayerNode *_playerNode;
-    NSUInteger selectedAmpImageIndex;
 }
-@property (strong, nonatomic) IBOutlet UIImageView *ampImageView;
 @property (nonatomic) NSMutableArray *filesData;
 @property (nonatomic) NSMutableArray *recordingsFilesData;
 @property (nonatomic) NSMutableArray *mp3filesFilesData;
@@ -30,61 +28,24 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
     [self initAVAudioSession];
-
-    // Uncomment the following line to preserve selection between presentations.
-//     self.clearsSelectionOnViewWillAppear = NO;
      self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
-    
-
 }
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
-    [self updateAmpImage];
     [self loadData];
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [_playerNode stop];
-
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
--(void)updateAmpImage {
-    NSLog(@"%s %ld",__func__,selectedAmpImageIndex);
-    
-    // jwframesandscreens - 3
-    //jwscreensandcontrols
-    //jwjustscreensandlogos
-    
-    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %ld",selectedAmpImageIndex + 1]];
-    dispatch_async(dispatch_get_main_queue(), ^{
-        _ampImageView.image = ampImage;
-        [self.view setNeedsLayout];
-    });
-}
-
--(void)didSelectAmpImage:(NSNotification*)noti {
-    
-    NSLog(@"%s %@",__func__,[[noti userInfo] description]);
-    
-    NSNumber *selectedIndex = noti.userInfo[@"index"];
-    if (selectedIndex) {
-        selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
-    }
-    [self updateAmpImage];
-}
-
 
 #pragma mark - Table view content
 
@@ -154,7 +115,6 @@
         
         return cresult;
     }];
-
     
     [_filesData addObject:_finalsFilesData];
     [_filesData addObject:_mp3filesFilesData];
@@ -178,7 +138,6 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JWFileItem" forIndexPath:indexPath];
 
-//    if ([_filesData[indexPath.section] count] > 0) {
     NSURL *furl = _filesData[indexPath.section][indexPath.row][@"furl"];
     NSDate *createDate;
     NSError *error;
@@ -213,7 +172,6 @@
 
 
 #pragma mark - Table view delegate
-
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath{
     
@@ -260,6 +218,20 @@
 
 }
 
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        // Delete the row from the data source
+        NSError *error;
+        [[NSFileManager defaultManager] removeItemAtURL:_filesData[indexPath.section][indexPath.row][@"furl"] error:&error];
+        [(NSMutableArray*)_filesData[indexPath.section] removeObjectAtIndex:indexPath.row];
+        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+    }
+}
+
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
     if (section == 0) {
         return @"your mixes";
@@ -275,7 +247,6 @@
     }
     return nil;
 }
-
 
 #pragma mark -
 
@@ -324,6 +295,8 @@
 
 }
 
+
+
 #pragma mark - AVAudioSession
 
 - (void)initAVAudioSession
@@ -335,10 +308,10 @@
     AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
     NSError *error;
     // set the session category
-    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord
+    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayback
                                     withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
                                           error:&error];
-
+    
     if (!success) NSLog(@"Error setting AVAudioSession category! %@\n", [error localizedDescription]);
     
     double hwSampleRate = 44100.0;
@@ -348,27 +321,6 @@
     NSTimeInterval ioBufferDuration = 0.0029;
     success = [sessionInstance setPreferredIOBufferDuration:ioBufferDuration error:&error];
     if (!success) NSLog(@"Error setting preferred io buffer duration! %@\n", [error localizedDescription]);
-}
-
-#pragma mark -
-
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    return YES;
-}
-
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        NSError *error;
-        [[NSFileManager defaultManager] removeItemAtURL:_filesData[indexPath.section][indexPath.row][@"furl"] error:&error];
-
-        [(NSMutableArray*)_filesData[indexPath.section] removeObjectAtIndex:indexPath.row];
-
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-
-    }
 }
 
 
