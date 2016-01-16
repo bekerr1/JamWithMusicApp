@@ -16,7 +16,6 @@
 @end
 
 
-
 @protocol JWSourceAudioListsDelegate <NSObject>
 @optional
 -(void)finishedTrim:(JWSourceAudioListsViewController *)controller;

@@ -9,7 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface JWEffectParametersTableViewCell : UITableViewCell
-
 @property (strong, nonatomic) IBOutlet UISlider *effectParameter1;
 @property (strong, nonatomic) IBOutlet UISlider *effectParameter2;
 @property (strong, nonatomic) IBOutlet UISlider *effectParameter3;
@@ -17,6 +16,4 @@
 @property (strong, nonatomic) IBOutlet UILabel *parameterLabel2;
 @property (strong, nonatomic) IBOutlet UILabel *parameterLabel3;
 @property (strong, nonatomic) IBOutlet UILabel *nodeTitleLabel;
-
-
 @end

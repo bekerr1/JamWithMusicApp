@@ -28,7 +28,6 @@
 -(void) demoPlayConfiguration4c;
 -(void) demoPlayConfiguration5;
 -(void) demoPlayConfiguration6;
-
 @end
 
 
@@ -39,9 +38,7 @@
 -(void)updateScrubberHeight:(JWScrubberDemoController*)controller;
 -(NSURL*)scrubberDemoFile1URL:(JWScrubberDemoController*)controller;
 -(NSURL*)scrubberDemoFile2URL:(JWScrubberDemoController*)controller;
-
 -(id <JWScrubberBufferControllerDelegate>)scrubberBufferController:(JWScrubberDemoController*)controller;
-
 -(void)scrubberDemoController:(JWScrubberDemoController*)controller
             registerController:(id <JWScrubberBufferControllerDelegate> )scrubberContoller withTrackId:(NSString*)trackId;
 

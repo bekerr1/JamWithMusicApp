@@ -16,9 +16,3 @@
 -(CGFloat)remainingDurationInSecondsOfAudioFile;
 -(CGFloat)currentPositionInSecondsOfAudioFile;
 @end
-
-
-//-(CGFloat)progressOfAudioFile:(AVAudioFile*)audioFile;
-//-(CGFloat)durationInSecondsOfAudioFile:(AVAudioFile*)audioFile;
-//-(CGFloat)remainingDurationInSecondsOfAudioFile:(AVAudioFile*)audioFile;
-//-(CGFloat)currentPositionInSecondsOfAudioFile:(AVAudioFile*)audioFile;

@@ -17,7 +17,6 @@
 @interface JWMTEffectsAudioEngine() <JWEffectsHandler>
 @property (strong, nonatomic) NSArray *effectnodesList; // an item for each player, another array stack of effects
 @property (strong, nonatomic) NSMutableArray *effectnodes; // holds objects AudioNodes
-@property (nonatomic) JWCurrentEffect currentEffect;
 @end
 
 
@@ -35,8 +34,6 @@
     [super setupAVEngine];
 }
 
-
-
 - (void)createEngineAndAttachNodes
 {
     [super createEngineAndAttachNodes];
@@ -45,16 +42,11 @@
      an audio signal generation, processing, or input/output task.
      
      Nodes are created separately and attached to the engine.
-     
-     The engine supports dynamic connection, disconnection and removal of nodes while running,
-     with only minor limitations:
-     - all dynamic reconnections must occur upstream of a mixer
-     - while removals of effects will normally result in the automatic connection of the adjacent
-     nodes, removal of a node which has differing input vs. output channel counts, or which
-     is a mixer, is likely to result in a broken graph. */
-
+     */
+    
     
     // for each player attach all the effect nodes
+    
     for (NSDictionary *playerNodeInfo in self.playerNodeList) {
         
         id effectNodes = playerNodeInfo[@"effectnodes"];
@@ -65,7 +57,6 @@
                 [self.audioEngine attachNode:effectNode];
             }
         }
-        
     }
 
 }
@@ -82,30 +73,6 @@
      when this property is first accessed. You can then connect additional nodes to the mixer.
      By default, the mixer's output format (sample rate and channel count) will track the format
      of the output node. You may however make the connection explicitly with a different format. */
-    
-    /*  Nodes have input and output buses (AVAudioNodeBus). Use connect:to:fromBus:toBus:format: to
-     establish connections betweeen nodes. Connections are always one-to-one, never one-to-many or
-     many-to-one.
-     
-     Note that any pre-existing connection(s) involving the source's output bus or the
-     destination's input bus will be broken.
-     
-     @method connect:to:fromBus:toBus:format:
-     @param node1 the source node
-     @param node2 the destination node
-     @param bus1 the output bus on the source node
-     @param bus2 the input bus on the destination node
-     @param format if non-null, the format of the source node's output bus is set to this
-     format. In all cases, the format of the destination node's input bus is set to
-     match that of the source node's output bus. */
-    
-    //for (id playernodeEffects in _effectnodes) {
-    // GET the player that will get the effects
-    
-    
-    //        if ([self.playerNodes count] > index) {
-    //            playerNode = self.playerNodes[index];
-    //        }
     
     NSUInteger index = 0;
     AVAudioMixerNode *mainMixer = [self.audioEngine mainMixerNode];
@@ -139,14 +106,12 @@
         index++;
     }
     
-    
 }
 
 
 #pragma mark - Effects handler protocol
 
--(NSMutableArray *)configPlayerNodeList
-{
+-(NSMutableArray *)configPlayerNodeList {
     return self.playerNodeList;
 }
 
@@ -158,14 +123,11 @@
 -(BOOL)configChanged:(NSArray *)config {
     
     [self refreshEngineForEffectsNodeChanges];
-    
-    [self saveUserOrderedList];
-    
-    return 1;
+//    [self saveUserOrderedList];
+    return YES;
 }
 
 
-// joe: impl nil func
 
 -(id <JWEffectsModifyingProtocol> )effectNodeAtIndex:(NSUInteger)eindex forPlayerNodeAtIndex:(NSUInteger)pindex {
     
@@ -186,9 +148,8 @@
     
     id <JWEffectsModifyingProtocol> result;
     
-    if ([self.playerNodeList count] > pindex) {
+    if ([self.playerNodeList count] > pindex)
         result = self.playerNodeList[pindex][@"player"];
-    }
     
     return result;
 }
@@ -208,9 +169,8 @@
         // PLAYER RECORDER
         if (nodeType == JWMixerNodeTypePlayerRecorder) {
             id rc = playerNodeInfo[@"recorderController"];
-            if (rc) {
+            if (rc)
                 result = (JWAudioRecorderController*)rc;
-            }
         }
     }
 
@@ -223,12 +183,11 @@
 -(void)refreshEngineForEffectsNodeChanges {
 
     // Detach the nodes
-
     
     for (NSMutableDictionary *playerNode in self.playerNodeList) {
-        for (id effectsNode in playerNode[@"effectsnodes"]) {
+        for (id effectsNode in playerNode[@"effectsnodes"])
             [self.audioEngine detachNode:effectsNode];
-        }
+        
         [playerNode removeObjectForKey:@"effectsnodes"];
     }
 
@@ -241,11 +200,9 @@
         if (effectNodes) {
             
             for (id effectNode in effectNodes) {
-                
                 [self.audioEngine attachNode:effectNode];
             }
         }
-        
     }
     
     [self makeEngineConnections];
@@ -259,8 +216,8 @@
 // joe: Yes lets use this for startup here, AE will provide the config
 
 //Effects config
+
 -(void)effectsEngineConfigPrepare:(BOOL)isRefresh {
-    
     
     for (NSMutableDictionary *playerNodeInfo in self.playerNodeList) {
         
@@ -293,9 +250,6 @@
             } else {
                 NSLog(@"effect not added %s", __func__);
             }
-            
-            
-            
         }
         playerNodeInfo[@"effectnodes"] = effectNodes;
     }
@@ -332,19 +286,16 @@
     float lpc = 0.0;
     
     id delayValue = params[@"delaytime"];
-    if (delayValue) {
+    if (delayValue)
          delayTime = [delayValue doubleValue];
-    }
-    
+
     id feedbackValue = params[@"feedback"];
-    if (feedbackValue) {
+    if (feedbackValue)
          feedback = [feedbackValue floatValue];
-    }
-    
+
     id lowpasscut = params[@"lowpasscutoff"];
-    if (lowpasscut) {
+    if (lowpasscut)
         lpc = [lowpasscut floatValue];
-    }
     
     AVAudioUnitDelay *delay = [AVAudioUnitDelay new];
     delay.delayTime = delayTime;
@@ -356,7 +307,7 @@
 }
 
 -(AVAudioUnitEffect *)distortionEffectWith:(NSDictionary *)params {
-//   NSLog(@"%s Effect Created. %@", __func__, [params description]);
+
     AVAudioUnitEffect *effect;
     AVAudioUnitDistortion *distortion = [AVAudioUnitDistortion new];
     
@@ -369,9 +320,8 @@
     }
     
     id gain = params[@"pregain"];
-    if (gain) {
+    if (gain)
         preGain = [gain floatValue];
-    }
     
     distortion.preGain = preGain;
     effect = distortion;
@@ -381,46 +331,17 @@
 }
 
 -(AVAudioUnitEffect *)eqEffectWith:(NSDictionary *)params {
-//    NSLog(@"%s Effect Created. %@", __func__, [params description]);
+
     AVAudioUnitEffect *effect;
     AVAudioUnitEQ *eq = [[AVAudioUnitEQ alloc] initWithNumberOfBands:2];
 
     if (eq == nil) {
         
     }
-
-    
     
     return effect;
     
 }
-
-
-#pragma mark -
-
--(NSString*)documentsDirectoryPath {
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    return [searchPaths objectAtIndex:0];
-}
-
--(void)saveUserOrderedList {
-    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"mixereffects.dat"];
-    [_effectnodesList writeToURL:[NSURL fileURLWithPath:fpath] atomically:YES];
-    
-    NSLog(@"\n%s\nmixereffects.dat\n%@",__func__,[_effectnodesList description]);
-}
-
-// joe: is not mutable
--(NSArray *)readUserOrderedList {
-    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"mixereffects.dat"];
-//    NSMutableArray* effectsNodeList = [[NSMutableArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-    // joe: is not mutable
-    NSArray* effectsNodeList = [[NSArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-    
-    NSLog(@"\n%s\nmixereffects.dat\n%@",__func__,[effectsNodeList description]);
-    return effectsNodeList;
-}
-
 
 @end
 

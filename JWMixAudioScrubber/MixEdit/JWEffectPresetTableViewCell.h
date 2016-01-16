@@ -9,8 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface JWEffectPresetTableViewCell : UITableViewCell
-
 @property (strong, nonatomic) IBOutlet UIPickerView *effectPresets;
-
-
 @end

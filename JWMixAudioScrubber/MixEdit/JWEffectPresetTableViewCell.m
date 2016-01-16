@@ -11,6 +11,7 @@
 @implementation JWEffectPresetTableViewCell
 
 - (void)awakeFromNib {
+    
     // Initialization code
 }
 

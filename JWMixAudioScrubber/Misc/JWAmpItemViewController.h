@@ -9,7 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface JWAmpItemViewController : UIViewController
-
 @property (strong, nonatomic) IBOutlet UIImageView *ampImageView;
 @property (nonatomic,strong) UIImage *ampImage;
 @property (nonatomic,assign) NSUInteger pageIndex;

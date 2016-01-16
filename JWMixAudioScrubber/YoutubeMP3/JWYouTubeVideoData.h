@@ -11,12 +11,7 @@
 typedef void (^JWYouTubeVideoDataCompletionHandler)(void (^)(NSArray* videoData));
 
 @interface JWYouTubeVideoData : NSObject
+
 -(id)initWithVideoId:(NSString*)youTubeVideoId;
 -(void)getVideoDataOnCompletion:(void (^)(NSArray* videoData))completion;
 @end
-
-//                 withCompletion:(void (^)())completion;
-//(void (^)(CMTime time))block
-//typedef void (^AVAudioNodeCompletionHandler)(void);
-//(void (^)())completion
-//typedef void (^JWYouTubeVideoDataCompletionHandler)(void);

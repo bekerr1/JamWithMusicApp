@@ -12,7 +12,6 @@
 @interface JWBufferSampler () {
     BOOL _computeAverages;
     BOOL _gatherPulseSamples;
-
 }
 @property (nonatomic,readwrite) NSArray *samples;
 @property (nonatomic,readwrite) NSArray *samplesChannel2;
@@ -21,15 +20,11 @@
 @property (nonatomic,readwrite) float loudestSample1;
 @property (nonatomic,readwrite) float loudestSample2;
 @property (nonatomic,readwrite) Float64 durationThisBuffer;
-
 @property (nonatomic,readwrite) float loudestSample;
-
 @property (nonatomic,readwrite) float loudestSampleValue;
 @property (nonatomic,readwrite) float lowestSampleValue;
-
 @property (nonatomic,readwrite) AVAudioFramePosition loudestSampleFramePostion;
 @property (nonatomic,readwrite) AVAudioFramePosition lowestSampleFramePostion;
-
 @end
 
 
@@ -63,7 +58,8 @@
         _computeAverages = averages;
         _gatherPulseSamples = pulseSamples;
 
-        [self bufferReceived:(AVAudioPCMBuffer *)buffer atReadPosition:(AVAudioFramePosition)readPosition];
+        [self bufferReceived:(AVAudioPCMBuffer *)buffer
+              atReadPosition:(AVAudioFramePosition)readPosition];
     }
     return self;
 }
@@ -84,7 +80,8 @@
         _computeAverages = averages;
         _gatherPulseSamples = pulseSamples;
 
-        [self bufferReceived:(AVAudioPCMBuffer *)buffer atReadPosition:(AVAudioFramePosition)readPosition loudestSample:loudestSampleAllBuffers];
+        [self bufferReceived:(AVAudioPCMBuffer *)buffer
+              atReadPosition:(AVAudioFramePosition)readPosition loudestSample:loudestSampleAllBuffers];
     }
     return self;
 }
@@ -97,7 +94,8 @@
 
 - (void)sampleTheBuffer:(AVAudioPCMBuffer *)buffer atReadPosition:(AVAudioFramePosition)readPosition loudestSample:(float)loudestSampleAllBuffers
 {
-    [self bufferReceived:(AVAudioPCMBuffer *)buffer atReadPosition:(AVAudioFramePosition)readPosition loudestSample:(float)loudestSampleAllBuffers];
+    [self bufferReceived:(AVAudioPCMBuffer *)buffer atReadPosition:(AVAudioFramePosition)readPosition
+           loudestSample:(float)loudestSampleAllBuffers];
 }
 
 

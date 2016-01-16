@@ -106,16 +106,11 @@ _readPositionInReferencedTrack returns NEGATIVE when track not ready to be read
         _remainingInTrack = _duration - _currentPositionIntrack;
     }
 
-    //_currentPositionInRawtrack = currentPosition -  _trackStartPosition - _startPositionInset;
-    
-    
     _startPositionInReferencedTrack = _trackStartPosition - _startPositionInset;
-    
     
     if (currentPosition > _trackStartPosition) {
 
         _readPosition = _startPositionInset + _currentPositionIntrack; //(currentPosition - _trackStartPosition);
-        
         // _readpos may be GREATER than track length which is a nonread
 
     } else {

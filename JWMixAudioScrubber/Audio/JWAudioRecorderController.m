@@ -19,16 +19,12 @@
 }
 @property (strong, nonatomic) AVAudioRecorder *audioRecorder;
 @property (nonatomic,readwrite) BOOL recording;
-
-// metering
 @property (nonatomic,strong)  NSTimer *meteringTimer;
 @property (nonatomic,strong)  NSMutableArray *meterSamples;
 @property (nonatomic,strong)  NSMutableArray *meterPeakSamples;
 @property (nonatomic,strong)  NSDate *lastMeterTimeStamp;
-// registercontroller
 @property (nonatomic,strong)  NSMutableDictionary *scrubberTrackIds;
 @property (nonatomic,strong) id <JWScrubberBufferControllerDelegate> scrubberBufferController;
-
 @property (nonatomic, readwrite) NSString *recordingId;
 @end
 
@@ -39,7 +35,6 @@
 
     if (self = [super init]) {
         _useMetering = metering;
-        
         [self initializeController];
     }
     return self;
@@ -116,16 +111,39 @@
     return _recorded;
 }
 
+-(void)dealloc {
+    
+    [self removeUnRecorded];
+
+}
+-(void)removeUnRecorded {
+    
+    NSLog(@"%s ",__func__);
+    NSLog(@"REMOVE recording %@",_recordingId);
+    if (_recorded == NO) {
+        [_audioRecorder stop];
+        if ([_audioRecorder deleteRecording] == NO) {
+            NSLog(@"FAILED ");
+        }
+    }
+}
+
+
+
+
+-(NSString*)documentsDirectoryPath {
+    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    return [searchPaths objectAtIndex:0];
+}
+
 -(void)fileURLs {
     // .caf = CoreAudioFormat
     NSString *cacheKey = [[NSUUID UUID] UUIDString];
-    NSString *thisfName = @"clipRecording";
-    NSString *uniqueFname = [NSString stringWithFormat:@"%@_%@.caf",thisfName,cacheKey?cacheKey:@""];
-    NSString *docsDir = [NSHomeDirectory() stringByAppendingPathComponent:  @"Documents"];
-    
+    NSString *uniqueFname = [NSString stringWithFormat:@"clipRecording_%@.caf",cacheKey];
     _recordingId = cacheKey;
+    NSLog(@"NEW recording %@",_recordingId);
     
-    _micOutputFileURL = [NSURL URLWithString:[docsDir stringByAppendingPathComponent:uniqueFname]];
+    _micOutputFileURL = [NSURL URLWithString:[[self documentsDirectoryPath] stringByAppendingPathComponent:uniqueFname]];
 }
 
 #pragma mark - effects modifying delegate
@@ -227,7 +245,6 @@
 -(void)adjustTimeInterval1WithSlider:(id)sender {
     [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
 }
-
 
 
 #pragma mark - metering

@@ -31,13 +31,16 @@
 @end
 
 
+//        _youtubeLinkWithoutId = https: //www.youtube.com/watch?v=";
+//        _youtubeLinkWithoutId = https: //www.youtube.com/";
+
+
+
 @implementation JWYTSearchTypingViewController
 
 -(JWYouTubeSearchTypingData *)youTubeData {
     if (!_youTubeData) {
         _youTubeData = [JWYouTubeSearchTypingData new];
-        //        _youtubeLinkWithoutId = @"https://www.youtube.com/watch?v=";
-        //        _youtubeLinkWithoutId = @"https://www.youtube.com/";
         _youtubeLinkWithoutId = @"http://youtu.be/";
     }
     return _youTubeData;
@@ -49,24 +52,22 @@
     
     self.clearsSelectionOnViewWillAppear = NO;
 
+    _newSearchResults = YES;
+
     UITextField *txfSearchField = [_youTubeSearchQuery valueForKey:@"_searchField"];
     [(UITextField*)txfSearchField addTarget:self
                                      action:@selector(textFieldDidChange:)
                            forControlEvents:UIControlEventEditingChanged];
-    _youTubeSearchQuery.delegate = self;
-    
+
     _channelsDataArray = [[NSMutableArray alloc] init];
     _images = [@{} mutableCopy];
-
-    _newSearchResults = YES;
+    
     self.youTubeSearchQuery.delegate = self;
     
-    if (_imageRetrievalQueue == nil) {
+    if (_imageRetrievalQueue == nil)
         _imageRetrievalQueue =
         dispatch_queue_create("imageProcessing",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, 0));
-    }
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -78,18 +79,14 @@
 
 -(void)finishedTrim:(JWYoutubeMP3ViewController *)controller withTrimKey:(NSString*)trimKey forKey:(NSString*)key {
     
-    if ([_delegate respondsToSelector:@selector(finishedTrim:withDBKey:)]) {
+    if ([_delegate respondsToSelector:@selector(finishedTrim:withDBKey:)])
         [_delegate finishedTrim:self withDBKey:trimKey];
-    }
-
 }
 
 -(void)finishedTrim:(JWYoutubeMP3ViewController *)controller withTrimKey:(NSString*)trimKey title:(NSString*)title forKey:(NSString*)key {
     
-    if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)]) {
+    if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)])
         [_delegate finishedTrim:self title:title withDBKey:trimKey];
-    }
-    
 }
 
 
@@ -104,9 +101,9 @@
     NSInteger result = 0;
     NSUInteger more = 0;
     @synchronized(_channelsDataArray) {
-        if (self.channelsDataArray.count > 0) {
+        if (self.channelsDataArray.count > 0)
             more = 1;
-        }
+        
         result = self.channelsDataArray.count + more;
     }
     return result;
@@ -116,25 +113,23 @@
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
     NSString *titleStr;
     NSUInteger count = 0;
+    
     @synchronized(_channelsDataArray) {
         count = [_channelsDataArray count];
     }
-    if (count > 0) {
+    
+    if (count > 0)
         titleStr = [NSString stringWithFormat:@"Search Results %ld videos",count];
-    } else {
+    else
         titleStr = _newSearchResults ? @"Search Results" : [NSString stringWithFormat:@"Search Results %ld videos",count];
-    }
+
     return titleStr;
 }
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JWYoutubeSearchResultCell" forIndexPath:indexPath];
-//    UITableViewCell* cell;
-//    // Configure the cell...
-//    if (cell == nil) {
-//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"JWYoutubeSearchResultCell"];
-//    }
+
     @synchronized(_channelsDataArray) {
         
         if (indexPath.row < self.channelsDataArray.count) {
@@ -148,7 +143,6 @@
             _youtubeVideoTitle = [self.channelsDataArray[indexPath.row] valueForKey:(NSString*)JWDbKeyVideoTitle];
 
             @synchronized(_images) {
-                //            cell.imageView.image = _images[[tempDict valueForKey:@"videoID"]];
                 cell.imageView.image = _images[ ytVideoInfo[@"ytvideoid"] ];
             }
             
@@ -167,11 +161,13 @@
     NSLog(@"%ld row chosen", (long)indexPath.row);
     
     if (indexPath.row < self.channelsDataArray.count) {
+        
         _youtubeVideoId = [self.channelsDataArray[indexPath.row] valueForKey:@"ytvideoid"];
         _youtubeVideoCompleteURL = [_youtubeLinkWithoutId stringByAppendingString:_youtubeVideoId];
         _youtubeVideoTitle = [self.channelsDataArray[indexPath.row] valueForKey:(NSString*)JWDbKeyVideoTitle];
         
         [self performSegueWithIdentifier:@"JWYoutubeSearchToMP3Segue" sender:nil];
+        
     } else {
         _newSearchResults = NO;
         
@@ -183,13 +179,13 @@
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
     
     self.selectedDetailIndexPath = indexPath;
-    [self namePrompt];
+    [self detailInfo];
 }
 
 
 #pragma mark -
 
--(void)namePrompt {
+-(void)detailInfo {
     
     if (_selectedDetailIndexPath.row < self.channelsDataArray.count) {
         
@@ -526,14 +522,3 @@
 
 @end
 
-//    if ([[(UITextField*)sender text] isEqualToString:_searchString]) {
-//        // same continue
-//        _newSearchResults = NO;
-//    } else {
-//        // new
-//        self.searchString = [(UITextField*)sender text];
-////        [self.channelsDataArray removeAllObjects];
-////        [self.tableView reloadData];
-////        _images = [@{} mutableCopy];
-//        _newSearchResults = YES;
-//        [self getYoutubeDataFromSearchText:_searchString];

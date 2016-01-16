@@ -44,7 +44,6 @@
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - Table view content
@@ -248,7 +247,8 @@
     return nil;
 }
 
-#pragma mark -
+
+#pragma mark - Play audiofile and AVAudioSession
 
 -(void)playFileUsingAVPlayer:(NSURL*)audioFile
 {
@@ -296,15 +296,10 @@
 }
 
 
-
-#pragma mark - AVAudioSession
-
 - (void)initAVAudioSession
 {
     // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
     // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
-    
-    // Configure the audio session
     AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
     NSError *error;
     // set the session category

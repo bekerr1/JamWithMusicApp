@@ -17,5 +17,3 @@
 -(void)initWebDataKeyWithSearchString:(NSString *)searchQuery newSearch:(BOOL)newSearch;
 
 @end
-
-//-(void)getSearchKeywordDetailsWithCompletion:(void (^)(NSMutableArray* channelData))completion;

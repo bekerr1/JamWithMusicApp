@@ -21,20 +21,19 @@
 @implementation JWFileDowloadController
 
 -(void)dowloadFileWithURL:(NSURL *)targetURL {
+
+    [[UIApplication sharedApplication]setNetworkActivityIndicatorVisible:YES];
+
     NSURLSessionConfiguration* defualtSession = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession* session = [NSURLSession sessionWithConfiguration:defualtSession delegate:self delegateQueue:nil];
-    
+
     _downloadTask = [session downloadTaskWithURL:targetURL];
-    [[UIApplication sharedApplication]setNetworkActivityIndicatorVisible:YES];
-    
     [_downloadTask resume];
 }
 
 -(void)cancel {
     NSLog(@"%s",__func__);
-
     [_downloadTask cancel];
-    
     [[UIApplication sharedApplication]setNetworkActivityIndicatorVisible:NO];
 }
 
@@ -53,7 +52,7 @@
     completionBlock = completion;
     progressBlock = progress;
     _dbKey = dbKey;
-//    NSLog(@"%s\nDOWNLOADURL\n%@",__func__,[targetURL absoluteString]);
+    
     [self dowloadFileWithURL:targetURL];
 }
 
@@ -70,10 +69,8 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
         percentComplete = (float)totalBytesWritten/totalBytesExpectedToWrite;
     
     float result = (float)percentComplete;
-    if (progressBlock) {
+    if (progressBlock)
         progressBlock(result);
-    }
-
 }
 
 - (void)URLSession:(NSURLSession * _Nonnull)session
@@ -81,10 +78,8 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 didFinishDownloadingToURL:(NSURL * _Nonnull)location
 {
     [[UIApplication sharedApplication]setNetworkActivityIndicatorVisible:NO];
-
-    if (completionBlock) {
+    if (completionBlock)
         completionBlock(location,_dbKey);
-    }
 }
 
 

@@ -38,7 +38,6 @@
 -(void)initializeController;
 -(void)record;
 -(void)stopRecording;
-
 -(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller
               withTrackId:(NSString*)trackId
         forPlayerRecorder:(NSString*)player;

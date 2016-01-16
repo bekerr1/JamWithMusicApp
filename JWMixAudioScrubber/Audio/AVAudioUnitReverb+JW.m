@@ -83,12 +83,9 @@
     return NO;
 }
 
-
-
 -(void)adjustFloatValue1WithSlider:(id)sender {
     [self adjustFloatValue1:[(UISlider*)sender value]];
 }
-
 -(void)adjustFloatValue2WithSlider:(id)sender {
     [self adjustFloatValue2:[(UISlider*)sender value]];
 }
@@ -98,12 +95,9 @@
 -(void)adjustFloatValue4WithSlider:(id)sender {
     [self adjustFloatValue4:[(UISlider*)sender value]];
 }
-
 -(void)adjustTimeInterval1WithSlider:(id)sender {
     [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
 }
-
-
 -(void)adjustBoolValue1WithSwitch:(id)sender {
     [self adjustBoolValue1:[(UISwitch*)sender isOn]];
 }

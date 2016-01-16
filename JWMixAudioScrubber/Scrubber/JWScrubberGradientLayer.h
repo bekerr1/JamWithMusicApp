@@ -9,14 +9,6 @@
 #import <QuartzCore/QuartzCore.h>
 @import UIKit;
 
-//typedef NS_ENUM(NSInteger, JWScrubberGradientKind) {
-//    JWScrubberGradientKindNone = 1,
-//    JWScrubberGradientKindPlay,
-//    JWScrubberGradientKindPause,
-//    JWScrubberGradientKindStop,
-//    JWScrubberGradientKindRecord
-//};
-
 typedef NS_ENUM(NSInteger, JWScrubberGradientKind) {
     JWScrubberGradientKindNone = 1,
     JWScrubberGradientKindTopToBottom,  // one breaking point two colors
@@ -35,14 +27,11 @@ typedef NS_ENUM(NSInteger, JWScrubberGradientKind) {
 @property (nonatomic) UIColor *color1;
 @property (nonatomic) UIColor *color2;
 @property (nonatomic) UIColor *color3;
-
 @property (nonatomic) CGFloat breakingPoint1;
 @property (nonatomic) CGFloat breakingPoint2;
 @property (nonatomic) CGFloat centeredSpacingSpread;
-
 @property (nonatomic) CGFloat centeredBreakingCenterSpread;
 
 -(void)render;
-
 
 @end

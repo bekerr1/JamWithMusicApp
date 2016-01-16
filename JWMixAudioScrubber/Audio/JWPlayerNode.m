@@ -8,19 +8,8 @@
 
 #import "JWPlayerNode.h"
 
-@interface JWPlayerNode()
-@end
-
 
 @implementation JWPlayerNode
-
--(instancetype)init {
-    
-    if (self = [super init]) {
-        
-    }
-    return self;
-}
 
 -(CGFloat)progressOfAudioFile {
     return [self progressOfAudioFile:_audioFile];

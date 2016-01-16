@@ -535,7 +535,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         [myPlayer play];
 
         if (imageURL) {
-            NSLog(@"DISPATCH %@",[imageURL absoluteString]);
+            NSLog(@"DISPATCH retrieve %@",[imageURL absoluteString]);
             dispatch_async(_imageRetrievalQueue, ^{
                 UIImage* youtubeThumb = [UIImage imageWithData:[NSData dataWithContentsOfURL:imageURL]];
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -723,7 +723,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     //        urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
     
     NSURL *imageURL = urlStr ? [NSURL URLWithString:urlStr] : nil;
-    NSLog(@"%s %@",__func__,[imageURL absoluteString]);
+//    NSLog(@"%s %@",__func__,[imageURL absoluteString]);
     return imageURL;
 }
 

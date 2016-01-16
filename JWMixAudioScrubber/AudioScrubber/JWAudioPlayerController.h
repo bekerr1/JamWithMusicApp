@@ -25,7 +25,6 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @property (nonatomic) id <JWAudioPlayerControllerDelegate> delegate;
 @property (nonatomic) BOOL autoPlay;
 
-
 -(void)setTrackSet:(id)trackSet;
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me;
@@ -37,20 +36,17 @@ typedef void (^JWPlayerCompletionHandler)(void);
                                            usingScrubberView:(id)svc playerControls:(id)pvc
                                                      mixEdit:(id)me withCompletion:(JWPlayerCompletionHandler)completion;
 
-
 -(void) selectValidTrack;
 -(void) deSelectTrack;
-
 -(BOOL) editSelectedTrackBeginInset;
 -(BOOL) editSelectedTrackEndInset;
 -(BOOL) editSelectedTrackStartPosition;
-
 -(BOOL) stopEditingSelectedTrackSave;
 -(BOOL) stopEditingSelectedTrackCancel;
-
--(void)stop;
+-(void) stop;
 
 @end
+
 
 @protocol JWAudioPlayerControllerDelegate <NSObject>
 
@@ -63,5 +59,12 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
 
 -(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
+
+-(NSString*)playerControllerTitleForTrackSetContainingKey:(JWAudioPlayerController*)controllerkey;
+
+@optional
+-(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key;
+-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key;
+
 
 @end

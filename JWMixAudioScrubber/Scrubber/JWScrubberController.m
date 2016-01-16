@@ -205,42 +205,36 @@ const int scMaxTracks = 10;
     if (sid == nil) {
         [_scrubber prepareToPlay:1 atPosition:[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:nil]];
         // [_scrubber prepareToPlay:1];
+        
+        if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
+            [self.scrubber trackScrubberToProgress:[_delegate progressOfAudioFile:self forScrubberId:sid] timeAnimated:NO];
     }
     
     [self startPlayTimer];
+    
     [_scrubber transitionToPlay];
     
     if ( (_scrubber.viewOptions == ScrubberViewOptionDisplayLabels)
         || (_scrubber.viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            //                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",0.0];
-            //                if ([_delegate respondsToSelector:@selector( durationInSecondsOfAudioFile:forScrubberId:)]) {
-            //                    _scrubber.remainingValueStr =
-            //                    [NSString stringWithFormat:@"%.2f s",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
-            //                }
             if ([_delegate respondsToSelector:@selector( processingFormatStr:forScrubberId:)]) {
                 _scrubber.formatValueStr = [_delegate processingFormatStr:self forScrubberId:sid];
             }
         });
     }
-    
-
 }
 
 -(void)playRecord:(NSString*)sid {
-    
     [self play:sid];
     [_scrubber transitionToRecording];
 }
 
--(void)stopPlaying:(NSString*)sid
-{
+-(void)stopPlaying:(NSString*)sid {
     [_playerTimer invalidate];
     [_scrubber transitionToStopPlaying];
 }
 
--(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind;
-{
+-(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind {
     [self stopPlaying:sid];
     if (rewind)
     {
@@ -253,9 +247,8 @@ const int scMaxTracks = 10;
 }
 
 -(void)resumePlaying {
-
-    if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
-        [self.scrubber trackScrubberToProgress:[_delegate progressOfAudioFile:self forScrubberId:_playerTrackId] timeAnimated:NO];
+//    [_playerTimer invalidate];
+    [self play:nil];
 }
 
 -(void)reset {
@@ -1473,9 +1466,6 @@ EDITING PROTOCOL PUBLIC API
             
         });
     }
-
-    if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
-        [self.scrubber trackScrubberToProgress:[_delegate progressOfAudioFile:self forScrubberId:sid] timeAnimated:NO];
 
     
     self.playerTimer = [NSTimer timerWithTimeInterval:0.10 target:self selector:@selector(playTimerFired:) userInfo:nil repeats:YES];

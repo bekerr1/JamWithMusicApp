@@ -200,6 +200,7 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @end
 
 
+
 @protocol JWScrubberControllerDelegate <NSObject>
 @optional
 -(void)scrubberAvailable:(JWScrubberController*)controller;

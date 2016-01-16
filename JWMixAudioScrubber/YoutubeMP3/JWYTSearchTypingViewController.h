@@ -11,6 +11,7 @@
 @protocol JWYTSearchTypingDelegate;
 
 @interface JWYTSearchTypingViewController : UITableViewController
+
 @property (nonatomic,weak) id <JWYTSearchTypingDelegate> delegate;
 
 @end
@@ -21,10 +22,6 @@
 -(void)finishedTrim:(JWYTSearchTypingViewController *)controller;
 -(void)finishedTrim:(JWYTSearchTypingViewController *)controller withDBKey:(NSString*)key;
 -(void)finishedTrim:(JWYTSearchTypingViewController *)controller title:(NSString*)title withDBKey:(NSString*)key;
-
 @end
 
-
-//-(void)finishedTrim:(JWYoutubeMP3ViewController *)controller;
-//-(void)finishedTrim:(JWYoutubeMP3ViewController *)controller withTrimKey:(NSString*)trimKey forKey:(NSString*)key;
 

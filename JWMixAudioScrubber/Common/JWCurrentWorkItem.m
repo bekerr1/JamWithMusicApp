@@ -9,8 +9,6 @@
 // A SINGLETON to share infor between controllers
 
 #import "JWCurrentWorkItem.h"
-
-
 @implementation JWCurrentWorkItem
 
 + (JWCurrentWorkItem *)sharedInstance
@@ -26,13 +24,10 @@
 }
 
 #pragma mark - Lifecycle
-
 - (instancetype)init
 {
     self = [super init];
-    if (self) {
-        
-    }
+    if (self) { }
     return self;
 }
 

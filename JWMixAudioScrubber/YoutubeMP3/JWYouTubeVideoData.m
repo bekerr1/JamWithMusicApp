@@ -27,7 +27,6 @@ const NSString *JWDbKeyYoutubeDataDescription = @"ytdescription";
 const NSString *JWDbKeyYoutubeDataLocalized = @"ytlocalized";
 const NSString *JWDbKeyYoutubeDataTitle = @"yttitle";
 
-
 @implementation JWYouTubeVideoData
 
 -(id)initWithVideoId:(NSString*)youTubeVideoId {
@@ -39,8 +38,9 @@ const NSString *JWDbKeyYoutubeDataTitle = @"yttitle";
 }
 
 
--(void)performGetRequestTo:(NSURL *)targetURL completionHandler:(void (^)(NSData * data, NSURLResponse* response, NSError* error))completion {
-    
+-(void)performGetRequestTo:(NSURL *)targetURL
+         completionHandler:(void (^)(NSData * data, NSURLResponse* response, NSError* error))completion
+{
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:targetURL];
     request.HTTPMethod = @"GET";
     
@@ -108,7 +108,6 @@ const NSString *JWDbKeyYoutubeDataTitle = @"yttitle";
             
         } else {
             result = @[@{@"statuscode":@(999)}];
-
         }
 
 //        NSLog(@"%s %@",__func__,[result description]);
@@ -117,15 +116,14 @@ const NSString *JWDbKeyYoutubeDataTitle = @"yttitle";
 
     }];
     
-    NSLog(@"%s Completed Task",__func__);
-    
 }
 
 
 @end
 
-
-
+// -----------------------------
+// REFRENCE heres what the data looks like
+// -----------------------------
 
 //    HTTP Status Code = 200
 //    2015-10-18 01:47:48.733 JamWIthTJoe[89448:7914667] {

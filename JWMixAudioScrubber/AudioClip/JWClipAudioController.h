@@ -9,12 +9,9 @@
 #import <Foundation/Foundation.h>
 
 typedef void (^JWClipAudioCompletionHandler)(void);
-//typedef void (^JWClipExportAudioCompletionHandler)(void);
-
-typedef void (^JWClipExportAudioCompletionHandler)(NSString *key); //  block (^JWClipExportAudioCompletionHandler)(void);
-
-
+typedef void (^JWClipExportAudioCompletionHandler)(NSString *key);
 @protocol JWClipAudioDelegate;
+
 
 @interface JWClipAudioController : NSObject
 @property (nonatomic,assign) id <JWClipAudioDelegate> delegate;
@@ -27,10 +24,9 @@ typedef void (^JWClipExportAudioCompletionHandler)(NSString *key); //  block (^J
 @property (nonatomic) float volume;
 
 - (void)initializeAudioController;
-- (void)exportAudioSectionStart:(float)exportStartTime end:(float)exportEndTime fiveSecondsBefore:(float)fiveSecondsBefore
+- (void)exportAudioSectionStart:(float)exportStartTime end:(float)exportEndTime
+              fiveSecondsBefore:(float)fiveSecondsBefore
                  withCompletion:(JWClipExportAudioCompletionHandler)completion;
-
-//                 withCompletion:(void (^)())completion;
 
 - (void)prepareToClipAudio;
 - (void)seekToTime:(float)seconds;
@@ -45,12 +41,8 @@ typedef void (^JWClipExportAudioCompletionHandler)(NSString *key); //  block (^J
 @optional
 -(void)playerPlayStatusReady:(float)duration;
 -(void)periodicUpdatesToPlayer;
-
 -(void)exportDidFinsish;
 -(void)playerPlayStatusReady;
 @end
 
 
-//(void (^)(CMTime time))block
-//typedef void (^AVAudioNodeCompletionHandler)(void);
-//withCompletion:(void (^)())completion;

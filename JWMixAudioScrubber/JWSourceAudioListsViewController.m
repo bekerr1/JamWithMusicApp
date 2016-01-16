@@ -19,17 +19,18 @@
 
 @implementation JWSourceAudioListsViewController
 
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self.navigationItem setRightBarButtonItem:self.editButtonItem];
 
     _segmentedControl.selectedSegmentIndex = 0;
+    
     [self.view bringSubviewToFront:_leftContainerView];
 }
 
 
 -(void)setEditing:(BOOL)editing animated:(BOOL)animated {
+    
     [super setEditing:editing animated:animated];
     if (_segmentedControl.selectedSegmentIndex == 0) {
         _sourceAudioViewController.editing = editing;
@@ -70,8 +71,7 @@
     }
 }
 
-#pragma mark -
-
+#pragma mark - source audio files delegate
 
 -(void)finishedTrim:(id)controller title:(NSString*)title withDBKey:(NSString*)key
 {
@@ -79,13 +79,5 @@
         [_delegate finishedTrim:self title:title withDBKey:key];
     }
 }
-
-//-(void)finishedTrim:(id)controller withTrimKey:(NSString*)trimKey title:(NSString*)title forKey:(NSString*)key {
-//    
-//    if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)]) {
-//        [_delegate finishedTrim:self title:title withDBKey:trimKey];
-//    }
-//}
-
 
 @end

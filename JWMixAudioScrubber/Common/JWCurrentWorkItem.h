@@ -24,14 +24,11 @@ typedef enum AudioOrigins {
 @property (nonatomic) NSString* currentAudioTitle;
 @property (nonatomic) AudioOrigin currentAudioOrigin;
 @property (nonatomic) NSUInteger currentAmpImageIndex;
-
 @property (nonatomic) NSURL *currentTrimmedAudioFileURL;
 @property (nonatomic) NSURL *jamSiteOriginAudioFileURL;
 @property (nonatomic) NSMutableArray *looperOriginAudioFileURLs;  // array of NSURLs
 @property (nonatomic) NSMutableArray *userRecordedOriginAudioFileURLs;  // array of NSURLs
-
 @property (nonatomic) NSDate *timeStamp;
-
 @end
 
 

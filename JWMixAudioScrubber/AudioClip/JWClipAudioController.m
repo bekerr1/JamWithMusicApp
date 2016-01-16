@@ -19,7 +19,6 @@
     NSInteger _trackTimeInterval;
     BOOL exportTimmedFile;
     BOOL exportFiveSecondFile;
-    
 }
 @property (nonatomic) AVURLAsset* youtubeMp3Asset;
 @property (nonatomic) AVPlayerItem* playerItem;
@@ -54,11 +53,10 @@ static void * XItemStatusContext = &XItemStatusContext;
     _trimmedMP3FileName = [NSString stringWithFormat:@"trimmedMP3_%@.m4a",_dbKey?_dbKey:@""];
     _5secondsBeforeStartFileName = [NSString stringWithFormat:@"fiveSecondsMP3_%@.m4a",_dbKey?_dbKey:@""];
     
-    if (_playerObserverQueue == nil) {
+    if (_playerObserverQueue == nil)
         _playerObserverQueue =
         dispatch_queue_create("playerObserverQueue",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, 0));
-    }
 
     [self setupAVPlayerComponents];
 }

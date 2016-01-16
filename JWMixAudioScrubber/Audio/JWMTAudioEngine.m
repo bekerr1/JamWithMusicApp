@@ -67,17 +67,16 @@
 
 /*
  stopPlayersForInterruption
- 
- stop all players and remove taps
+  stop all players and remove taps
  */
 
 - (void)stopPlayersForInterruption
 {
     [super stopPlayersForInterruption];
     NSLog(@"%s",__func__);
+    
     // leave it to subclasses
-    for (JWPlayerNode* pn in self.activePlayerNodes)
-    {
+    for (JWPlayerNode* pn in self.activePlayerNodes) {
         [pn stop];
         NSLog(@"%s audioPlayerNode STOP",__func__);
     }
@@ -95,7 +94,9 @@
 #pragma mark - player node data
 
 -(void)loadPlayerNodeData {
+    
     [self readPlayerNodeList];
+    
     if (_playerNodeList == nil) {
         NSLog(@"%s no list creating new one ",__func__ );
 //        [self defaultPlayerNodeList];
@@ -182,7 +183,8 @@
 
 #pragma mark - VAB listeners
 
--(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller withTrackId:(NSString*)trackId
+-(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller
+              withTrackId:(NSString*)trackId
  forPlayerRecorderAtIndex:(NSUInteger)index
 {
     if ([_playerNodeList count] > index) {
@@ -203,9 +205,9 @@
         // MIXER PLAYER
         else if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
             id nodename = playerNodeInfo[@"name"];
-            if (nodename){
+            if (nodename)
                 _scrubberTrackIds[nodename] = trackId;
-            }
+
             // last register called uses tha controller by all
             _scrubberBufferController = myScrubberContoller;
         }
@@ -247,11 +249,11 @@
 }
 
 -(void)initBufferReceiveQueue {
-    if (_bufferReceivedQueue == nil) {
+    
+    if (_bufferReceivedQueue == nil)
         _bufferReceivedQueue =
         dispatch_queue_create("bufferReceivedAE",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, 0));
-    }
 }
 
 
@@ -327,22 +329,16 @@
 -(NSArray*)activePlayerNodes {
     __block NSMutableArray *nodes = [[NSMutableArray alloc] initWithCapacity:[_playerNodeList count]];
     
-//    [_activePlayersIndex enumerateIndexesUsingBlock:^(NSUInteger idx,BOOL *stop){
-//        [nodes addObject:_playerNodes[idx]];
-//    }];
-
-    
     [_activePlayersIndex enumerateIndexesUsingBlock:^(NSUInteger idx,BOOL *stop){
         id pn = [self playerForNodeAtIndex:idx];
-        if (pn) {
+        if (pn)
             [nodes addObject:pn];
-        }
     }];
-
     
     if ([nodes count] == 0) {
-        NSLog(@"%s %ld activeNodes",__func__,(unsigned long)[nodes count]);
+//        NSLog(@"%s %ld activeNodes",__func__,(unsigned long)[nodes count]);
     }
+
     return [NSArray arrayWithArray:nodes];
 }
 
@@ -351,18 +347,11 @@
 -(NSArray*)activeRecorderNodes {
     __block NSMutableArray *nodes = [[NSMutableArray alloc] initWithCapacity:[_playerNodeList count]];
     
-    //    [_activePlayersIndex enumerateIndexesUsingBlock:^(NSUInteger idx,BOOL *stop){
-    //        [nodes addObject:_playerNodes[idx]];
-    //    }];
-    
-    
     [_activeRecorderIndex enumerateIndexesUsingBlock:^(NSUInteger idx,BOOL *stop){
         id pn = [self recorderForPlayerNodeAtIndex:idx];
-        if (pn) {
+        if (pn)
             [nodes addObject:pn];
-        }
     }];
-    
     
     return [NSArray arrayWithArray:nodes];
 }
@@ -396,26 +385,11 @@
 }
 
 -(JWPlayerNode*) playerNode1 {
-    
     return [self playerForNodeAtIndex:0];
-    
-//    JWPlayerNode* result = nil;
-//    NSUInteger index = 0;
-//    if ([_playerNodeList count] > index) {
-//        result = _playerNodeList[index][@"player"];
-//    }
-//    return result;
 }
 
 -(JWPlayerNode*) playerNode2 {
     return [self playerForNodeAtIndex:1];
-
-//    JWPlayerNode* result = nil;
-//    NSUInteger index = 1;
-//    if ([_playerNodeList count] > index) {
-//        result = _playerNodeList[index][@"player"];
-//    }
-//    return result;
 }
 
 -(JWPlayerNode*) playerNode3 {
@@ -582,6 +556,7 @@
 }
 
 -(void)teeUpAudioBufferFadeIn {
+    
     if (_fiveSecondURL) {
         
         NSError* error = nil;
@@ -607,6 +582,7 @@
 -(void)setupAVEngine {
     
     [self fileURLs];
+    
     [self createPlayerNodes];
     [self createEngineAndAttachNodes];
     [self teeUpAudioBuffers];
@@ -642,9 +618,8 @@
     {
         id pn = [self playerForNodeAtIndex:i];
         if (pn) {
-            
             [self.audioEngine attachNode:pn];
-            NSLog(@"%s audioPlayerNode ATTACH",__func__);
+            NSLog(@"audioPlayerNode ATTACH");
         }
         
     }
@@ -696,7 +671,9 @@
                     [self.audioEngine connect:playerNode to:mainMixer format:audioBuffer.format];
                 
             } else {
-                NSLog(@"%s NO audioBuffer player at index %d perhaps try using audioFile for format ",__func__,index);
+//                NSLog(@"%s ",__func__);
+                NSLog(@"NO audioBuffer player at index %d perhaps try using audioFile for format ",index);
+
             }
         }
     }
@@ -878,13 +855,6 @@
 
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress {
     
-//    AVAudioFramePosition fileLength = seekingAudioFile.length;
-//    AVAudioFramePosition readPosition = progress * fileLength;
-//    
-//    if (_micPlayer.playing) {
-//        [self playSeekingAudioFileAtFramPosition:readPosition];
-//    }
-    
 }
 
 
@@ -916,23 +886,25 @@
  */
 //TODO: changed this
 
--(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn recording:(BOOL)recording {
-    
 //    NSLog(@"%s %.3f secondsin  %@",__func__,secondsIn,[_playerNodeList description]);
-    NSLog(@"%s %.3f secondsin  node count %ld",__func__,secondsIn,[_playerNodeList count]);
-    
+//    NSLog(@"%s %.3f secondsin  node count %ld",__func__,secondsIn,[_playerNodeList count]);
+
+-(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn recording:(BOOL)recording {
+
+    NSLog(@"scheduleAllWithOptions %.3f secondsin, %ld nodes",secondsIn,[_playerNodeList count]);
+
     NSUInteger index = 0;
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
+        
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
         
         if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
             
             AVAudioFile *audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
-            if (audioFile == nil)
-            {
-                if (nodeType == JWMixerNodeTypePlayerRecorder) {
+            
+            if (audioFile == nil) {
+                if (nodeType == JWMixerNodeTypePlayerRecorder)
                     [_activeRecorderIndex addIndex:index];
-                }
                 
                 continue; // not interested
             }
@@ -1214,7 +1186,7 @@
         for (JWPlayerNode* pn in self.activePlayerNodes)
         {
             [pn play];
-            NSLog(@"%s audioPlayerNode PLAY",__func__);
+            NSLog(@"audioPlayerNode PLAY");
         }
         return YES;
         
@@ -1233,7 +1205,7 @@
         for (JWPlayerNode* pn in self.activePlayerNodes)
         {
             [pn pause];
-            NSLog(@"%s audioPlayerNode PAUSE",__func__);
+            NSLog(@"audioPlayerNode PAUSE");
         }
         return YES;
         
@@ -1252,7 +1224,7 @@
         for (JWPlayerNode* pn in self.activePlayerNodes)
         {
             [pn stop];
-            NSLog(@"%s audioPlayerNode STOP",__func__);
+            NSLog(@"audioPlayerNode STOP");
         }
         
         if (_scrubberTrackIds[@"mixer"]) {
@@ -1271,13 +1243,6 @@
         return NO;
     }
 }
-
-
-//                @property (nonatomic,readonly) float duration;  // duration playback
-//                @property (nonatomic,readonly) float remainingInTrack;
-//                @property (nonatomic,readonly) float currentPositionIntrack;
-//                @property (nonatomic,readonly) float startPositionInReferencedTrack;
-//                @property (nonatomic,readonly) float readPositionInReferencedTrack;
 
 
 #pragma mark -
@@ -1356,8 +1321,10 @@
  */
 
 -(void)prepareToRecord {
-    NSInteger index = 0;
+    
     // first recorder playernode now
+
+    NSInteger index = 0;
     NSUInteger nNodes = [self.playerNodeList count];
     for (index = 0; index < nNodes; index++) {
         if (JWMixerNodeTypePlayerRecorder == [self typeForNodeAtIndex:index] ) {
@@ -1366,7 +1333,6 @@
                 // found
                 break;
             }
-            
         }
     }
     //[self prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:index];
@@ -1375,6 +1341,7 @@
 
 
 -(JWAudioRecorderController*)recorderForPlayerNodeAtIndex:(NSUInteger)pindex {
+
     JWAudioRecorderController* result;
     if (pindex < [self.playerNodeList count]) {
         NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
@@ -1470,10 +1437,6 @@
 
             JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
             [_activePlayersIndex addIndex:index];
-            
-//            JWPlayerNode* playerNode =  (JWPlayerNode*)_playerNodes[playerNodeIndex];
-//            [_activePlayersIndex addIndex:playerNodeIndex];
-//            playerNodeIndex++;
 
             playerNode.audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
 
@@ -1679,10 +1642,6 @@
             JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
             [_activePlayersIndex addIndex:index];
             
-//            JWPlayerNode* playerNode =  (JWPlayerNode*)_playerNodes[playerNodeIndex];
-//            [_activePlayersIndex addIndex:playerNodeIndex];
-//            playerNodeIndex++;
-            
             playerNode.audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
 
 
@@ -1712,7 +1671,6 @@
                     playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
                     playerNodeInfo [@"audiofile"] = micOutputFile;
                     
-                    NSString *recordingId = rc.recordingId;
                     [_activeRecorderIndex removeIndex:prIndex];
                     
                     self.needMakeConnections = YES;
@@ -1725,15 +1683,12 @@
                             [_engineDelegate userAudioObtained];
                     });
                     
-
-                    
-
                 } else {
-                // Notify delegate
-                dispatch_sync(dispatch_get_main_queue(), ^() {
-                    if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-                        [_engineDelegate completedPlayingAtPlayerIndex:index];
-                });
+                    // Notify delegate
+                    dispatch_sync(dispatch_get_main_queue(), ^() {
+                        if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+                            [_engineDelegate completedPlayingAtPlayerIndex:index];
+                    });
                 }
             }];
         }
@@ -2046,537 +2001,8 @@
 @end
 
 
-
-
-
 //===========================================================================
 //
 //
 //===========================================================================
-
-//@property (nonatomic) AVAudioPCMBuffer* audioBufferFromFile;
-//@property (nonatomic) AVAudioPCMBuffer* micOutputBuffer;
-//@property (nonatomic) NSURL* playerNode1FileURL;
-//@property (nonatomic) NSURL* playerNode2FileURL;
-//@property (nonatomic) NSURL* playerNode3FileURL;
-
-//#ifndef JWPLAYERNODE
-//-(CGFloat)progressOfMicAudioFile {
-//    return [self progressOfAudioFile:_micOutputFile forPlayerNode:_playerNode2];
-//}
-//
-//-(CGFloat)durationInSecondsOfMicAudioFile {
-//    return [self durationInSecondsOfAudioFile:_micOutputFile forPlayerNode:_playerNode2];
-//}
-//
-//-(CGFloat)remainingDurationInSecondsOfMicAudioFile {
-//    return [self remainingDurationInSecondsOfAudioFile:_micOutputFile forPlayerNode:_playerNode2];
-//}
-//-(CGFloat)currentPositionInSecondsOfMicAudioFile {
-//    return [self currentPositionInSecondsOfAudioFile:_micOutputFile forPlayerNode:_playerNode2];
-//}
-//
-//-(CGFloat)remainingDurationInSecondsOfTrimmedAudioFile{
-//    return [self remainingDurationInSecondsOfAudioFile:_trimmedAudioFile forPlayerNode:_playerNode1];
-//}
-//-(CGFloat)currentPositionInSecondsOfTrimmedAudioFile{
-//    return [self currentPositionInSecondsOfAudioFile:_trimmedAudioFile forPlayerNode:_playerNode1];
-//}
-//-(CGFloat)progressOfTrimmedAudioFile{
-//    return [self progressOfAudioFile:_trimmedAudioFile forPlayerNode:_playerNode1];
-//}
-//-(CGFloat)durationInSecondsOfTrimmedAudioFile{
-//    return [self durationInSecondsOfAudioFile:_trimmedAudioFile forPlayerNode:_playerNode1];
-//}
-//-(CGFloat)progressOfAudioFile:(AVAudioFile*)audioFile forPlayerNode:(AVAudioPlayerNode*)playerNode
-//{
-//    CGFloat result = 0.000f;
-//    if (audioFile) {
-//        AVAudioFramePosition fileLength = audioFile.length;
-//        AVAudioTime *audioTime = [playerNode lastRenderTime];
-//        AVAudioTime *playerTime = [playerNode playerTimeForNodeTime:audioTime];
-//        if (playerTime==nil) {
-//            NSLog(@"%s NO PLAYER TIME  playing %@",__func__,@([playerNode isPlaying]));
-//            result = 1.00f;
-//        } else {
-//            double fileLenInSecs = fileLength / [playerTime sampleRate];
-//            double currentPosInSecs = [playerTime sampleTime] / [playerTime sampleRate];
-//            if (currentPosInSecs > fileLenInSecs ) {
-//                if (_loops) {
-//                    double normalizedPos = currentPosInSecs/fileLenInSecs - floorf(currentPosInSecs/fileLenInSecs);
-//                    result = normalizedPos;
-//                } else {
-//                    result = 1.0;
-//                }
-//                
-//            } else {
-//                result = currentPosInSecs/fileLenInSecs;
-//            }
-//        }
-//    }
-//    
-//    //    NSLog(@"%s %.3f",__func__,result);
-//    return result;
-
-//-(CGFloat)durationInSecondsOfAudioFile:(AVAudioFile*)audioFile forPlayerNode:(AVAudioPlayerNode*)playerNode
-//    CGFloat result = 0.000f;
-//    if (audioFile) {
-//        AVAudioFramePosition fileLength = audioFile.length;
-//        AVAudioTime *audioTime = [playerNode lastRenderTime];
-//        AVAudioTime *playerTime = [playerNode playerTimeForNodeTime:audioTime];
-//        
-//        double fileLenInSecs = 0.0f;
-//        
-//        if (playerTime) {
-//            fileLenInSecs = fileLength / [playerTime sampleRate];
-//        } else {
-//            Float64 mSampleRate = audioFile.processingFormat.streamDescription->mSampleRate;
-//            Float64 duration =  (1.0 / mSampleRate) * audioFile.processingFormat.streamDescription->mFramesPerPacket;
-//            fileLenInSecs = duration * fileLength;
-//        }
-//        result = (CGFloat)fileLenInSecs;
-//    }
-//    //    NSLog(@"%s %.3f",__func__,result);
-//    return result;
-
-//-(CGFloat)remainingDurationInSecondsOfAudioFile:(AVAudioFile*)audioFile forPlayerNode:(AVAudioPlayerNode*)playerNode
-//    CGFloat result = 0.000f;
-//    if (audioFile) {
-//        AVAudioTime *audioTime = [playerNode lastRenderTime];
-//        AVAudioFramePosition fileLength = audioFile.length;
-//        AVAudioTime *playerTime = [playerNode playerTimeForNodeTime:audioTime];
-//        
-//        double fileLenInSecs = fileLength / [playerTime sampleRate];
-//        double currentPosInSecs = [playerTime sampleTime] / [playerTime sampleRate];
-//        
-//        if (currentPosInSecs > fileLenInSecs ) {
-//            result = 0.0;
-//        } else {
-//            result = (fileLenInSecs - currentPosInSecs);
-//    }
-//    //    NSLog(@"%s %.3f",__func__,result);
-//    return result;
-
-//-(CGFloat)currentPositionInSecondsOfAudioFile:(AVAudioFile*)audioFile forPlayerNode:(AVAudioPlayerNode*)playerNode
-//    CGFloat result = 0.000f;
-//    if (audioFile) {
-//        AVAudioFramePosition fileLength = audioFile.length;
-//        AVAudioTime *audioTime = [playerNode lastRenderTime];
-//        AVAudioTime *playerTime = [playerNode playerTimeForNodeTime:audioTime];
-//        
-//        double fileLenInSecs = fileLength / [playerTime sampleRate];
-//        double currentPosInSecs = [playerTime sampleTime] / [playerTime sampleRate];
-//        
-//        if (currentPosInSecs > fileLenInSecs ) {
-//            result = fileLenInSecs;
-//        } else {
-//            result = currentPosInSecs;
-//        }
-//    }
-//    //    NSLog(@"%s %.3f",__func__,result);
-//    return result;
-//}
-
-// MIX file
-//-(CGFloat)progressOfMixAudioFile{
-//    return [self.playerNode1 progressOfAudioFile:_finalRecordingOutputFile];
-//}
-//-(CGFloat)durationInSecondsOfMixFile {
-//    return [self.playerNode1 durationInSecondsOfAudioFile:_finalRecordingOutputFile];
-//}
-//-(CGFloat)remainingDurationInSecondsOfMixFile {
-//    return [self.playerNode1 remainingDurationInSecondsOfAudioFile:_finalRecordingOutputFile];
-//}
-//-(CGFloat)currentPositionInSecondsOfMixFile{
-//    return [self.playerNode1 currentPositionInSecondsOfAudioFile:_finalRecordingOutputFile];
-//}
-
-
-//-(float)volumeValuePlayer1 {
-//    return [_playerNode1 volume];
-//}
-//-(float)volumeValuePlayer2 {
-//    return [_playerNode2 volume];
-//}
-//-(void)setVolumeValuePlayer1:(float)volumeValuePlayer1  {
-//    //_volumeValuePlayer1 = volumeValuePlayer1;
-//    _playerNode1.volume = volumeValuePlayer1;
-//}
-//-(void)setVolumeValuePlayer2:(float)volumeValuePlayer2  {
-//    //    _volumeValuePlayer2 =volumeValuePlayer2;
-//    _playerNode2.volume = volumeValuePlayer2;
-//}
-
-//-(float)panValuePlayer1 {
-//    return [_playerNode1 pan];
-//}
-//-(float)panValuePlayer2 {
-//    return [_playerNode2 pan];
-//}
-//-(void)setPanValuePlayer1:(float)panValue  {
-//    _playerNode1.pan = panValue;
-//    //    NSLog(@"%s %.2f",__func__,panValue);
-//}
-//-(void)setPanValuePlayer2:(float)panValue  {
-//    _playerNode2.pan = panValue;
-//}
-//-(float)volumePlaybackTarck {
-//    return _playerNode1.volume;
-//}
-//-(void)setVolumePlayBackTrack:(float)volumePlayBackTrack {
-//    _volumePlayBackTrack = volumePlayBackTrack;
-//    _playerNode1.volume = _volumePlayBackTrack;
-//}
-//
-//#endif
-
-//-(CGFloat)progressOfSeekingAudioFile {
-//        return _isRecording ? [self.playerNode2 progressOfAudioFile:_micOutputFile] : [self.playerNode1 progressOfAudioFile:_trimmedAudioFile];
-//}
-//-(CGFloat)durationInSecondsOfSeekingAudioFile {
-//    return _isRecording ? [self.playerNode2 durationInSecondsOfAudioFile:_micOutputFile] : [self.playerNode1 durationInSecondsOfAudioFile:_trimmedAudioFile];
-//}
-//-(CGFloat)remainingDurationInSecondsOfSeekingAudioFile {
-//    return _isRecording ? [self.playerNode2 remainingDurationInSecondsOfAudioFile:_micOutputFile] : [self.playerNode1 remainingDurationInSecondsOfAudioFile:_trimmedAudioFile];
-//}
-//-(CGFloat)currentPositionInSecondsOfSeekingAudioFile {
-//    return _isRecording ? [self.playerNode2 currentPositionInSecondsOfAudioFile:_micOutputFile] : [self.playerNode1 currentPositionInSecondsOfAudioFile:_trimmedAudioFile];
-//}
-//-(NSString*)processingFormatStr{
-//    return _isRecording ? [self processingMicFormatStr] : [self processingTrimmedFormatStr];
-//}
-
-
-//===============================
-// REFACTOR ENGINES
-//===============================
-
-//- (void)prepareForPreview {
-//    NSError* error;
-//    AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
-//    //[mainMixer installTapOnBus:0 bufferSize:4069 format:_generalFormat
-//    //[mainMixer installTapOnBus:0 bufferSize:4069 format:[mainMixer outputFormatForBus:0]
-//    _finalRecordingOutputFile =
-//    [[AVAudioFile alloc] initForWriting:_finalRecordingOutputURL
-//                               settings:[[mainMixer outputFormatForBus:0] settings]
-//                                  error:&error];
-//
-//    NSAssert(_finalRecordingOutputFile != nil, @"_finalRecordingOutputFile is nil, %@", [error localizedDescription]);
-//}
-
-
-// setupAVEngine
-
-// joe: move to makeconnections method
-//    AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
-//    [self.audioEngine connect:self.playerNode1 to:mainMixer format:_audioBufferFromFile.format];
-//    [self.audioEngine connect:self.playerNode2 to:mainMixer format:_fiveSecondBuffer.format];
-//    mainMixer.outputVolume = 1.0;
-//
-// START the engine
-
-//    [self startEngine];
-
-// Create nodes
-//    self.playerNode1 = [[AVAudioPlayerNode alloc] init];
-//    self.playerNode2 = [[AVAudioPlayerNode alloc] init];
-
-//    self.playerNode1 = [JWPlayerNode new];
-//    self.playerNode2 = [JWPlayerNode new];
-//    self.playerNode1.volume = 0.25;
-
-// joe: moved to createEngineAndAttachNodes
-// Create Engine and Attach nodes
-//    self.audioEngine = [[AVAudioEngine alloc] init];
-//
-//    [self.audioEngine attachNode:self.playerNode1];
-//    [self.audioEngine attachNode:self.playerNode2];
-
-// JOE: move recorder to recorder controller
-//    AVAudioChannelLayout *layout = [[AVAudioChannelLayout alloc] initWithLayoutTag:kAudioChannelLayoutTag_Stereo];
-//    AVAudioFormat* micFormat = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32 sampleRate:44100. interleaved:NO channelLayout:layout];
-//    NSError *error;
-//    self.audioRecorder = [[AVAudioRecorder alloc] initWithURL:_micOutputFileURL settings:[micFormat settings] error:&error];
-//    _audioRecorder.meteringEnabled = _useMetering;
-//    [_audioRecorder prepareToRecord];
-//    if (_useMetering)
-//        self.meterSamples = [NSMutableArray new];
-
-
-//    AVAudioInputNode* inputNode = [self.audioEngine inputNode];
-//    [inputNode installTapOnBus:0 bufferSize:1024
-//                        format:_generalFormat block:^(AVAudioPCMBuffer* buffer, AVAudioTime* when) {}];
-//    [inputNode removeTapOnBus:0];
-
-//-(void)teeUpAudioBuffersxx {
-//    NSError* error = nil;
-//    _trimmedAudioFile = [[AVAudioFile alloc] initForReading:_trimmedURL error:&error];
-//    if (error) {
-//        NSLog(@"%@",[error description]);
-//    }
-//    error = nil;
-//    AVAudioFile* fiveSecondFile = [[AVAudioFile alloc] initForReading:_fiveSecondURL error:&error];
-//    if (error) {
-//        NSLog(@"%@",[error description]);
-//    }
-//    _audioBufferFromFile = [[AVAudioPCMBuffer alloc] initWithPCMFormat:_trimmedAudioFile.processingFormat
-//                                                         frameCapacity:(UInt32)_trimmedAudioFile.length];
-//
-//    _fiveSecondBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:fiveSecondFile.processingFormat
-//                                                      frameCapacity:(UInt32)fiveSecondFile.length];
-//
-//    [_trimmedAudioFile readIntoBuffer:_audioBufferFromFile error:&error];
-//    [fiveSecondFile readIntoBuffer:_fiveSecondBuffer error:&error];
-//    if (error) {
-//        NSLog(@"There was an error");
-//    }
-//}
-
-//prepareToRecord
-//    // Player 1 Schedule buffer
-//
-//    [self.playerNode1 scheduleBuffer:_fiveSecondBuffer atTime:nil options:0 completionHandler:^() {
-//        NSLog(@"Five Second Audio Completed");
-//        // Turn ON microphone
-//        [_recorderController record];
-//        // joe: done by controller
-////        [self startMeteringTimer];
-//        // Notify delegate
-//        dispatch_sync(dispatch_get_main_queue(), ^() {
-//            if ([_clipEngineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
-//                [_clipEngineDelegate fiveSecondBufferCompletion];
-//        });
-//    }];
-//
-//
-//    // Player 1 Schedule buffer
-//
-//    [self.playerNode1 scheduleBuffer:_audioBufferFromFile atTime:nil options:0 completionHandler:^() {
-//
-//        NSLog(@"Main Audio Completed");
-//
-//        // joe: moved to controller
-////        [self.meteringTimer invalidate];
-////        [_audioRecorder stop];
-////        // REMOVE Tap for microphone
-////        [[self.audioEngine inputNode] removeTapOnBus:0];
-//
-//        [_recorderController stopRecording];
-//
-//        // READ File into buffer
-//
-//
-//        // TODO: get from recorder controller
-////        NSError* error = nil;
-////        _micOutputFile = [[AVAudioFile alloc] initForReading:_micOutputFileURL error:&error];
-////
-////        _micOutputBuffer =
-////        [[AVAudioPCMBuffer alloc] initWithPCMFormat:_micOutputFile.processingFormat
-////                                      frameCapacity:(UInt32)_micOutputFile.length];
-////
-////        NSAssert([_micOutputFile readIntoBuffer:_micOutputBuffer error:&error], @"error reading into new buffer, %@", [error localizedDescription]);
-//
-//        dispatch_sync(dispatch_get_main_queue(), ^() {
-//            if ([_clipEngineDelegate respondsToSelector:@selector(userAudioObtained)])
-//                [_clipEngineDelegate userAudioObtained];
-//        });
-//    }];
-//    [self startEngine];
-//    [self.playerNode1 play];
-
-//    [self.playerNode1 scheduleBuffer:_audioBufferFromFile atTime:nil
-//                             options:AVAudioPlayerNodeBufferLoops
-//                   completionHandler:^{
-//                   }];
-//
-//    if (_micOutputBuffer) {
-//        [self.playerNode2 scheduleBuffer:_micOutputBuffer atTime:nil
-//                                 options:AVAudioPlayerNodeBufferLoops  completionHandler:^{
-//                                     NSLog(@"mic buffer loop completed");
-//                                 }];
-//    }
-
-
-// Plays all nodes and records output from mixer
-// use PlayAll and Recordit for recording
-
-//-(void)playAll {
-//    BOOL loopWhileMixing = YES;
-//    _loops = loopWhileMixing;
-//    self.playerNode1.loops = _loops;
-//    self.playerNode2.loops = _loops;
-//    _playerIsPaused = NO;
-//    if (_playerIsPaused) {
-//        NSLog(@"%s PAUSED will resume play",__func__);
-//    } else {
-//        // start playing
-//        if (loopWhileMixing == NO) { // play the optional way
-//            // Play ONCE
-//            [self.playerNode1 scheduleBuffer:_audioBufferFromFile atTime:nil
-//                                     options:AVAudioPlayerNodeBufferInterrupts
-//                           completionHandler:^{
-//                               _playerIsPaused = NO;
-//                               [_playerNode1 stop];
-//
-//                               dispatch_sync(dispatch_get_main_queue(), ^() {
-//                                   if ([_clipEngineDelegate respondsToSelector:@selector(playingCompleted)])
-//                                       [_clipEngineDelegate playingCompleted];
-//                               });
-//                           }];
-//
-//            if (_micOutputBuffer) {
-//                [self.playerNode2 scheduleBuffer:_micOutputBuffer atTime:nil
-//                                         options:AVAudioPlayerNodeBufferInterrupts completionHandler:nil];
-//            }
-//        } else {
-//            [self.playerNode1 scheduleBuffer:_audioBufferFromFile atTime:nil
-//                                     options:AVAudioPlayerNodeBufferLoops
-//                           completionHandler:^{
-//                           }];
-//
-//            if (_micOutputBuffer) {
-//                [self.playerNode2 scheduleBuffer:_micOutputBuffer atTime:nil
-//                                         options:AVAudioPlayerNodeBufferLoops  completionHandler:^{
-//                                             NSLog(@"mic buffer loop completed");
-//                                         }];
-//            }
-//        }
-//    }
-//    [self.playerNode1 play];
-//    if (_micOutputBuffer)
-//        [self.playerNode2 play];
-
-
-//playMix
-//    [self.playerNode2 stop];
-//
-//    [_playerNode1 reset];
-//
-//    // Plas the mix result _finalRecordingOutputURL
-//
-//    NSError* error = nil;
-//    _finalRecordingOutputFile = [[AVAudioFile alloc] initForReading:_finalRecordingOutputURL error:&error];
-//    AVAudioPCMBuffer *audioBuffer =
-//    [[AVAudioPCMBuffer alloc] initWithPCMFormat:_finalRecordingOutputFile.processingFormat
-//                                  frameCapacity:(UInt32)_finalRecordingOutputFile.length];
-//    error = nil;
-//    [_finalRecordingOutputFile readIntoBuffer:audioBuffer error:&error];
-//    if (error) {
-//        NSLog(@"There was an error");
-//    [self.playerNode1 scheduleBuffer:audioBuffer atTime:nil options:0
-//                   completionHandler:^{
-//                       dispatch_async(dispatch_get_main_queue(), ^{
-//                           if ([_clipEngineDelegate respondsToSelector:@selector(playMixCompleted)])
-//                               [_clipEngineDelegate playMixCompleted];
-//                       });
-//                   }];
-//
-//    [self.playerNode1 play];
-
-
-
-//-(void)prepareToPlaySeekingAudio {
-//    [self audioFileAnalyzerForFile:_micOutputFileURL];
-//}
-//-(void)prepareToPlayPrimaryTrack {
-//    [self audioFileAnalyzerForFile:_trimmedURL andTrack:1];
-//}
-//-(void)prepareToPlayMicRecording {
-//    [self audioFileAnalyzerForFile:_micOutputFileURL andTrack:2];
-//}
-//-(void)prepareMasterMixSampling {
-//    [self audioFileAnalyzerForFile:_finalRecordingOutputURL];
-//}
-
-
-//scrubber stuff
-//-(BOOL)prepareToPlayTrack1 {
-//    [self audioFileAnalyzerForFile:_trimmedURL];
-//    return YES;
-//}
-//-(void)audioFileAnalyzer {
-//    [self audioFileAnalyzerForFile:_micOutputFileURL];
-//}
-
-
-//#pragma mark - metering
-//
-//-(void)startMeteringTimer
-//    self.lastMeterTimeStamp = [NSDate date];
-//    self.meteringTimer = [NSTimer timerWithTimeInterval:0.10 target:self selector:@selector(meteringTimerFired:) userInfo:nil repeats:YES];
-//    [[NSRunLoop mainRunLoop] addTimer:_meteringTimer forMode:NSRunLoopCommonModes];
-//-(void)meteringTimerFired:(NSTimer*)timer {
-//    if (timer.valid) {
-//        //        The current peak power, in decibels, for the sound being recorded. A return value of 0 dB indicates full scale, or maximum power; a return value of -160 dB indicates minimum power (that is, near silence).
-//        // but am gonna limit to 130
-//        // The sampl
-//        [self.audioRecorder updateMeters];
-//        //        float peakSample = [self.audioRecorder peakPowerForChannel:0];
-//        //        float peakNormalizedValue = 0.0;// ratio 0 - 1.0
-//        //        if (peakSample > 0 )
-//        //            peakNormalizedValue = 1.00f;  // full power
-//        //        else
-//        //            peakNormalizedValue = (160.0 + peakSample) / 160.00f;  // sample of (-45) = 115   160 + (-158) = 2 = 0.0125
-//        //        [_meterSamples addObject:@(peakNormalizedValue)];
-//        //
-//        //        NSLog(@" [%.3f] peak %.3f",peakNormalizedValue,peakSample);
-//        float avgSample = [self.audioRecorder averagePowerForChannel:0];
-//        float avgNormalizedValue = 0.0;// ratio 0 - 1.0
-//        float maxDB = 160.0f;
-//        if (avgSample > 0 )
-//            avgNormalizedValue = 1.00f;
-//        else {
-//            avgNormalizedValue = (maxDB + avgSample) / (maxDB + 20);  // sample of (-45) = 115   160 + (-158) = 2 = 0.0125
-//        }
-//        //        NSLog(@" [%.3f] avg %.3f",avgNormalizedValue,avgSample);
-//        [_meterSamples addObject:@(avgNormalizedValue)];
-//        NSTimeInterval timedMeter =  [_lastMeterTimeStamp timeIntervalSinceNow];
-//        //        NSLog(@"time  %.3f",timedMeter);
-//        NSTimeInterval meteringInterval = 0.28;
-//        if (timedMeter <  - meteringInterval) {
-//            //            [_audioEngineDelegate meterSamples:[NSArray arrayWithArray:_meterSamples] andDuration:-timedMeter];
-//            [_scrubberBufferController meterSamples:[NSArray arrayWithArray:_meterSamples] andDuration:-timedMeter
-//                                         forTrackId:_scrubberTrackIds[@"recorder"]];
-//            [_meterSamples removeAllObjects];
-//            self.lastMeterTimeStamp = [NSDate date];
-//        }
-
-//===============================
-// REFERENCES
-//===============================
-
-
-////4. Connect player node to engine's main mixer
-//NSDictionary *setting = @{
-//                          AVFormatIDKey: @(AVAudioPCMFormatFloat32),
-//                          AVSampleRateKey: @(1),
-//                          AVNumberOfChannelsKey: @(1)
-//                          };
-//_audioFormat = [[AVAudioFormat alloc] initWithSettings:setting];
-
-// Superclass has this
-
-//- (void)initAVAudioSession
-//    AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//    bool success = [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
-
-
-//data/Containers/Data/Application/0B0742C9-24B0-494B-B516-04B941BD4035/Documents/trimmedMP3
-//2015-09-22 09:53:28.648 JamWithV1.0[59545:6526481] 09:53:28.648 ERROR:     AVAudioFile.mm:266: AVAudioFileImpl: error 1685348671
-//2015-09-22 09:53:28.649 JamWithV1.0[59545:6526481] Error Domain=com.apple.coreaudio.avfaudio Code=1685348671 "The operation couldn’t be completed. (com.apple.coreaudio.avfaudio error 1685348671.)" UserInfo=0x7c167470 {failed call=ExtAudioFileOpenURL((CFURLRef)fileURL, &_extAudioFile)}
-//(lldb)
-
-//7down votefavorite
-//I initialize my AVAudioPlayer instance like:
-//
-//[self.audioPlayer initWithContentsOfURL:url error:&err];
-//url contains the path of an .m4a file
-//
-//The following error is displayed in the console when this line is called :"Error Domain=NSOSStatusErrorDomain Code=1685348671 "Operation could not be completed. (OSStatus error 1685348671.)"
-// --------------------
-//
-//The error code is a four-char-code for "dta?" (you can use the Calculator app in programmer mode to convert the int values to ASCII). Check the "result codes" of the various Core Audio references and you'll find this is defined in both Audio File Services and Audio File Stream Services as kAudioFileInvalidFileError or kAudioFileStreamError_InvalidFile respectively, both of which have the same definition:
-//
-//The file is malformed, not a valid instance of an audio file of its type, or not recognized as an audio file. Available in iPhone OS 2.0 and later.
-//Have you tried your code with different .m4a files?
 

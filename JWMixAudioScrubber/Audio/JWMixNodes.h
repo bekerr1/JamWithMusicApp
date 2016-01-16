@@ -36,5 +36,4 @@ typedef NS_ENUM(NSUInteger, JWEffectNodeTypes) {
     JWEffectNodeTypeDistortion
 };
 
-
 #endif/* JWMixNodes_h */

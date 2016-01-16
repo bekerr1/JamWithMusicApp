@@ -128,6 +128,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.recordingProgressView.layer.transform = CATransform3DMakeScale(1.0, 6.2, 1.0);
     self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 7.4, 1.0);
     self.scrubberProgressView.progress = 0.0;
+    
+    self.playHeadWindow.hidden = YES;
 }
 
 
@@ -536,17 +538,26 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)prepareToPlay:(NSUInteger)track atPosition:(CGFloat)position{
 
     [self prepareToPlay:1];
-    
 //    NSLog(@"%s pos %.2f",__func__,position);
+    
     _listenToScrolling = NO;
+
     CGFloat pos = position * _uiPointsPerSecondLength;
     CGPoint startOffest = CGPointMake( - self.scrollView.contentInset.left + pos,0);
     [_scrollView setContentOffset:startOffest animated:NO];
-
 }
+
 -(void)prepareToPlay:(NSUInteger)track {
     _vTrackLength = _vTrackLengths[track];
-
+    
+    if (self.playHeadWindow.hidden == YES) {  // first time at viewDidload
+        self.playHeadWindow.alpha = 0.0;
+        self.playHeadWindow.hidden = NO;
+        [UIView animateWithDuration:.10 delay:0.0 options:UIViewAnimationOptionCurveLinear
+                         animations:^{
+                             self.playHeadWindow.alpha = 1.0;
+                         } completion:nil];
+    }
 }
 
 

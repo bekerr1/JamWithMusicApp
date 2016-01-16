@@ -63,11 +63,9 @@
     
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
-
-    // Update the user interface for the detail item.
-    //[self updateStepperForItem:_detailItem];
     
     if (_detailItem) {
+        
         id hasTrackObjectSet = _detailItem[@"trackobjectset"];
         if (hasTrackObjectSet) {
             self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
@@ -110,7 +108,6 @@
         [_scrubberActivity stopAnimating];
     });
 
-
 }
 
 
@@ -150,6 +147,7 @@
     [self toolbar1];
 
     self.volumeView.backgroundColor = [UIColor clearColor];
+    
 //    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
 //    mpVolume.showsRouteButton = YES;
 //    [_volumeView addSubview:mpVolume];
@@ -157,8 +155,9 @@
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
 
-//    [[self.navigationController navigationBar]  setBarStyle:UIBarStyleBlack];
-  
+    self.restoreColor = self.view.backgroundColor;
+    self.view.backgroundColor = [UIColor blackColor];
+
     [[self.navigationController navigationBar]  setBackgroundImage:[UIImage new]
                        forBarPosition:UIBarPositionAny
                            barMetrics:UIBarMetricsDefault];
@@ -167,18 +166,7 @@
 
     self.playerController = [JWAudioPlayerController new];
     self.playerController.delegate = self;
-    
-//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
-    
-//    _playerController.autoPlay = YES;
-//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit
-//                                                   withCompletion:^{
-//                                                       [self configureView];
-//                                                       [self.navigationController setToolbarHidden:NO];
-//                                                   }];
 
-    self.restoreColor = self.view.backgroundColor;
-    self.view.backgroundColor = [UIColor blackColor];
     [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:YES
                                                               usingScrubberView:_scrubber
                                                                  playerControls:_playerControls mixEdit:_mixEdit
@@ -190,6 +178,16 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
 
 }
+
+//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
+
+//    _playerController.autoPlay = YES;
+//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit
+//                                                   withCompletion:^{
+//                                                       [self configureView];
+//                                                       [self.navigationController setToolbarHidden:NO];
+//                                                   }];
+
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -381,6 +379,22 @@
     }
 }
 
+
+
+//-(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key {
+//    
+//}
+//-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key {
+//    
+//}
+
+-(NSString*)playerControllerTitleForTrackSetContainingKey:(JWAudioPlayerController*)controllerkey {
+    
+    return [_delegate detailController:self titleForJamTrackKey:_detailItem[@"key"]];
+}
+
+
+
 #pragma mark - ActionSheets and ALert
 
 -(void)editingButtons{
@@ -468,7 +482,6 @@
 
 
 -(void)addEffectAction {
-    NSLog(@"%s", __func__);
     
     //TODO: specify in message which node they are adding the effect to
     UIAlertController *addEffect = [UIAlertController alertControllerWithTitle:@"Add An Effect" message:@"Choose From These Effects" preferredStyle:UIAlertControllerStyleAlert];
@@ -501,7 +514,6 @@
 
 //When User wants to add an effect node or a recorder node
 - (IBAction)addAction:(id)sender {
-    NSLog(@"%s",__func__);
     
     NSString *title;
     NSString *message;
@@ -537,8 +549,7 @@
 
 
 - (IBAction)effectsAction:(id)sender {
-    NSLog(@"%s",__func__);
-    
+
     if (self.editing) {
         [self clipActionsEditing];
 

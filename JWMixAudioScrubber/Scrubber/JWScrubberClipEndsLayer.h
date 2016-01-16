@@ -18,11 +18,10 @@ typedef NS_ENUM(NSInteger, JWScrubberClipEndsKind) {
 
 @interface JWScrubberClipEndsLayer : CAGradientLayer
 
--(instancetype)initWithKind:(JWScrubberClipEndsKind)kind;
-
 @property (nonatomic) JWScrubberClipEndsKind kind;
 @property (nonatomic) UIColor *color;
 
+-(instancetype)initWithKind:(JWScrubberClipEndsKind)kind;
 -(void)render;
 
 @end

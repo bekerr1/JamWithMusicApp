@@ -49,9 +49,17 @@
 @property (nonatomic) float endPositionInset;
 
 -(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration;
--(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration startPosition:(float)startPos;
--(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration startPosition:(float)sPos startInset:(float)sInset endInset:(float)eInset;
--(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration startInset:(float)sInset endInset:(float)eInset;
+-(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration
+                         startPosition:(float)startPos;
+
+-(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration
+                         startPosition:(float)sPos
+                            startInset:(float)sInset
+                              endInset:(float)eInset;
+
+-(instancetype)initWithCurrentPosition:(float)currentPosition duration:(float)duration
+                            startInset:(float)sInset
+                              endInset:(float)eInset;
 
 // computed
 @property (nonatomic,readonly) float duration;  // duration playback

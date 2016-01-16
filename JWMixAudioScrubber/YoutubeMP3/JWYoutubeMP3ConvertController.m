@@ -19,6 +19,7 @@
 @property (nonatomic) NSString* youtubeString;
 @property (nonatomic) NSString* youtubeVideoId;
 @property (nonatomic) NSURL *currentMP3FileURL;
+@property (nonatomic) NSURL *youTubeLinkURL;
 @end
 
 

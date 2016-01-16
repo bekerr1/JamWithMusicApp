@@ -11,12 +11,9 @@
 @protocol JWSourceAudioFilesDelegate;
 
 @interface JWSourceAudioFilesTableViewController : UITableViewController
-
 @property (nonatomic,weak) id <JWSourceAudioFilesDelegate> delegate;
-
 @property (nonatomic) BOOL previewMode;  // set to yes to simply play on selection and not proceed
 @property (nonatomic) BOOL allFiles;  // supports allFiles vs user organized
-
 @end
 
 

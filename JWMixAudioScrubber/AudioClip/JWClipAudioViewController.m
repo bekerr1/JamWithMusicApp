@@ -48,6 +48,149 @@ UIGestureRecognizerDelegate
 @implementation JWClipAudioViewController
 
 
+#pragma mark - View and Navigation
+
+- (void)viewDidLoad {
+    
+    _viewStartColor = self.view.backgroundColor;
+    
+    [super viewDidLoad];
+    
+    [self initAVAudioSession];
+    
+    self.songProgress.layer.transform = CATransform3DMakeScale(1.0, 4.2, 1.0);
+    self.clipProgressBar.layer.transform = CATransform3DMakeScale(1.0, 9.2, 1.0);
+    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
+    self.clipProgressBar.layer.opacity = 0.75f;
+    self.songProgress.layer.opacity = 0.85f;
+    
+    [self.activity stopAnimating];
+    
+    _trackTimeInterval = 7;
+    
+    if (!_trackName)
+        _trackName = @"Unknown Track Name";
+    
+    self.audioClipper = [JWClipAudioController new];
+    _audioClipper.delegate = self;
+    
+    [self.trackNameDisplay setText:_trackName];
+    self.secondsPicker.delegate = self;
+    self.secondsPicker.dataSource = self;
+    
+    _audioClipper.sourceMP3FileURL = [NSURL fileURLWithPath:self.testMP3FileURL];
+    [_audioClipper initializeAudioController];
+    
+    _volumeSlider.value = [_audioClipper volume];
+    
+    [self addNotifications];
+    
+    
+    if (_thumbImage) {
+        self.ampImageView.image = _thumbImage;
+        self.ampImageView.layer.borderWidth = 4.2f;
+        //        self.ampImageView.layer.cornerRadius = 12.0f;
+        //        self.ampImageView.layer.masksToBounds = YES;
+        self.ampImageView.contentMode = UIViewContentModeScaleAspectFill;
+    }
+    
+    // Do any additional setup after loading the view.
+    
+    UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
+    
+    self.view.gestureRecognizers = @[panGestureRecognizer];
+    
+    [self.navigationController setToolbarHidden:NO];
+    
+    NSLog(@"%s",__func__);
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+
+
+-(void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [_audioClipper ummmStartPlaying];
+    
+    if (! [self.playerTimer isValid]) {
+        [self resumeTimer];
+    }
+    
+    // Set the background image on every appear
+    selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
+    if (_thumbImage) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.ampImageView.image = _thumbImage;
+            [self.ampImageView setNeedsLayout];
+        });
+        
+    } else {
+        [self updateAmpImage];
+    }
+}
+
+//            UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %ld",selectedAmpImageIndex + 1]];
+//            self.ampImageView.animationImages = @[_thumbImage,ampImage];
+//            self.ampImageView.animationDuration=2.0f;
+//            self.ampImageView.animationRepeatCount=1;
+//            [self.ampImageView startAnimating];
+
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    if (self.isMovingFromParentViewController) {
+        NSLog(@"%s LEAVING",__func__);
+        [self.navigationController setToolbarHidden:YES];
+        [_audioClipper killPlayer];
+        
+    } else {
+        NSLog(@"%s STAYING",__func__);
+        [_audioClipper ummmStopPlaying];
+    }
+    
+    [self.playerTimer invalidate];
+    
+}
+
+
+
+
+//    jwjustscreensonly - 2
+//    jwjustscreensandlogos - 4
+//    jwscreensandcontrols
+
+-(void)updateAmpImage {
+    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %ld",selectedAmpImageIndex + 1]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _ampImageView.image = ampImage;
+        [self.view setNeedsLayout];
+    });
+}
+
+-(void)didSelectAmpImage:(NSNotification*)noti {
+    //    NSLog(@"%s %@",__func__,[[noti userInfo] description]);
+    NSNumber *selectedIndex = noti.userInfo[@"index"];
+    if (selectedIndex) {
+        selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
+    }
+    [self updateAmpImage];
+}
+
+
+#pragma make -
+
+-(void)setThumbImage:(UIImage *)thumbImage {
+    _thumbImage = thumbImage;
+    if (_ampImageView) {
+        _ampImageView.image = _thumbImage;
+    }
+}
+
+#pragma make -
+
 -(void)panGesture:(id)sender{
     //NSLog(@"%s",__func__);
     UIPanGestureRecognizer *gesture = (UIPanGestureRecognizer *)sender;
@@ -109,82 +252,7 @@ UIGestureRecognizerDelegate
     
 }
 
--(void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    
-    if (self.isMovingFromParentViewController) {
-        NSLog(@"%s LEAVING",__func__);
-        [self.navigationController setToolbarHidden:YES];
-        [_audioClipper killPlayer];
-        
-    } else {
-        NSLog(@"%s STAYING",__func__);
-        [_audioClipper ummmStopPlaying];
-    }
-    
-    [self.playerTimer invalidate];
-
-}
-
--(void)viewWillAppear:(BOOL)animated {
-    
-    [super viewWillAppear:animated];
-    [_audioClipper ummmStartPlaying];
- 
-    if (! [self.playerTimer isValid]) {
-        [self resumeTimer];
-    }
-
-    // Set the background image on every appear
-    // TODO: if we had a set of images we could animate
-    selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
-    if (_thumbImage) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.ampImageView.image = _thumbImage;
-            
-//            UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %ld",selectedAmpImageIndex + 1]];
-//            self.ampImageView.animationImages = @[_thumbImage,ampImage];
-//            self.ampImageView.animationDuration=2.0f;
-//            self.ampImageView.animationRepeatCount=1;
-//            [self.ampImageView startAnimating];
-            [self.ampImageView setNeedsLayout];
-        });
-        
-    } else {
-        [self updateAmpImage];
-    }
-}
-
-
--(void)setThumbImage:(UIImage *)thumbImage
-{
-    _thumbImage = thumbImage;
-    if (_ampImageView) {
-        _ampImageView.image = _thumbImage;
-    }
-}
--(void)updateAmpImage {
-//    NSLog(@"%s %ld",__func__, selectedAmpImageIndex);
-    
-//    jwjustscreensonly - 2
-//    jwjustscreensandlogos - 4
-//    jwscreensandcontrols
-    
-    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %ld",selectedAmpImageIndex + 1]];
-    dispatch_async(dispatch_get_main_queue(), ^{
-        _ampImageView.image = ampImage;
-        [self.view setNeedsLayout];
-    });
-}
-
--(void)didSelectAmpImage:(NSNotification*)noti {
-//    NSLog(@"%s %@",__func__,[[noti userInfo] description]);
-    NSNumber *selectedIndex = noti.userInfo[@"index"];
-    if (selectedIndex) {
-        selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
-    }
-    [self updateAmpImage];
-}
+#pragma make -
 
 -(void)effectsBackgroundLight {
     UIColor *cb = self.view.backgroundColor;
@@ -341,31 +409,10 @@ UIGestureRecognizerDelegate
 
     [self.activity stopAnimating];
 
-    if ([_delegate respondsToSelector:@selector(finishedTrim:withDBKey:)]) {
+    if ([_delegate respondsToSelector:@selector(finishedTrim:withDBKey:)])
         [_delegate finishedTrim:self withDBKey:key];
-    }
     
 }
-
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//    });
-
-
-
--(void)presentJam {
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self performSegueWithIdentifier:@"ShowRecordController" sender:nil];
-    });
-    
-    [self.activity stopAnimating];
-}
-//        UIViewController * viewController = [[UIStoryboard storyboardWithName:@"MixPanel" bundle:nil] instantiateInitialViewController];
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [self presentViewController:viewController animated:YES completion:nil];
-//        });
-
-
 
 -(void)exportAudioSection
 {
@@ -527,6 +574,7 @@ UIGestureRecognizerDelegate
     NSLog(@"Missed picker row or component");
     return 0;
 }
+
 -(void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
     if (row == 0) {
         _trackTimeInterval = 7;
@@ -541,7 +589,6 @@ UIGestureRecognizerDelegate
         _trackTimeInterval = 60;
         [self sliderValueMoved:self.currentTrackStartTime];
     }
-    
 }
 
 -(NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
@@ -549,85 +596,9 @@ UIGestureRecognizerDelegate
 }
 
 -(NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
-    if (component == 0) {
+    if (component == 0)
         return 4;
-    }
     return 0;
-}
-
-
-#pragma mark - View and Navigation
-
-- (void)viewDidLoad {
-    
-    _viewStartColor = self.view.backgroundColor;
-    
-    [super viewDidLoad];
-    
-    [self initAVAudioSession];
-    
-    self.songProgress.layer.transform = CATransform3DMakeScale(1.0, 4.2, 1.0);
-    self.clipProgressBar.layer.transform = CATransform3DMakeScale(1.0, 9.2, 1.0);
-    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
-    self.clipProgressBar.layer.opacity = 0.75f;
-    self.songProgress.layer.opacity = 0.85f;
-
-    [self.activity stopAnimating];
-
-    _trackTimeInterval = 7;
-
-    if (!_trackName)
-        _trackName = @"Unknown Track Name";
-    
-    self.audioClipper = [JWClipAudioController new];
-    _audioClipper.delegate = self;
-    
-    [self.trackNameDisplay setText:_trackName];
-    self.secondsPicker.delegate = self;
-    self.secondsPicker.dataSource = self;
-    
-    _audioClipper.sourceMP3FileURL = [NSURL fileURLWithPath:self.testMP3FileURL];
-    [_audioClipper initializeAudioController];
-    
-    _volumeSlider.value = [_audioClipper volume];
-    
-    [self addNotifications];
-    
-    
-    if (_thumbImage) {
-        self.ampImageView.image = _thumbImage;
-        self.ampImageView.layer.borderWidth = 4.2f;
-//        self.ampImageView.layer.cornerRadius = 12.0f;
-//        self.ampImageView.layer.masksToBounds = YES;
-        self.ampImageView.contentMode = UIViewContentModeScaleAspectFill;
-    }
-    
-    // Do any additional setup after loading the view.
-    
-    UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
-    
-    self.view.gestureRecognizers = @[panGestureRecognizer];
-    
-    [self.navigationController setToolbarHidden:NO];
-    
-    NSLog(@"%s",__func__);
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    
-    if ([[segue identifier] isEqualToString:@"ShowRecordController"]) {
-        
-        UINavigationController* destination = (UINavigationController *) segue.destinationViewController;
-        JWRecordJamViewController* recordJamController = (JWRecordJamViewController *)[destination viewControllers][0];;
-//        JWRecordJamViewController* destination = (JWRecordJamViewController *) segue.destinationViewController;
-        [recordJamController setTrimmedAudioURL:[_audioClipper trimmedFileURL] andFiveSecondURL:[_audioClipper fiveSecondFileURL]];
-        recordJamController.delegate = self;
-    }
 }
 
 
@@ -662,3 +633,29 @@ UIGestureRecognizerDelegate
 @end
 
 
+//        UIViewController * viewController = [[UIStoryboard storyboardWithName:@"MixPanel" bundle:nil] instantiateInitialViewController];
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            [self presentViewController:viewController animated:YES completion:nil];
+//        });
+
+
+
+
+//-(void)presentJam {
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [self performSegueWithIdentifier:@"ShowRecordController" sender:nil];
+//    });
+//    [self.activity stopAnimating];
+//}
+
+//-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+//    
+//    if ([[segue identifier] isEqualToString:@"ShowRecordController"]) {
+//        
+//        UINavigationController* destination = (UINavigationController *) segue.destinationViewController;
+//        JWRecordJamViewController* recordJamController = (JWRecordJamViewController *)[destination viewControllers][0];;
+//        //        JWRecordJamViewController* destination = (JWRecordJamViewController *) segue.destinationViewController;
+//        [recordJamController setTrimmedAudioURL:[_audioClipper trimmedFileURL] andFiveSecondURL:[_audioClipper fiveSecondFileURL]];
+//        recordJamController.delegate = self;
+//    }
+//}

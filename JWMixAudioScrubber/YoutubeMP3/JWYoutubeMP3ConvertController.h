@@ -14,10 +14,10 @@
 
 @interface JWYoutubeMP3ConvertController : NSObject
 
--(instancetype)initWithWebview:(UIWebView*)webView andDelegate:(id <JWYoutubeMP3ConvertDelegate>) delegate;
-
-@property (nonatomic) NSString* dbkey;  // used by YoutubeMP3 to save the file correctly
 @property (nonatomic, assign) id <JWYoutubeMP3ConvertDelegate> delegate;
+@property (nonatomic) NSString* dbkey;  // used by YoutubeMP3 to save the file correctly
+
+-(instancetype)initWithWebview:(UIWebView*)webView andDelegate:(id <JWYoutubeMP3ConvertDelegate>) delegate;
 
 -(void)initialzeConvertControllerWithWebView:(UIWebView*)webView;
 -(void)prepareToBeginNewSessionWithLinkURL:(NSURL*)linkURL forDbKey:(NSString*)dbkey;
@@ -25,9 +25,7 @@
 -(void)reconvert;
 -(void)newSessionWithLinkURLString:(NSString*)linkURLStr dbKey:(NSString*)dbkey;
 
-@property (nonatomic) NSURL *youTubeLinkURL;
 @end
-
 
 
 @protocol  JWYoutubeMP3ConvertDelegate <NSObject>

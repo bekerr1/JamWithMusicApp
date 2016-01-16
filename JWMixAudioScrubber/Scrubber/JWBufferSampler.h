@@ -32,7 +32,6 @@ typedef NS_ENUM(NSInteger, SamplerSampleSize) {
                   dualChannel:(BOOL)dualChannel
               computeAverages:(BOOL)averages
                  pulseSamples:(BOOL)pulseSamples
-
            loudestSampleSoFar:(float)loudestSamplesoFar;
 
 // play - we no loudest
@@ -41,9 +40,7 @@ typedef NS_ENUM(NSInteger, SamplerSampleSize) {
                   dualChannel:(BOOL)dualChannel
               computeAverages:(BOOL)averages
                  pulseSamples:(BOOL)pulseSamples
-
                 loudestSample:(float)loudestSampleAllBuffers;
-
 
 @property (nonatomic,readwrite) SamplerSampleSize sampleSize;
 @property (nonatomic,readwrite) BOOL dualChannel;
@@ -55,11 +52,8 @@ typedef NS_ENUM(NSInteger, SamplerSampleSize) {
 @property (nonatomic,readwrite) NSUInteger trackNumber;
 @property (nonatomic,readwrite) float loudestSampleSoFar;
 @property (nonatomic,readonly) float loudestSample;
-
 @property (nonatomic,readonly) float loudestSampleValue;
 @property (nonatomic,readonly) float lowestSampleValue;
-
 @property (nonatomic,readonly) AVAudioFramePosition loudestSampleFramePostion;
 @property (nonatomic,readonly) AVAudioFramePosition lowestSampleFramePostion;
-
 @end

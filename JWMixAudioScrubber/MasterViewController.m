@@ -902,6 +902,26 @@
     return result;
 }
 
+
+-(NSString*)preferredTitleForObject:(id)object
+{
+    NSString *result;
+    id userTitleValue = object[@"usertitle"];
+    id titleValue = object[@"title"];
+    
+    if (userTitleValue) {
+        result = userTitleValue;
+    } else {
+        if (titleValue) {
+            result = titleValue;
+        } else {
+            result = @"";
+        }
+    }
+    
+    return result;
+}
+
 #pragma mark - TrackSets delegate methods
 
 -(void)save:(JWTrackSetsViewController*)controller {
@@ -959,25 +979,45 @@
     return result;
 }
 
-
--(NSString*)preferredTitleForObject:(id)object
-{
-    NSString *result;
-    id userTitleValue = object[@"usertitle"];
-    id titleValue = object[@"title"];
+-(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForJamTrackKey:(NSString*)key {
     
-    if (userTitleValue) {
-        result = userTitleValue;
-    } else {
-        if (titleValue) {
-            result = titleValue;
-        } else {
-            result = @"";
+    NSString * result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        if (jamTracks) {
+            id jamTrack = jamTracks[itemIndexPath.row];
+            result = [self preferredTitleForObject:jamTrack];
         }
     }
     
     return result;
 }
+
+
+-(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForTrackAtIndex:(NSUInteger)index
+    inJamTrackWithKey:(NSString*)key {
+    
+    NSString * result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        if (jamTracks) {
+            id jamTrack = jamTracks[itemIndexPath.row];
+            result = [self preferredTitleForObject:jamTrack];
+        }
+    }
+    
+    return result;
+}
+
+
 
 
 #pragma mark - delegate methods
@@ -1022,20 +1062,59 @@
 
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key {
     NSArray * result;
-    NSIndexPath *item = [self indexPathOfJamTrackCacheItem:key];
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
     
-    if (item) {
-        id objectSection = _homeControllerSections[item.section];
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
         
         id jamTracks = objectSection[@"trackobjectset"];
         if (jamTracks) {
-            id jamTrack = jamTracks[item.row];
+            id jamTrack = jamTracks[itemIndexPath.row];
             id jamTrackNodes = jamTrack[@"trackobjectset"];
             
             result = jamTrackNodes;
         }
     } else {
         result = @[]; // empty array
+    }
+    
+    return result;
+}
+
+
+-(NSString*)detailController:(DetailViewController*)controller titleForJamTrackKey:(NSString*)key {
+
+    NSString * result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        if (jamTracks) {
+            id jamTrack = jamTracks[itemIndexPath.row];
+            result = [self preferredTitleForObject:jamTrack];
+        }
+    }
+    
+    return result;
+}
+
+
+// not tested yet
+-(NSString*)detailController:(DetailViewController*)controller titleForTrackAtIndex:(NSUInteger)index inJamTrackWithKey:(NSString*)key {
+    
+    NSString * result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        if (jamTracks) {
+            id jamTrack = jamTracks[itemIndexPath.row];
+            result = [self preferredTitleForObject:jamTrack];
+        }
     }
     
     return result;

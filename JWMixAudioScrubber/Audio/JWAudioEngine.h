@@ -8,7 +8,7 @@
 @import Foundation;
 @import AVFoundation;
 
-@protocol JWAudioEngineDelegate ;
+@protocol JWAudioEngineDelegate;
 
 @interface JWAudioEngine : NSObject
 @property (nonatomic) AVAudioEngine* audioEngine;

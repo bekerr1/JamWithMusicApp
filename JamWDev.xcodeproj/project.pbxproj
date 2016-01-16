@@ -44,9 +44,6 @@
 		5525FF2A1C3729980081FB23 /* AVAudioUnitReverb+JW.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF121C3729980081FB23 /* AVAudioUnitReverb+JW.m */; };
 		5525FF2B1C3729980081FB23 /* JWAudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF141C3729980081FB23 /* JWAudioEngine.m */; };
 		5525FF2C1C3729980081FB23 /* JWAudioRecorderController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF161C3729980081FB23 /* JWAudioRecorderController.m */; };
-		5525FF2D1C3729980081FB23 /* JWClipAudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF181C3729980081FB23 /* JWClipAudioEngine.m */; };
-		5525FF2E1C3729980081FB23 /* JWEffectsClipAudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF1A1C3729980081FB23 /* JWEffectsClipAudioEngine.m */; };
-		5525FF2F1C3729980081FB23 /* JWMicAudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF1E1C3729980081FB23 /* JWMicAudioEngine.m */; };
 		5525FF301C3729980081FB23 /* JWMTAudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF211C3729980081FB23 /* JWMTAudioEngine.m */; };
 		5525FF311C3729980081FB23 /* JWMTEffectsAudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF231C3729980081FB23 /* JWMTEffectsAudioEngine.m */; };
 		5525FF321C3729980081FB23 /* JWPlayerNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 5525FF251C3729980081FB23 /* JWPlayerNode.m */; };
@@ -66,7 +63,6 @@
 		55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12521C3F6D5E001662CF /* JWAmpPageViewController.m */; };
 		55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */; };
 		55CD126A1C3F6D71001662CF /* JWFileDowloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12591C3F6D71001662CF /* JWFileDowloadController.m */; };
-		55CD126B1C3F6D71001662CF /* JWJamMP3TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD125B1C3F6D71001662CF /* JWJamMP3TableViewController.m */; };
 		55CD126C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD125D1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m */; };
 		55CD126D1C3F6D71001662CF /* JWURLManip.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD125F1C3F6D71001662CF /* JWURLManip.m */; };
 		55CD126E1C3F6D71001662CF /* JWYoutubeMP3ConvertController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12611C3F6D71001662CF /* JWYoutubeMP3ConvertController.m */; };
@@ -81,6 +77,7 @@
 		55CD12841C3F7B31001662CF /* JWMedia.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55CD12831C3F7B31001662CF /* JWMedia.xcassets */; };
 		55CD12871C42AD71001662CF /* JWSourceAudioListsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */; };
 		55CD128C1C461D14001662CF /* JWScrubberTackModify.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD128B1C461D14001662CF /* JWScrubberTackModify.m */; };
+		55CD12DD1C4A588A001662CF /* JWHeaderFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12DC1C4A588A001662CF /* JWHeaderFooterView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -245,6 +242,8 @@
 		55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWSourceAudioListsViewController.m; sourceTree = "<group>"; };
 		55CD128A1C461D14001662CF /* JWScrubberTackModify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWScrubberTackModify.h; path = Scrubber/JWScrubberTackModify.h; sourceTree = "<group>"; };
 		55CD128B1C461D14001662CF /* JWScrubberTackModify.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWScrubberTackModify.m; path = Scrubber/JWScrubberTackModify.m; sourceTree = "<group>"; };
+		55CD12DB1C4A588A001662CF /* JWHeaderFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWHeaderFooterView.h; sourceTree = "<group>"; };
+		55CD12DC1C4A588A001662CF /* JWHeaderFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWHeaderFooterView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -322,8 +321,8 @@
 				5525FE8A1C3727430081FB23 /* Supporting Files */,
 				55CD12801C3F742A001662CF /* JWTrackSetsViewController.h */,
 				55CD12811C3F742A001662CF /* JWTrackSetsViewController.m */,
-				55CD12851C42AD71001662CF /* JWSourceAudioListsViewController.h */,
-				55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */,
+				55CD12DB1C4A588A001662CF /* JWHeaderFooterView.h */,
+				55CD12DC1C4A588A001662CF /* JWHeaderFooterView.m */,
 			);
 			path = JWMixAudioScrubber;
 			sourceTree = "<group>";
@@ -369,21 +368,16 @@
 				5525FF121C3729980081FB23 /* AVAudioUnitReverb+JW.m */,
 				5525FF131C3729980081FB23 /* JWAudioEngine.h */,
 				5525FF141C3729980081FB23 /* JWAudioEngine.m */,
-				5525FF151C3729980081FB23 /* JWAudioRecorderController.h */,
-				5525FF161C3729980081FB23 /* JWAudioRecorderController.m */,
-				5525FF171C3729980081FB23 /* JWClipAudioEngine.h */,
-				5525FF181C3729980081FB23 /* JWClipAudioEngine.m */,
-				5525FF191C3729980081FB23 /* JWEffectsClipAudioEngine.h */,
-				5525FF1A1C3729980081FB23 /* JWEffectsClipAudioEngine.m */,
-				5525FF1B1C3729980081FB23 /* JWEffectsHandler.h */,
-				5525FF1C1C3729980081FB23 /* JWEffectsModifyingProtocol.h */,
-				5525FF1D1C3729980081FB23 /* JWMicAudioEngine.h */,
-				5525FF1E1C3729980081FB23 /* JWMicAudioEngine.m */,
-				5525FF1F1C3729980081FB23 /* JWMixNodes.h */,
 				5525FF201C3729980081FB23 /* JWMTAudioEngine.h */,
 				5525FF211C3729980081FB23 /* JWMTAudioEngine.m */,
 				5525FF221C3729980081FB23 /* JWMTEffectsAudioEngine.h */,
 				5525FF231C3729980081FB23 /* JWMTEffectsAudioEngine.m */,
+				5525FF151C3729980081FB23 /* JWAudioRecorderController.h */,
+				5525FF161C3729980081FB23 /* JWAudioRecorderController.m */,
+				55CD12DA1C49FCD6001662CF /* deprecated */,
+				5525FF1B1C3729980081FB23 /* JWEffectsHandler.h */,
+				5525FF1C1C3729980081FB23 /* JWEffectsModifyingProtocol.h */,
+				5525FF1F1C3729980081FB23 /* JWMixNodes.h */,
 				5525FF241C3729980081FB23 /* JWPlayerNode.h */,
 				5525FF251C3729980081FB23 /* JWPlayerNode.m */,
 			);
@@ -398,6 +392,8 @@
 				5525FEE21C37295C0081FB23 /* JWScrubberController.m */,
 				5525FEE71C37295C0081FB23 /* JWScrubberViewController.h */,
 				5525FEE81C37295C0081FB23 /* JWScrubberViewController.m */,
+				55CD128A1C461D14001662CF /* JWScrubberTackModify.h */,
+				55CD128B1C461D14001662CF /* JWScrubberTackModify.m */,
 				5525FEE51C37295C0081FB23 /* JWScrubberGradientLayer.h */,
 				5525FEE61C37295C0081FB23 /* JWScrubberGradientLayer.m */,
 				5525FEDF1C37295C0081FB23 /* JWScrubberClipEndsLayer.h */,
@@ -412,8 +408,6 @@
 				5525FEDD1C37295C0081FB23 /* JWScalingVisualAudioBufferView.m */,
 				5525FEE31C37295C0081FB23 /* JWScrubberDemoController.h */,
 				5525FEE41C37295C0081FB23 /* JWScrubberDemoController.m */,
-				55CD128A1C461D14001662CF /* JWScrubberTackModify.h */,
-				55CD128B1C461D14001662CF /* JWScrubberTackModify.m */,
 			);
 			name = Scrubber;
 			sourceTree = "<group>";
@@ -421,12 +415,12 @@
 		5525FEC51C3728A40081FB23 /* Mixedit */ = {
 			isa = PBXGroup;
 			children = (
+				5525FEF81C37298B0081FB23 /* JWMixEditTableViewController.h */,
+				5525FEF91C37298B0081FB23 /* JWMixEditTableViewController.m */,
 				5525FEF41C37298B0081FB23 /* JWEffectParametersTableViewCell.h */,
 				5525FEF51C37298B0081FB23 /* JWEffectParametersTableViewCell.m */,
 				5525FEF61C37298B0081FB23 /* JWEffectPresetTableViewCell.h */,
 				5525FEF71C37298B0081FB23 /* JWEffectPresetTableViewCell.m */,
-				5525FEF81C37298B0081FB23 /* JWMixEditTableViewController.h */,
-				5525FEF91C37298B0081FB23 /* JWMixEditTableViewController.m */,
 				5525FEFA1C37298B0081FB23 /* JWRecorderTableViewCell.h */,
 				5525FEFB1C37298B0081FB23 /* JWRecorderTableViewCell.m */,
 				5525FEFC1C37298B0081FB23 /* JWSliderAndSwitchTableViewCell.h */,
@@ -499,10 +493,11 @@
 			children = (
 				55CD12581C3F6D71001662CF /* JWFileDowloadController.h */,
 				55CD12591C3F6D71001662CF /* JWFileDowloadController.m */,
-				55CD125A1C3F6D71001662CF /* JWJamMP3TableViewController.h */,
-				55CD125B1C3F6D71001662CF /* JWJamMP3TableViewController.m */,
+				55CD12D91C49F1B0001662CF /* deprecated */,
 				55CD125C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.h */,
 				55CD125D1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m */,
+				55CD12851C42AD71001662CF /* JWSourceAudioListsViewController.h */,
+				55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */,
 				55CD125E1C3F6D71001662CF /* JWURLManip.h */,
 				55CD125F1C3F6D71001662CF /* JWURLManip.m */,
 				55CD12601C3F6D71001662CF /* JWYoutubeMP3ConvertController.h */,
@@ -528,10 +523,40 @@
 				55CD12521C3F6D5E001662CF /* JWAmpPageViewController.m */,
 				55CD12531C3F6D5E001662CF /* JWFilesTableViewController.h */,
 				55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */,
+				55CD12D81C49F0A4001662CF /* deprecated */,
+			);
+			name = Misc;
+			sourceTree = "<group>";
+		};
+		55CD12D81C49F0A4001662CF /* deprecated */ = {
+			isa = PBXGroup;
+			children = (
 				55CD127C1C3F6F36001662CF /* JWRecordJamViewController.h */,
 				55CD127D1C3F6F36001662CF /* JWRecordJamViewController.m */,
 			);
-			name = Misc;
+			name = deprecated;
+			sourceTree = "<group>";
+		};
+		55CD12D91C49F1B0001662CF /* deprecated */ = {
+			isa = PBXGroup;
+			children = (
+				55CD125A1C3F6D71001662CF /* JWJamMP3TableViewController.h */,
+				55CD125B1C3F6D71001662CF /* JWJamMP3TableViewController.m */,
+			);
+			name = deprecated;
+			sourceTree = "<group>";
+		};
+		55CD12DA1C49FCD6001662CF /* deprecated */ = {
+			isa = PBXGroup;
+			children = (
+				5525FF1D1C3729980081FB23 /* JWMicAudioEngine.h */,
+				5525FF1E1C3729980081FB23 /* JWMicAudioEngine.m */,
+				5525FF171C3729980081FB23 /* JWClipAudioEngine.h */,
+				5525FF181C3729980081FB23 /* JWClipAudioEngine.m */,
+				5525FF191C3729980081FB23 /* JWEffectsClipAudioEngine.h */,
+				5525FF1A1C3729980081FB23 /* JWEffectsClipAudioEngine.m */,
+			);
+			name = deprecated;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -681,7 +706,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5525FF2F1C3729980081FB23 /* JWMicAudioEngine.m in Sources */,
 				5525FF271C3729980081FB23 /* AVAudioPlayerNode+JW.m in Sources */,
 				55CD12301C3F1A37001662CF /* JWFileController.m in Sources */,
 				5525FF031C37298B0081FB23 /* JWEffectPresetTableViewCell.m in Sources */,
@@ -690,7 +714,6 @@
 				55CD12821C3F742A001662CF /* JWTrackSetsViewController.m in Sources */,
 				5525FEEE1C37295C0081FB23 /* JWScrubberClipEndsLayer.m in Sources */,
 				5525FF291C3729980081FB23 /* AVAudioUnitDistortion+JW.m in Sources */,
-				5525FF2D1C3729980081FB23 /* JWClipAudioEngine.m in Sources */,
 				55CD12551C3F6D5E001662CF /* JWAmpItemViewController.m in Sources */,
 				55CD12711C3F6D71001662CF /* JWYouTubeVideoData.m in Sources */,
 				5525FE8F1C3727430081FB23 /* AppDelegate.m in Sources */,
@@ -701,11 +724,9 @@
 				5525FF311C3729980081FB23 /* JWMTEffectsAudioEngine.m in Sources */,
 				55CD12771C3F6D84001662CF /* JWClipAudioController.m in Sources */,
 				5525FF281C3729980081FB23 /* AVAudioUnitDelay+JW.m in Sources */,
-				5525FF2E1C3729980081FB23 /* JWEffectsClipAudioEngine.m in Sources */,
 				55CD128C1C461D14001662CF /* JWScrubberTackModify.m in Sources */,
 				55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */,
 				5525FEEF1C37295C0081FB23 /* JWScrubberController.m in Sources */,
-				55CD126B1C3F6D71001662CF /* JWJamMP3TableViewController.m in Sources */,
 				55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */,
 				55CD127B1C3F6EBD001662CF /* JWCurrentWorkItem.m in Sources */,
 				5525FECD1C3728ED0081FB23 /* JWUITransportButton.m in Sources */,
@@ -738,6 +759,7 @@
 				55CD126A1C3F6D71001662CF /* JWFileDowloadController.m in Sources */,
 				5525FE951C3727430081FB23 /* DetailViewController.m in Sources */,
 				5525FF041C37298B0081FB23 /* JWMixEditTableViewController.m in Sources */,
+				55CD12DD1C4A588A001662CF /* JWHeaderFooterView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

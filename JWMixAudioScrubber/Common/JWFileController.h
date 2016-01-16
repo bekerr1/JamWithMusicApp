@@ -19,7 +19,6 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 -(void)update;
 -(void)reload;
 -(void)readFsData;
-
 -(void)saveMeta;
 -(void)saveUserList;
 
@@ -30,7 +29,6 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 @property (nonatomic,readonly) NSArray *recordingFiles;
 @property (nonatomic,readonly) NSArray *trimmedFiles;
 @property (nonatomic,readonly) NSArray *sourceFiles;
-
 
 @property (strong, nonatomic) NSMutableDictionary *linksDirector;
 @property (strong, nonatomic) NSMutableDictionary *mp3FilesInfo;

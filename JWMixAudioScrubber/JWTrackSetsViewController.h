@@ -22,4 +22,10 @@
 -(void)save:(JWTrackSetsViewController*)controller;
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForSection:(NSUInteger)section;
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleDetailForSection:(NSUInteger)section;
+
+
+-(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForJamTrackKey:(NSString*)key;
+-(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForTrackAtIndex:(NSUInteger)index
+           inJamTrackWithKey:(NSString*)key;
+
 @end

@@ -16,36 +16,16 @@
 @end
 
 
-////#define JWSampleFileName @"trimmedMP3-45"
-////#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
-//
-////#define JWSampleFileName @"trimmedMP3-45"
-////#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
-//
-////#define JWSampleFileName @"AminorBackingtrackTrimmedMP3-45"
-////#define JWSampleFileNameAndExtension @"AminorBackingtrackTrimmedMP3-45.m4a"
-//
-//#define JWSampleFileName @"TheKillersTrimmedMP3-30"
-//#define JWSampleFileNameAndExtension @"TheKillersTrimmedMP3-30.m4a"
-
-
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    
     
     [JWFileController sharedInstance];
     [[JWFileController sharedInstance] reload];
     
-//    [self copyResources];
-    
-    
     NSNumber *ampIndexNumber = [[NSUserDefaults standardUserDefaults] valueForKey:@"currentAmp"];
     if (ampIndexNumber)
         [JWCurrentWorkItem sharedInstance].currentAmpImageIndex = [ampIndexNumber unsignedIntegerValue];
-
-//    [JWCurrentWorkItem sharedInstance].currentAmpImageIndex = 1;
     
     // Override point for customization after application launch.
     UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
@@ -55,42 +35,6 @@
     return YES;
 }
 
-
-//-(NSString*)documentsDirectoryPath {
-//    NSString *result = nil;
-//    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-//    result = [searchPaths objectAtIndex:0];
-//    return result;
-//}
-//-(NSURL *)fileURLWithFileName:(NSString*)name {
-//    NSURL *result;
-//    NSString *thisfName = name;//@"mp3file";
-//    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
-//    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
-//    [fname appendFormat:@"/%@",thisName];
-//    result = [NSURL fileURLWithPath:fname];
-//    return result;
-//}
-//- (void)copyResources {
-//    NSLog(@"%@",[self documentsDirectoryPath]);
-//    // Copy resoureces
-//    NSError *error;
-//    [[NSFileManager defaultManager]
-//     copyItemAtURL:[[NSBundle mainBundle] URLForResource:JWSampleFileName withExtension:@".m4a"]
-//     toURL:[self fileURLWithFileName:JWSampleFileNameAndExtension] error:&error];
-//    
-//    [[NSFileManager defaultManager]
-//     copyItemAtURL:[[NSBundle mainBundle] URLForResource:@"clipRecording_aminor1" withExtension:@".caf"]
-//     toURL:[self fileURLWithFileName:@"clipRecording_aminor1.caf"] error:&error];
-//    
-//    [[NSFileManager defaultManager]
-//     copyItemAtURL:[[NSBundle mainBundle] URLForResource:@"clipRecording_killers1" withExtension:@".caf"]
-//     toURL:[self fileURLWithFileName:@"clipRecording_killers1.caf"] error:&error];
-//    
-//    [[NSFileManager defaultManager]
-//     copyItemAtURL:[[NSBundle mainBundle] URLForResource:@"clipRecording_killers2" withExtension:@".caf"]
-//     toURL:[self fileURLWithFileName:@"clipRecording_killers2.caf"] error:&error];
-//}
 
 
 - (void)applicationWillResignActive:(UIApplication *)application {
@@ -107,13 +51,13 @@
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-    [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"AppWillForeground" object:nil]];
 
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     
+    [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"AppWillForeground" object:nil]];
 
 }
 

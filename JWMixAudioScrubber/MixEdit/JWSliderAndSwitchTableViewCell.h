@@ -9,10 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface JWSliderAndSwitchTableViewCell : UITableViewCell
-
 @property (strong, nonatomic) IBOutlet UISlider *slider;
-@property(strong, nonatomic) IBOutlet UILabel *sliderLabel;
+@property (strong, nonatomic) IBOutlet UILabel *sliderLabel;
 @property (strong, nonatomic) IBOutlet UISwitch *switchControl;
 @property (strong, nonatomic) IBOutlet UILabel *nodeTitleLabel;
-
 @end

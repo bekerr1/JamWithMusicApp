@@ -1241,20 +1241,10 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 #pragma mark - extra gestures and paste
 - (IBAction)didSwipeDown:(id)sender
 {
-    if (_useSwipeDownToReConvert) {
+    if (_useSwipeDownToReConvert)
         [_mp3ConvertController reconvert];
-        
-        // Re Convert
-//        if (self.urlSession.youTubeLinkURL) {
-//            self.urlSession.youTubeURLReplaceString = self.urlSession.youTubeLinkURL;
-//            [self newSessionWithLinkURLString:self.urlSession.youTubeURLReplaceString];
-//            [self effectsBackgroundSuccess];
-//        } else {
-//            NSLog(@"%s no link URL available",__func__);
-//            [self effectsBackgroundError];
-//        }
-    }
 }
+
 - (IBAction)longPress:(id)sender {
     if (_useLongPressToPaste) {
         NSLog(@"%s",__func__);

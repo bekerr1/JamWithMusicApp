@@ -9,6 +9,8 @@
 #import "JWTrackSetsViewController.h"
 #import "DetailViewController.h"
 
+#import "JWTableHeaderView.h"
+
 @interface JWTrackSetsViewController () <JWDetailDelegate>
 @property NSIndexPath *selectedIndexPath;
 @property NSMutableArray *objectCollections;  // collects objects
@@ -64,9 +66,16 @@
             [_jamTracks addObject:jamTrack];
         }
     }
+    
+    [self.tableView reloadData];
 }
 
 - (void)insertNewObject:(id)sender {
+    
+    NSLog(@"%s not implemented",__func__);
+    return;
+    
+    
     if (!self.objectCollections) {
         self.objectCollections = [[NSMutableArray alloc] init];
     }
@@ -212,7 +221,9 @@
 }
 
 
+
 -(NSArray*)tracksForKey:(NSString*)key {
+
     NSArray *result = nil;
     NSUInteger collectionIndex = 0;
     BOOL found = NO;
@@ -227,12 +238,26 @@
     }
     
     if (found) {
-        if (collectionIndex < [_objectCollections count]) {
+        if (collectionIndex < [_objectCollections count])
             result = _objectCollections[collectionIndex];
-        }
     }
     
     return result;
+}
+
+
+#pragma mark -
+
+-(NSString*)detailController:(DetailViewController*)controller titleForJamTrackKey:(NSString*)key {
+    
+   return [_delegate trackSets:self titleForJamTrackKey:key];
+    
+}
+
+-(NSString*)detailController:(DetailViewController*)controller titleForTrackAtIndex:(NSUInteger)index
+           inJamTrackWithKey:(NSString*)key {
+    
+    return [_delegate trackSets:self titleForTrackAtIndex:index inJamTrackWithKey:key];
     
 }
 
@@ -248,7 +273,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JWTracksetCell" forIndexPath:indexPath];
     NSMutableArray *objectCollection = _objectCollections[indexPath.section];
     NSDictionary *object = objectCollection[indexPath.row];
     
@@ -315,15 +340,70 @@
 //    return @"tracks section";
 //}
 
-//- (CGFloat )tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-//    return 42.0f;
-//}
+- (CGFloat )tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return 10;
+}
 
+- (CGFloat )tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 40;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section  {
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWFooterView"];
+    
+    if (view == nil) {
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWFooterView"];
+
+//        view.backgroundColor = [UIColor blueColor];
+        view.contentView.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.15];
+        
+    }
+    return view;
+
+}
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
+    
+    
+//    JWTableHeaderView *view = [JWTableHeaderView new];
+    
+    
+//    UILabel *label = [[UILabel alloc] init];
+//    label.text = [_delegate trackSets:self titleForSection:section];
+//    label.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
+//    label.textColor = [UIColor whiteColor];
+//    CGRect fr  = CGRectZero;
+//    fr.origin = CGPointMake(10, 0);
+//    label.frame = fr;
+//    return label;
+    
+    
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
+    
+    if (view == nil) {
+//        UITableViewCell *sampleCell = [tableView dequeueReusableCellWithIdentifier:@"JWSectionTrack"];
 
-    UITableViewCell *view = [tableView dequeueReusableCellWithIdentifier:@"JWSectionTrack"];
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+//        view.backgroundColor = [UIColor darkGrayColor];
+//        view.contentView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
+//        view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
+//        view.textLabel.numberOfLines = 2;
+//        view.detailTextLabel.numberOfLines = 1;
+//       view.textLabel.font = sampleCell.textLabel.font;
+//        view.textLabel.textColor = sampleCell.textLabel.textColor;
+//        view.textLabel.alpha = 1.0;
+//        view.alpha = 1.0;
+//        view.backgroundColor = sampleCell.backgroundColor;
+//        view.contentView.backgroundColor = sampleCell.contentView.backgroundColor;
+
+    }
+
+    view.contentView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
+    view.textLabel.textColor = [UIColor whiteColor];
+
     view.textLabel.text = [_delegate trackSets:self titleForSection:section];
-    view.detailTextLabel.text = [_delegate trackSets:self titleDetailForSection:section];
+    
+//    view.detailTextLabel.text = [_delegate trackSets:self titleDetailForSection:section];
+
     return view;
 }
 
@@ -375,151 +455,3 @@
 
 @end
 
-
-
-//        NSMutableArray *objectCollection = _objectCollections[indexPath.section];
-//        NSDictionary *object = objectCollection[indexPath.row];
-
-
-//#pragma mark -
-
-//-(NSString*)documentsDirectoryPath {
-//    NSString *result = nil;
-//    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-//    result = [searchPaths objectAtIndex:0];
-//    //    NSLog(@"%s %@",__func__, result);
-//    return result;
-//}
-//
-//-(NSURL *)fileURLWithFileName:(NSString*)name {
-//    NSURL *result;
-//    NSString *thisfName = name;//@"mp3file";
-//    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
-//    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
-//    [fname appendFormat:@"/%@",thisName];
-//    result = [NSURL fileURLWithPath:fname];
-//    return result;
-//}
-
-//
-///*
-// serializeOut
-// Convert any dictionary items that cannot be serialized to serializable format if possible
-// fileURL NSURL to Path
-// UIColor to rgb alpha
-// */
-//-(void)serializeOut {
-//    
-//    for (id objectCollection in _objectCollections) {
-//        for (id obj in objectCollection) {
-//            id furl = obj[@"fileURL"];
-//            if (furl) {
-//                obj[@"fileName"] = [[(NSURL*)furl path] lastPathComponent];
-//                [obj removeObjectForKey:@"fileURL"];
-//            }
-//        }
-//    }
-//}
-//
-//-(void)saveUserOrderedList {
-//    [self serializeOut];
-//    [_objectCollections writeToURL:[self fileURLWithFileName:@"savedobjects"] atomically:YES];
-//    [self serializeIn];
-//    
-//    NSLog(@"%s savedobjects[%ld]",__func__,[_objectCollections count]);
-//    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-//    
-//}
-//
-///*
-// serializeIn
-// Convert any dictionary items that could not be serialized and were converted to a serializable format
-// Path to fileURL NSURL
-// rgb-alpha to UIColor
-// */
-//
-//-(void)serializeIn {
-//    
-//    for (id objectCollection in _objectCollections) {
-//        for (id obj in objectCollection) {
-//            id fname = obj[@"fileName"];
-//            if (fname) {
-//                obj[@"fileURL"] = [self fileURLWithFileName:fname];
-//                [obj removeObjectForKey:@"fileName"];
-//            }
-//        }
-//    }
-//}
-//
-//-(void)readUserOrderedList {
-//    _objectCollections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"savedobjects"]];
-//    [self serializeIn];
-//    NSLog(@"%savedobjects[%ld]",__func__,[_objectCollections count]);
-//    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-//}
-//
-
-////#define JWSampleFileName @"trimmedMP3"
-////#define JWSampleFileNameAndExtension @"trimmedMP3.m4a"
-////#define JWSampleFileName @"trimmedMP3-45"
-////#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
-////#define JWSampleFileName @"AminorBackingtrackTrimmedMP3-45"
-////#define JWSampleFileNameAndExtension @"AminorBackingtrackTrimmedMP3-45.m4a"
-//#define JWSampleFileName @"TheKillersTrimmedMP3-30"
-//#define JWSampleFileNameAndExtension @"TheKillersTrimmedMP3-30.m4a"
-//
-
-
-
-//-(NSMutableDictionary*)newTrackObject {
-//    NSMutableDictionary *result = nil;
-//    //    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension];
-//    //    NSMutableDictionary * fileReference =
-//    //    [@{@"duration":@(0),
-//    //       @"startinset":@(0.0),
-//    //       @"endinset":@(0.0),
-//    //       } mutableCopy];
-//    //
-//    //    // The object to INSERT
-//    //    result =
-//    //    [@{@"key":[[NSUUID UUID] UUIDString],
-//    //       @"title":@"track",
-//    //       @"starttime":@(0.0),
-//    //       @"referencefile": fileReference,
-//    //       @"date":[NSDate date],
-//    //       @"fileURL":fileURL
-//    //       } mutableCopy];
-//    //
-//    return result;
-//}
-//
-//-(NSMutableArray*)newTrackObjectSet {
-//    
-//    NSMutableArray *result = nil;
-//    //    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension];
-//    //
-//    //    NSMutableDictionary * fileReference =
-//    //    [@{@"duration":@(0),
-//    //       @"startinset":@(0.0),
-//    //       @"endinset":@(0.0),
-//    //       } mutableCopy];
-//    //
-//    //    // The object to INSERT
-//    //    result =[@[
-//    //               [@{@"key":[[NSUUID UUID] UUIDString],
-//    //                  @"title":@"track",
-//    //                  @"starttime":@(0.0),
-//    //                  @"referencefile": fileReference,
-//    //                  @"date":[NSDate date],
-//    //                  @"fileURL":fileURL
-//    //                  } mutableCopy],
-//    //
-//    //               [@{@"key":[[NSUUID UUID] UUIDString],
-//    //                  @"title":@"track",
-//    //                  @"starttime":@(0.0),
-//    //                  @"date":[NSDate date],
-//    //                  } mutableCopy]
-//    //               ] mutableCopy];
-//    
-//    return result;
-//}

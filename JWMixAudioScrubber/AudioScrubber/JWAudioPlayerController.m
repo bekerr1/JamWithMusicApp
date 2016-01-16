@@ -32,6 +32,7 @@ JWMixEditDelegate
     UIColor *iosColor6;
     UIColor *iosColor7;
     UIColor *iosColor8;
+    BOOL _wasPlaying;
 
 }
 @property (nonatomic) JWScrubberController *sc;
@@ -55,6 +56,7 @@ JWMixEditDelegate
 
 -(void)stop {
     NSLog(@"%s",__func__);
+    
     _listenToPositionChanges = NO;
     [_sc stopPlaying:nil rewind:NO];
     [_audioEngine stopAllActivePlayerNodes];
@@ -149,13 +151,11 @@ JWMixEditDelegate
             self.sc.delegate = self;
             
             [self.pcvc initializeWithState:_state withLightBackround:NO];
-        });
-        
-        if (completion) {
-            dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if (completion) {
                 completion();
-            });
-        }
+            }
+        });
     });
     
     // AND RETURN
@@ -172,23 +172,21 @@ JWMixEditDelegate
 
 -(void)appWillBackground:(id)noti {
     NSLog(@"%s",__func__);
-//    [_sc stopPlaying:nil rewind:NO];
+    _wasPlaying = [_sc isPlaying];
+    [_sc stopPlaying:nil rewind:NO];
 }
 
 -(void)appWillForeground:(id)noti {
     NSLog(@"%s",__func__);
-    if ([_sc isPlaying])
+    if (_wasPlaying)
         [_sc resumePlaying];
 }
-
-
 
 -(void)iosColors {
     iosColor1 = [UIColor colorWithRed:128/255.0 green:128/255.0 blue:0/255.0 alpha:1.0]; // asparagus
     iosColor2 = [UIColor colorWithRed:0/255.0 green:64/255.0 blue:128/255.0 alpha:1.0]; // ocean
     iosColor3 = [UIColor colorWithRed:0/255.0 green:128/255.0 blue:255/255.0 alpha:1.0]; // aqua
     iosColor4 = [UIColor colorWithRed:102/255.0 green:204/255.0 blue:255/255.0 alpha:1.0]; // sky
-    
     iosColor5 = [UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0]; // aluminum
     iosColor6 = [UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1.0]; // mercury
     iosColor7 = [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1.0]; // tungsten
@@ -662,6 +660,8 @@ JWMixEditDelegate
     
     [_sc setViewOptions:ScrubberViewOptionDisplayOnlyValueLabels];
     
+    //_sc.trackLocations = @[@(0.70)];
+    
     _sc.scrubberControllerSize = [_delegate updateScrubberHeight:self];
     
     [self configureScrubberColors];
@@ -850,47 +850,56 @@ JWMixEditDelegate
     return [_audioEngine currentPositionInSecondsOfAudioFileForPlayerAtIndex:0];
 }
 -(NSString*)processingFormatStr:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
-    
-    NSUInteger index = 0;
-    NSString *title;
-    BOOL found = false;
-    
-    // TODO: make delegate call for title
-    if (sid) {
-        for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
-            id trackId = item[@"trackid"];
-            if (trackId && [sid isEqualToString:trackId]) {
-                title = item[@"title"];
-                found = YES;
-                break; // This one
-            }
-            index++;
-        }
-        
-    } else {
-        
-        index = 0;
-    }
-    
-    if (index < [_trackItems count]) {
-        
-        id titleValue = _trackItems[index][@"usertitle"];
-        if (titleValue){
-            title =titleValue;
-        } else {
-            id titleValue = _trackItems[index][@"title"];
-            if (titleValue)
-                title =titleValue;
-        }
-    }
 
+    return [_delegate playerControllerTitleForTrackSetContainingKey:self];
     
-    if (found == NO) {
-        title = [_audioEngine processingFormatStr];
-    }
+//    return [_audioEngine processingFormatStr];
     
-    return title;
 }
+
+
+//    NSUInteger index = 0;
+//    NSString *title;
+//    BOOL found = false;
+//    
+////    [_delegate trackSets:self titleForSection:section];
+////    [_delegate trackSets:self titleDetailForSection:section];
+//
+//    // TODO: make delegate call for title
+//    if (sid) {
+//        for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
+//            id trackId = item[@"trackid"];
+//            if (trackId && [sid isEqualToString:trackId]) {
+//                title = item[@"title"];
+//                found = YES;
+//                break; // This one
+//            }
+//            index++;
+//        }
+//        
+//    } else {
+//        
+//        index = 0;
+//    }
+//    
+//    if (index < [_trackItems count]) {
+//        
+//        id titleValue = _trackItems[index][@"usertitle"];
+//        if (titleValue){
+//            title =titleValue;
+//        } else {
+//            id titleValue = _trackItems[index][@"title"];
+//            if (titleValue)
+//                title =titleValue;
+//        }
+//    }
+//    
+//    if (found == NO) {
+//        title = [_audioEngine processingFormatStr];
+//    }
+//    
+//    return title;
+//}
 
 
 #pragma mark edit scrubber delegate
@@ -1114,7 +1123,6 @@ JWMixEditDelegate
 
 -(void)scrubberPlayHeadTapped:(JWScrubberController*)controller {
     
-    NSLog(@"%s",__func__);
     if (self.state == JWPlayerStateSetToBeg || self.state == JWPlayerStatePlayFromBeg)
         
         self.state = JWPlayerStatePlayFromPos;

@@ -24,19 +24,7 @@
 @property (nonatomic) PlayerControllerState state;
 
 -(void)setState:(PlayerControllerState)state withRecording:(BOOL)rec;
-
 -(void)initializeWithState:(PlayerControllerState)state withLightBackround:(BOOL)backround;
-- (void)initializeUIElements;
--(void) updateButtonStates;
-
+-(void)initializeUIElements;
+-(void)updateButtonStates;
 @end
-
-
-// Protocol builds on JWAudioEngineDelegate with additional clip specific methods
-//@protocol JWPlayerControlsDelegate  <NSObject>
-////- (IBAction)playPauseAction:(id)sender {
-//- (void)playPauseAction:(id)sender;
-//- (void)rewindAction:(id)sender;
-//- (void)recordAction:(id)sender;
-//@end
-//

@@ -34,7 +34,6 @@
 {
     NSLog(@"%s",__func__);
     // leave it to subclasses
-
 }
 
 - (void)createEngineAndAttachNodes
@@ -298,146 +297,10 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
         case AVAudioSessionRouteChangeReasonCategoryChange:
             NSLog(@"     CategoryChange");
             NSLog(@" New Category: %@", [[AVAudioSession sharedInstance] category]);
-        {
-//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//            AVAudioSessionRouteDescription *currentRoute = [sessionInstance currentRoute];
-//
-//            NSLog(@"cr  %@", currentRoute.outputs);
-//
-//            AVAudioSessionPortDescription* outp;
-//            for (AVAudioSessionPortDescription* output in currentRoute.outputs) {
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
-//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
-//                    outp = output;
-//                    break;
-//                }
-//                NSLog(@"type and name %@ %@", output.portType,output.portName);
-//            }
-//
-//            NSLog(@"rd  %@", routeDescription.outputs);
-////            NSLog(@"rrd %@", rrouteDescription.outputs);
-//            
-//            for (AVAudioSessionPortDescription* output in routeDescription.outputs) {
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
-//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
-//                    outp = output;
-//                    break;
-//                }
-//                NSLog(@"type and name %@ %@", output.portType,output.portName);
-//            }
-////
-//            if (outp) {
-//
-//                NSLog(@" outp %@",[outp description]);
-//                AVAudioSessionDataSourceDescription *selectedDS;
-//                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
-//                    NSLog(@" %@ %@", outpds,[outpds description]);
-//                    selectedDS = outpds;
-//                }
-//                
-//                if (selectedDS) {
-//                    NSError *error;
-//                    [outp setPreferredDataSource:selectedDS error:&error];
-//                }
-
-//                AVAudioSessionDataSourceDescription *selectedDS;
-//                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
-//                    NSLog(@" %@ %@", outpds,[outpds description]);
-//                    selectedDS = outpds;
-//                }
-////                for(AVAudioSessionDataSourceDescription *outpds in sessionInstance.outputDataSources){
-////                    NSLog(@" %@ %@", outpds,[outpds description]);
-////                    selectedDS = outpds;
-////                }
-//                if (selectedDS) {
-//                    NSError *error;
-//                    [sessionInstance setOutputDataSource:selectedDS error:&error];
-//                }
-                
-//            }
-        }
-            
             break;
-            
-            
         case AVAudioSessionRouteChangeReasonOverride:
             NSLog(@"     Override");
-//        {
-//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//            AVAudioSessionRouteDescription *currentRoute = [sessionInstance currentRoute];
-//            AVAudioSessionPortDescription* outp;
-//            NSLog(@"cr  %@", currentRoute.outputs);
-//            for (AVAudioSessionPortDescription* output in currentRoute.outputs) {
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
-//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
-//                    outp = output;
-//                    break;
-//                }
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
-//                    NSLog(@" found AVAudioSessionPortBluetoothHFP %@", output.portType);
-//                    outp = output;
-//                    break;
-//                }
-//
-//                NSLog(@"type and name %@ %@", output.portType,output.portName);
-//            }
-
-//            NSLog(@"rd  %@", routeDescription.outputs);
-////            NSLog(@"rrd %@", rrouteDescription.outputs);
-//            for (AVAudioSessionPortDescription* output in routeDescription.outputs) {
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
-//                    NSLog(@" found AVAudioSessionPortBluetoothA2DP %@", output.portType);
-//                    outp = output;
-//                    break;
-//                } else
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
-//                    NSLog(@" found AVAudioSessionPortBluetoothHFP %@", output.portType);
-//                    outp = output;
-//                    break;
-//
-//                }
-//
-//                NSLog(@"type and name %@ %@", output.portType,output.portName);
-//            }
-
-//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//            NSArray* inputs = routeDescription.inputs;
-//            AVAudioSessionPortDescription* builtInMicrophone;
-//            for (AVAudioSessionPortDescription* input in inputs) {
-//                NSLog(@" %@", input.portType);
-//                if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
-//                    NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
-//                    builtInMicrophone = input;
-//                }
-//
-//            }
-//            
-//            NSArray* outputs = routeDescription.outputs;
-//            AVAudioSessionPortDescription* outp;
-//            for (AVAudioSessionPortDescription* output in outputs) {
-//                NSLog(@" %@ %@", output.portType,output.portName);
-//                
-//                if ([output.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
-//                    outp = output;
-//                }
-//            }
-//            if (outp) {
-//                
-//                AVAudioSessionDataSourceDescription *selectedDS;
-//                for(AVAudioSessionDataSourceDescription *outpds in outp.dataSources){
-//                    NSLog(@" %@ %@", outpds,[outpds description]);
-//                    selectedDS = outpds;
-//                }
-//                
-//                if (selectedDS) {
-//                    NSError *error;
-//                    [outp setPreferredDataSource:selectedDS error:&error];
-//                }
-//            }
-//        }
-            
             break;
-            
         case AVAudioSessionRouteChangeReasonWakeFromSleep:
             NSLog(@"     WakeFromSleep");
             break;
@@ -451,23 +314,6 @@ AVAudioSessionPortBluetoothLE   Output to a Bluetooth low energy peripheral. Ava
     NSLog(@"Previous route:\n");
     NSLog(@"%@", routeDescription);
 }
-
-
-//            AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
-//            // INPUTS
-//            NSArray* inputs = routeDescription.inputs;
-//            AVAudioSessionPortDescription* builtInMicrophone;
-//            for (AVAudioSessionPortDescription* input in inputs) {
-//                NSLog(@" %@", input.portType);
-//                if ([input.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
-//                    NSLog(@" found AVAudioSessionPortBuiltInMic %@", input.portType);
-//                    builtInMicrophone = input;
-//                }
-//            }
-//
-//            // OUTPUTS
-//            NSLog(@"si %@ %@", sessionInstance.outputDataSources,[sessionInstance.outputDataSources description]);
-//            NSLog(@"rd %@ %@", routeDescription.outputs,[routeDescription.outputs description]);
 
 
 - (void)handleMediaServicesReset:(NSNotification *)notification
