@@ -29,25 +29,30 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
 
 @end
 
+
 @protocol JWDetailDelegate <NSObject>
--(void)itemChanged:(DetailViewController*)controller;
--(void)itemChanged:(DetailViewController*)controller cachKey:(NSString*)key;
--(void)save:(DetailViewController*)controller cachKey:(NSString*)key;
--(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key;
--(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key;
+
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key;
-
 -(NSString*)detailController:(DetailViewController*)controller titleForJamTrackKey:(NSString*)key;
-
 -(NSString*)detailController:(DetailViewController*)controller titleForTrackAtIndex:(NSUInteger)index
            inJamTrackWithKey:(NSString*)key;
 
-@optional
--(void) userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid;
+-(void)save:(DetailViewController*)controller cachKey:(NSString*)key;
+-(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid;
 
+@optional
+// METhods used by test apps when detail changed items like scrubber color
+-(void)itemChanged:(DetailViewController*)controller;
+-(void)itemChanged:(DetailViewController*)controller cachKey:(NSString*)key;
+-(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key;
+
+-(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key;
+
+// deprecated use JamTrackKey
+-(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key;
 @end
 
-@protocol JWAudioControlsDelegate <NSObject>
 
+@protocol JWAudioControlsDelegate <NSObject>
 
 @end

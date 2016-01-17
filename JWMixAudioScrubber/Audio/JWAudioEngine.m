@@ -50,6 +50,7 @@
      nodes, removal of a node which has differing input vs. output channel counts, or which
      is a mixer, is likely to result in a broken graph. */
     
+    self.audioEngine = nil;
     self.audioEngine = [[AVAudioEngine alloc] init];
     
     /*  To support the instantiation of arbitrary AVAudioNode subclasses, instances are created

@@ -25,15 +25,16 @@
     [super viewDidLoad];
 
 //    self.navigationItem.leftBarButtonItem = self.editButtonItem;
-    
-    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
-    self.navigationItem.rightBarButtonItem = addButton;
+//    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
+//    self.navigationItem.rightBarButtonItem = addButton;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    
     if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         
     } else {
+        // ipad
         self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
     }
     
@@ -46,12 +47,19 @@
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark -
 
-// Array of arrays jamTracks
+// Given an array of jamTracks, each jamTrack contains an array of trackNodes
+
+/*
+
+ the jamtracks array is parallel with objectcollections
+ to get info on jamtrack and not just tracknodes
+ _jamTracks[indexPath.section][@"key"];  The jamTrack is also given to DetailViewController
+
+ */
 -(void)setTrackSet:(id)trackSet {
     
     NSLog(@"%s",__func__);
@@ -63,6 +71,7 @@
             id trackNodes = jamTrack[@"trackobjectset"];
             if (trackNodes)
                 [_objectCollections addObject:jamTrack[@"trackobjectset"]];
+            
             [_jamTracks addObject:jamTrack];
         }
     }
@@ -71,54 +80,8 @@
 }
 
 - (void)insertNewObject:(id)sender {
-    
     NSLog(@"%s not implemented",__func__);
     return;
-    
-    
-    if (!self.objectCollections) {
-        self.objectCollections = [[NSMutableArray alloc] init];
-    }
-    
-    NSMutableArray *objectCollection = nil;
-    BOOL useSet = YES;
-    
-    if (useSet) {
-        objectCollection = [self newTrackObjectSet];
-        if (objectCollection) {
-            [_objectCollections insertObject:objectCollection atIndex:0];
-            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-        }
-        
-    } else {
-        
-        NSMutableDictionary *trackObject = [self newTrackObject];
-        if (trackObject) {
-            NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-            if (selected) {
-                objectCollection = _objectCollections[selected.section];
-                [objectCollection insertObject:trackObject atIndex:0];
-                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:selected.section];
-                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-            } else {
-                [objectCollection insertObject:trackObject atIndex:0];
-                [_objectCollections insertObject:objectCollection atIndex:0];
-                [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-            }
-        }
-    }
-    
-//    [self saveUserOrderedList];
-    
-}
-
--(NSMutableDictionary*)newTrackObject {
-    NSMutableDictionary *result = nil;
-    return result;
-}
--(NSMutableArray*)newTrackObjectSet {
-    NSMutableArray *result = nil;
-    return result;
 }
 
 
@@ -129,12 +92,15 @@
     if ([[segue identifier] isEqualToString:@"JWShowDetailFromFiles"]) {
         
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+        
         NSDictionary *object = _jamTracks[indexPath.section];
+        
         DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
         controller.delegate = self;
         [controller setDetailItem:object];
         controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
         controller.navigationItem.leftItemsSupplementBackButton = YES;
+        
         self.detailViewController = controller;
         self.selectedIndexPath = indexPath;
     }
@@ -142,18 +108,20 @@
 
 #pragma mark - helpers
 
--(NSIndexPath*)indexPathOfCacheItem:(NSString*)key
-{
-    NSUInteger collectionIndex = 0;
-    NSUInteger index = 0;
+// the trackNode object
+-(NSIndexPath*)indexPathOfCacheItem:(NSString*)key {
     
+    NSIndexPath *result;
+    NSUInteger sectionIndex = 0;
+    NSUInteger index = 0;
+
+    BOOL found = NO;
+
     for (id objectCollection in _objectCollections) {
-        BOOL found = NO;
         index = 0;
         for (id obj in objectCollection) {
             if ([key isEqualToString:obj[@"key"]]) {
-                // found it
-                found=YES;
+                found=YES; // Found it
                 break;
             }
             index++;
@@ -161,58 +129,70 @@
         if (found)
             break;
         
+        sectionIndex++;
+    }
+    
+    if (found) {
+        //    NSLog(@"%s%@ index %ld",__func__,key,index);
+        result = [NSIndexPath indexPathForRow:index inSection:sectionIndex];
+    }
+    
+    return result;
+}
+
+// searches _jamTracks which is parallel to _objectCollections to find sectionIndex
+
+-(NSArray*)tracksForKey:(NSString*)key {
+    
+    NSArray *result = nil;
+    NSUInteger collectionIndex = 0;
+    BOOL found = NO;
+    
+    for (id jamTrack in _jamTracks) {
+        if ([key isEqualToString:jamTrack[@"key"]]) {
+            found=YES;
+            break;
+        }
         collectionIndex++;
     }
     
-    //    NSLog(@"%s%@ index %ld",__func__,key,index);
-    return [NSIndexPath indexPathForRow:index inSection:collectionIndex];
-}
-
-
--(void)reloadItemAtIndex:(NSUInteger)index inSection:(NSUInteger)section {
+    if (found && collectionIndex < [_objectCollections count])
+        result = _objectCollections[collectionIndex];
     
-    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:section]]
-                          withRowAnimation:UITableViewRowAnimationFade];
+    return result;
+}
+
+// returns jamTrack that matches key
+-(id)jamTrackForKey:(NSString*)key {
     
-    [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:section] animated:YES scrollPosition:UITableViewScrollPositionNone];
-}
-
-#pragma mark - delegate methods
-
--(void)itemChanged:(DetailViewController*)controller {
-//    [self saveUserOrderedList];
-}
-//
--(void)itemChanged:(DetailViewController*)controller cachKey:(NSString*)key {
-    NSLog(@"%s%@",__func__,key);
-//    NSIndexPath *item = [self indexPathOfCacheItem:key];
-//    [self reloadItemAtIndex:item.row inSection:item.section];
-}
-//
--(void)save:(DetailViewController*)controller cachKey:(NSString*)key {
-    NSLog(@"%s%@",__func__,key);
-//    NSIndexPath *item = [self indexPathOfCacheItem:key];
-//    [self reloadItemAtIndex:item.row inSection:item.section];
-//    [self saveUserOrderedList];
-}
-//
--(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key {
+    id result = nil;
+    for (id jamTrack in _jamTracks) {
+        if ([key isEqualToString:jamTrack[@"key"]]) {
+            result = jamTrack;
+            break;
+        }
+    }
     
-//    NSIndexPath *item = [self indexPathOfCacheItem:key];
-//    NSMutableArray *objectCollection = _objectCollections[item.section];
-//    NSMutableDictionary *trackObject = [self newTrackObject];
-//    [objectCollection insertObject:trackObject atIndex:0];
-//    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:item.section];
-//    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+    return result;
 }
-//
 
-// old way
--(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key {
-    NSIndexPath *item = [self indexPathOfCacheItem:key];
-    NSMutableArray *objectCollection = _objectCollections[item.section];
-    return objectCollection;
+-(NSInteger)sectionForJamTrackKey:(NSString*)key {
+    
+    NSInteger result = NSNotFound;
+    NSInteger collectionIndex = 0;
+    
+    for (id jamTrack in _jamTracks) {
+        if ([key isEqualToString:jamTrack[@"key"]]) {
+            result = collectionIndex;
+            break;
+        }
+        collectionIndex++;
+    }
+    return result;
 }
+
+
+#pragma mark - DetailViewController delegate methods
 
 // current way
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key {
@@ -220,48 +200,69 @@
     return [self tracksForKey:key];
 }
 
-
-
--(NSArray*)tracksForKey:(NSString*)key {
-
-    NSArray *result = nil;
-    NSUInteger collectionIndex = 0;
-    BOOL found = NO;
-    
-    for (id jamTrack in _jamTracks) {
-        if ([key isEqualToString:jamTrack[@"key"]]) {
-            // found it
-            found=YES;
-            break;
-        }
-        collectionIndex++;
-    }
-    
-    if (found) {
-        if (collectionIndex < [_objectCollections count])
-            result = _objectCollections[collectionIndex];
-    }
-    
-    return result;
-}
-
-
-#pragma mark -
-
 -(NSString*)detailController:(DetailViewController*)controller titleForJamTrackKey:(NSString*)key {
     
    return [_delegate trackSets:self titleForJamTrackKey:key];
-    
 }
 
 -(NSString*)detailController:(DetailViewController*)controller titleForTrackAtIndex:(NSUInteger)index
            inJamTrackWithKey:(NSString*)key {
     
     return [_delegate trackSets:self titleForTrackAtIndex:index inJamTrackWithKey:key];
-    
 }
 
-#pragma mark - Table View
+-(void)save:(DetailViewController*)controller cachKey:(NSString*)key {
+
+    // key is a jamTrack key
+    
+    [_delegate trackSets:self saveJamTrackWithKey:key];
+}
+
+-(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid {
+
+    [_delegate userAudioObtainedInNodeWithKey:nodeKey recordingId:rid];
+    
+    NSIndexPath *nodeIndexPath = [self indexPathOfCacheItem:nodeKey];
+    if (nodeIndexPath) {
+        // reload a node, can also reload Section
+        [self.tableView beginUpdates];
+        [self.tableView reloadRowsAtIndexPaths:@[nodeIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
+    }
+
+    // perhaps update this record for this view controller
+    // prefer to have delegate do it and we ask for an update
+}
+
+-(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key {
+
+    id result;
+    if ([_delegate respondsToSelector:@selector(addTrackNode:toJamTrackWithKey:)]) {
+        result = [_delegate addTrackNode:self toJamTrackWithKey:key];
+        [self.tableView reloadData];
+    }
+    
+    return result;
+}
+
+-(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key {
+    // key is jamTrack Key
+    NSLog(@"%s",__func__);
+    NSInteger sectionIndex = [self sectionForJamTrackKey:key];
+    if (sectionIndex == NSNotFound) {
+        
+    } else {
+        [_delegate addTrack:self cachKey:key];
+        [self.tableView reloadData];
+    }
+}
+
+//        id jamTrack = [self jamTrackForKey:key];
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            self.detailViewController.detailItem = jamTrack;
+//        });
+
+#pragma mark - Table View Delegate
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return [_objectCollections count];
@@ -275,6 +276,7 @@
     
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JWTracksetCell" forIndexPath:indexPath];
     NSMutableArray *objectCollection = _objectCollections[indexPath.section];
+    
     NSDictionary *object = objectCollection[indexPath.row];
     
     id startTimeValue = object[@"starttime"];
@@ -304,6 +306,7 @@
      ];
     
     cell.selectionStyle = UITableViewCellSelectionStyleBlue;
+    
     return cell;
 }
 
@@ -312,22 +315,17 @@
     return YES;
 }
 
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         NSMutableArray *objectCollection = _objectCollections[indexPath.section];
-        
         [objectCollection removeObjectAtIndex:indexPath.row];
-        
-        if ([objectCollection count] == 0) {
-            [_objectCollections removeObjectAtIndex:indexPath.section];
-            [tableView beginUpdates];
-            [tableView deleteSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
-            [tableView endUpdates];
-        } else {
-            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-        }
-        
-//        [self saveUserOrderedList];
+
+        [tableView beginUpdates];
+        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+        [tableView endUpdates];
+
+        [_delegate trackSets:self saveJamTrackWithKey:_jamTracks[indexPath.section][@"key"]];
         
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
@@ -349,24 +347,55 @@
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section  {
-    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWFooterView"];
     
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWFooterView"];
     if (view == nil) {
         view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWFooterView"];
-
 //        view.backgroundColor = [UIColor blueColor];
         view.contentView.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.15];
-        
     }
     return view;
-
 }
+
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
     
     
 //    JWTableHeaderView *view = [JWTableHeaderView new];
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
     
+    if (view == nil) {
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+
+    }
+
+    view.contentView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
+    view.textLabel.textColor = [UIColor whiteColor];
+    view.textLabel.text = [_delegate trackSets:self titleForSection:section];
     
+//    view.detailTextLabel.text = [_delegate trackSets:self titleDetailForSection:section];
+
+    return view;
+}
+
+
+
+//    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWSectionTrack"];
+//    view.textLabel.text = @"tracks section";
+//    view.detailTextLabel.text = @"more info";
+// Return NO if you do not want the specified item to be editable.
+//    return @"tracks section";
+
+// Override to support conditional rearranging of the table view.
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+    // Return NO if you do not want the item to be re-orderable.
+    return NO;
+}
+
+
+@end
+
+
+
 //    UILabel *label = [[UILabel alloc] init];
 //    label.text = [_delegate trackSets:self titleForSection:section];
 //    label.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
@@ -375,14 +404,8 @@
 //    fr.origin = CGPointMake(10, 0);
 //    label.frame = fr;
 //    return label;
-    
-    
-    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
-    
-    if (view == nil) {
-//        UITableViewCell *sampleCell = [tableView dequeueReusableCellWithIdentifier:@"JWSectionTrack"];
 
-        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+//        UITableViewCell *sampleCell = [tableView dequeueReusableCellWithIdentifier:@"JWSectionTrack"];
 //        view.backgroundColor = [UIColor darkGrayColor];
 //        view.contentView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
 //        view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
@@ -395,63 +418,5 @@
 //        view.backgroundColor = sampleCell.backgroundColor;
 //        view.contentView.backgroundColor = sampleCell.contentView.backgroundColor;
 
-    }
 
-    view.contentView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
-    view.textLabel.textColor = [UIColor whiteColor];
-
-    view.textLabel.text = [_delegate trackSets:self titleForSection:section];
-    
-//    view.detailTextLabel.text = [_delegate trackSets:self titleDetailForSection:section];
-
-    return view;
-}
-
-//    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWSectionTrack"];
-//    view.textLabel.text = @"tracks section";
-//    view.detailTextLabel.text = @"more info";
-// Return NO if you do not want the specified item to be editable.
-//    return @"tracks section";
-
-
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-    
-    id moveObject = [_objectCollections[fromIndexPath.section] objectAtIndex:fromIndexPath.row];
-    
-    [_objectCollections[fromIndexPath.section]  removeObjectAtIndex:fromIndexPath.row];
-    [_objectCollections[toIndexPath.section]  insertObject:moveObject atIndex:toIndexPath.row];
-    
-    if ([_objectCollections[fromIndexPath.section] count] == 0) {
-        [_objectCollections removeObjectAtIndex:fromIndexPath.section];
-        
-        //NSUInteger reloadSection = toIndexPath.section;
-        //        if (fromIndexPath.section < toIndexPath.section) {
-        //            reloadSection--;
-        //        }
-        [tableView beginUpdates];
-        [tableView deleteSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
-        //        [tableView reloadSections:[NSIndexSet indexSetWithIndex:reloadSection]  withRowAnimation:UITableViewRowAnimationAutomatic];
-        [tableView endUpdates];
-    }
-    
-    [tableView reloadSectionIndexTitles];
-    
-//    [self saveUserOrderedList];
-}
-
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-
--(NSIndexPath *)tableView:(UITableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)sourceIndexPath toProposedIndexPath:(NSIndexPath *)proposedDestinationIndexPath {
-    
-    NSLog(@"%s",__func__);
-    // Allow the proposed destination.
-    return proposedDestinationIndexPath;
-}
-
-@end
 

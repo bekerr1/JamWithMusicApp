@@ -16,12 +16,11 @@
 #import "JWClipAudioViewController.h"
 #import "JWCurrentWorkItem.h"
 
-
-@interface MasterViewController () <JWDetailDelegate,JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFieldDelegate>
+@interface MasterViewController () <JWDetailDelegate,
+JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFieldDelegate>
 {
     BOOL _isAddingNewObject;
     BOOL _isAutoSelecting;
-
 }
 @property NSIndexPath *selectedIndexPath;
 @property NSMutableArray *objectCollections;  // collects objects
@@ -620,26 +619,15 @@
             id objectSection = _homeControllerSections[indexPath.section];
 
             JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
-
-//            NSMutableArray *jamTrackNodes = [NSMutableArray new];
-//            if (sectionType == JWHomeSectionTypeAudioFiles) {
-//                id trackObjectSet = objectSection[@"trackobjectset"];
-//                for (id trackObject in trackObjectSet)
-//                    [jamTrackNodes addObject:trackObject[@"trackobjectset"]];
-//                
-//            }
-//            
-//            [controller setObjectCollections:jamTrackNodes];
-
+            
             id trackObjectSet;
-
-            if (sectionType == JWHomeSectionTypeAudioFiles) {
+            if (sectionType == JWHomeSectionTypeAudioFiles)
                 trackObjectSet = objectSection[@"trackobjectset"];
+
+            if (trackObjectSet) {
+                [controller setTrackSet:trackObjectSet];
+                self.selectedIndexPath = indexPath;
             }
-
-            [controller setTrackSet:trackObjectSet];
-
-            self.selectedIndexPath = indexPath;
         }
         
     } else if ([segue.identifier isEqualToString:@"JWClipAudio"]) {
@@ -779,37 +767,37 @@
     return [NSIndexPath indexPathForRow:index inSection:sectionIndex];
 }
 
+// returns a jamTrack that matches key
 -(id)jamTrackObjectWithKey:(NSString*)key {
     
     id result;
-    BOOL found = NO;
     for (id objectSection in _homeControllerSections) {
-        id jamTracksInSection = objectSection[@"trackobjectset"];
-        for (id jamTrack in jamTracksInSection) {
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        for (id jamTrack in jamTracks) {
             if ([key isEqualToString:jamTrack[@"key"]]) {
-                found=YES;
                 result = jamTrack;
                 break;
             }
         }
-        if (found)
+        if (result)
             break;
     }
     return result;
 }
 
+// returns a jamTrack that contains a tracknode that matches key
 -(id)jamTrackObjectContainingNodeKey:(NSString*)key {
     
     id result;
     for (id objectSection in _homeControllerSections) {
         
-        id jamTracksInSection = objectSection[@"trackobjectset"];
-        for (id jamTrack in jamTracksInSection) {
-            id jamTrackNodes = jamTrack[@"trackobjectset"];
-            for (id jamTrackNode in jamTrackNodes) {
-                
-                if ([key isEqualToString:jamTrackNode[@"key"]]) {
-                    result = jamTrack; // jamtrack containing nide key
+        id jamTracks = objectSection[@"trackobjectset"];
+        for (id jamTrack in jamTracks) {
+            id trackNodes = jamTrack[@"trackobjectset"];
+            for (id trackNode in trackNodes) {
+                if ([key isEqualToString:trackNode[@"key"]]) {
+                    result = jamTrack; // // jamtrack containing node key
                     break;
                 }
             }
@@ -823,16 +811,19 @@
     return result;
 }
 
+
+// returns a trackNode
 -(id)jamTrackNodeObjectForKey:(NSString*)key {
     
     id result;
     for (id objectSection in _homeControllerSections) {
-        id jamTracksInSection = objectSection[@"trackobjectset"];
-        for (id jamTrack in jamTracksInSection) {
-            id jamTrackNodes = jamTrack[@"trackobjectset"];
-            for (id jamTrackNode in jamTrackNodes) {
-                if ([key isEqualToString:jamTrackNode[@"key"]]) {
-                    result = jamTrackNode; // jamtrack node
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        for (id jamTrack in jamTracks) {
+            id trackNodes = jamTrack[@"trackobjectset"];
+            for (id trackNode in trackNodes) {
+                if ([key isEqualToString:trackNode[@"key"]]) {
+                    result = trackNode; // jamtrack node
                     break;
                 }
             }
@@ -874,7 +865,6 @@
     //    NSLog(@"%s%@ index %ld",__func__,key,index);
     return [NSIndexPath indexPathForRow:index inSection:collectionIndex];
 }
-
 
 
 -(void)reloadItemAtIndex:(NSUInteger)index inSection:(NSUInteger)section {
@@ -922,23 +912,30 @@
     return result;
 }
 
+
+// return the section array of jamtracks that contain this jam track
+-(NSMutableArray*)jamTracksWithJamTrackKey:(NSString*)key {
+    NSMutableArray * result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        result = objectSection[@"trackobjectset"];
+    }
+    
+    return result;
+}
+
+
+
+
 #pragma mark - TrackSets delegate methods
 
 -(void)save:(JWTrackSetsViewController*)controller {
+
+    NSLog(@"%s",__func__);
     
-    id objectSection = _homeControllerSections[[self indexOfSectionOfType:JWHomeSectionTypeAudioFiles]];
-    
-    id trackObjectSet = objectSection[@"trackobjectset"];
-    
-    NSUInteger index = 0;
-//    for (id objectCollection in controller.objectCollections){
-//        
-//        if (index < [trackObjectSet count]) {
-//            id trackObject = trackObjectSet [index];
-//            trackObject[@"trackobjectset"] = objectCollection;
-//        }
-//        index++;
-//    }
+    [self saveHomeMenuLists];
 }
 
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForSection:(NSUInteger)section {
@@ -948,9 +945,8 @@
     id objectSection = _homeControllerSections[[self indexOfSectionOfType:JWHomeSectionTypeAudioFiles]];
     
     id trackObjectSet = objectSection[@"trackobjectset"];
-    if (section < [trackObjectSet count]) {
+    if (section < [trackObjectSet count])
         result = trackObjectSet[section][@"title"];
-    }
     
     if (result == nil) {
         NSLog(@"NIL title %@",[trackObjectSet[section] description]);
@@ -965,12 +961,13 @@
     id objectSection = _homeControllerSections[[self indexOfSectionOfType:JWHomeSectionTypeAudioFiles]];
     
     id trackObjectSet = objectSection[@"trackobjectset"];
+    
     if (section < [trackObjectSet count]) {
+        
         NSDateFormatter *dateFormatter = [NSDateFormatter new];
         dateFormatter.dateStyle = NSDateFormatterMediumStyle;
         dateFormatter.timeStyle = NSDateFormatterMediumStyle;
         
-        //        result = trackObjectSet[section][@"titletype"];
         result = [NSString stringWithFormat:@"%@ %@ %@",trackObjectSet[section][@"titletype"],
                   [dateFormatter stringFromDate:trackObjectSet[section][@"date"]],
                   trackObjectSet[section][@"key"]];
@@ -978,6 +975,7 @@
     
     return result;
 }
+
 
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForJamTrackKey:(NSString*)key {
     
@@ -1010,7 +1008,14 @@
         id jamTracks = objectSection[@"trackobjectset"];
         if (jamTracks) {
             id jamTrack = jamTracks[itemIndexPath.row];
-            result = [self preferredTitleForObject:jamTrack];
+
+            id trackNodes = jamTrack[@"trackobjectset"];
+            if (trackNodes) {
+                if (index < [trackNodes count]) {
+                    id trackNode = trackNode[index];
+                    result = [self preferredTitleForObject:trackNode];
+                }
+            }
         }
     }
     
@@ -1018,9 +1023,97 @@
 }
 
 
+-(void)trackSets:(JWTrackSetsViewController*)controller saveJamTrackWithKey:(NSString*)key {
+    
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    id jamTrack;
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        id jamTracks = objectSection[@"trackobjectset"];
+        if (jamTracks)
+            jamTrack = jamTracks[itemIndexPath.row];
+    }
+
+    if (jamTrack) {
+        NSLog(@"jamTrack Save \n%@\n%@",key,jamTrack[@"key"]);
+        [self saveHomeMenuLists];
+    } else {
+        NSLog(@"jamTrack Save NOT found %@",key);
+    }
+}
 
 
-#pragma mark - delegate methods
+
+-(void)addTrack:(id)controller cachKey:(NSString*)key {
+    NSLog(@"%s",__func__);
+    
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        
+        if (jamTracks) {
+            if (itemIndexPath.row < [jamTracks count]) {
+                id jamTrack = jamTracks[itemIndexPath.row];
+                id trackNodes = jamTrack[@"trackobjectset"];
+                
+                id playerRecorder = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
+                [trackNodes addObject:playerRecorder];
+                NSLog(@"%s TRACK ADDED \n%@",__func__,[jamTrack description]);
+                [self saveHomeMenuLists];
+                
+            }
+        }
+    }
+}
+
+
+// shared protocol method with detail and tracksets
+
+-(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key {
+    
+    NSLog(@"%s",__func__);
+    
+    id result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        
+        if (jamTracks) {
+            if (itemIndexPath.row < [jamTracks count]) {
+                id jamTrack = jamTracks[itemIndexPath.row];
+                id trackNodes = jamTrack[@"trackobjectset"];
+                
+                id playerRecorder = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
+                [trackNodes addObject:playerRecorder];
+                NSLog(@"%s TRACK ADDED \n%@",__func__,[jamTrack description]);
+                
+                [self saveHomeMenuLists];
+                
+                result = jamTrack;
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+//                id objectSection = _homeControllerSections[[self indexOfSectionOfType:JWHomeSectionTypeAudioFiles]];
+//                id trackObjectSet = objectSection[@"trackobjectset"];
+//                if ([controller isKindOfClass:[JWTrackSetsViewController class]]) {
+//                    [(JWTrackSetsViewController*)controller setTrackSet:trackObjectSet];
+//                }
+
+
+#pragma mark - DetailViewController delegate methods
 
 -(void)itemChanged:(DetailViewController*)controller {
 //    [self saveUserOrderedList];
@@ -1040,27 +1133,13 @@
 }
 
 
-#pragma mark -
-
--(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key {
-    
-}
-
-//-(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key {
-//    NSIndexPath *item = [self indexPathOfCacheItem:key];
-//    NSMutableArray *objectCollection = _objectCollections[item.section];
-//    NSMutableDictionary *trackObject = [self newTrackObject];
-//    [objectCollection insertObject:trackObject atIndex:0];
-//    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:item.section];
-//    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-//}
-
 -(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key {
     return nil;
 }
 
 
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key {
+    
     NSArray * result;
     NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
     
@@ -1402,8 +1481,9 @@
             }
         }
 
+        [self saveHomeMenuLists];
+
 //        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
-        
 //        [self saveUserOrderedList];
         
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
@@ -1572,6 +1652,9 @@
 
 // Override to support conditional rearranging of the table view.
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    return NO; // neess more work
+    
     // Return NO if you do not want the item to be re-orderable.
     BOOL result = NO;
     
@@ -1617,9 +1700,7 @@
             count ++;
         }
     }
-
-    
-    
+   
     if (sourceIndexPath.section == proposedDestinationIndexPath.section)
     {
         
@@ -1768,101 +1849,4 @@
 
 @end
 
-
-
-
-
-
-
-//    id trackObject = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL];
-//    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL];
-//    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
-//    id jamTrack = [self newJamTrackObject];
-//    jamTrack[@"trackobjectset"] = [@[track1, track2] mutableCopy];
-
-//        NSLog(@"%s\n\nlastpath %@\nbaseurl %@\n relative %@\n\n",__func__,
-//              [[(NSURL*)furl path] lastPathComponent],
-//              [[(NSURL*)furl baseURL] path],
-//              [(NSURL*)furl relativePath]);
-
-//    NSURL *result;
-//    NSString *thisfName = name;//@"mp3file";
-//    NSString *thisName = thisfName; //[NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
-//    NSMutableString *fname = [[self documentsDirectoryPath] mutableCopy];
-//    [fname appendFormat:@"/%@",thisName];
-//    result = [NSURL fileURLWithPath:fname];
-//    return result;
-
-//if (!self.objectCollections) {
-//    self.objectCollections = [[NSMutableArray alloc] init];
-//
-//NSMutableArray *objectCollection = nil;
-//BOOL useSet = YES;
-///*
-// Use SET will great a collection of items, here a Tracks Object set
-// A Track Object or a Track Object set
-// */
-//if (useSet) {
-//    objectCollection = [self newTrackObjectSet];
-//    [_objectCollections insertObject:objectCollection atIndex:0];
-//    [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-//} else {
-//    NSMutableDictionary *trackObject = [self newTrackObject];
-//    NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-//    // ADD A Track Object to the selected TrackObject set
-//    if (selected) {
-//        objectCollection = _objectCollections[selected.section];
-//        [objectCollection insertObject:trackObject atIndex:0];
-//        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:selected.section];
-//        [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-//    }
-//    // ELSE CREATES AN NEW TrackObject set
-//    else {
-//        [objectCollection insertObject:trackObject atIndex:0];
-//        [_objectCollections insertObject:objectCollection atIndex:0];
-//        [self.tableView insertSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-
-//-(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key {
-//    NSIndexPath *item = [self indexPathOfCacheItem:key];
-//    NSMutableArray *objectCollection = _objectCollections[item.section];
-//    return objectCollection;
-
-///*
-// serializeOut
-// Convert any dictionary items that cannot be serialized to serializable format if possible
-// fileURL NSURL to Path
-// UIColor to rgb alpha
-// */
-//-(void)serializeOut {
-//    for (id objectCollection in _objectCollections) {
-//        for (id obj in objectCollection) {
-//            id furl = obj[@"fileURL"];
-//            if (furl) {
-//                obj[@"fileName"] = [[(NSURL*)furl path] lastPathComponent];
-//                [obj removeObjectForKey:@"fileURL"];
-//-(void)saveUserOrderedList {
-//    [self serializeOut];
-//    [_objectCollections writeToURL:[self fileURLWithFileName:@"savedobjects"] atomically:YES];
-//    [self serializeIn];
-//    
-//    NSLog(@"%s savedobjects[%ld]",__func__,[_objectCollections count]);
-//    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
-///*
-// serializeIn
-// Convert any dictionary items that could not be serialized and were converted to a serializable format
-// Path to fileURL NSURL
-// rgb-alpha to UIColor
-// */
-//-(void)serializeIn {
-//    for (id objectCollection in _objectCollections) {
-//        for (id obj in objectCollection) {
-//            id fname = obj[@"fileName"];
-//            if (fname) {
-//                obj[@"fileURL"] = [self fileURLWithFileName:fname];
-//                [obj removeObjectForKey:@"fileName"];
-//-(void)readUserOrderedList {
-//    _objectCollections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"savedobjects"]];
-//    [self serializeIn];
-//    NSLog(@"%savedobjects[%ld]",__func__,[_objectCollections count]);
-//    //    NSLog(@"%savedobjects \n%@",__func__,[_objects description]);
 

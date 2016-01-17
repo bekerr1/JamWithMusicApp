@@ -38,6 +38,10 @@
 -(instancetype)initWithPrimaryFileURL:(NSURL*)primaryFileURL fadeInURL:(NSURL*)fadeInFileURL delegate:(id <JWMTAudioEngineDelgegate>) engineDelegate;
 
 -(void)initializeAudio;
+-(void)initializeAudioConfig;
+
+-(void)stopPlayersForReset;
+
 -(void)setupAVEngine;
 
 @property (nonatomic,readwrite) float mixerVolume;

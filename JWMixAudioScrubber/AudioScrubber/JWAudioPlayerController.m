@@ -23,17 +23,15 @@ JWMixEditDelegate
     BOOL _colorizedTracks;
     BOOL _rewound;
     BOOL _listenToPositionChanges;
+    BOOL _wasPlaying;
     UIColor *iosColor2;
     UIColor *iosColor1;
     UIColor *iosColor3;
     UIColor *iosColor4;
-    
     UIColor *iosColor5;
     UIColor *iosColor6;
     UIColor *iosColor7;
     UIColor *iosColor8;
-    BOOL _wasPlaying;
-
 }
 @property (nonatomic) JWScrubberController *sc;
 @property (nonatomic) JWPlayerControlsViewController* pcvc;
@@ -48,22 +46,29 @@ JWMixEditDelegate
 @property (nonatomic) CGFloat currentPositionChange;
 @property (nonatomic, readwrite) PlayerControllerState state;
 @property (nonatomic) CGFloat backLightValue;;
-
 @end
 
 
 @implementation JWAudioPlayerController
 
+
+
+-(instancetype)init {
+    if (self = [super init]) {
+        [self iosColors];
+    }
+    return self;
+}
+
 -(void)stop {
-    NSLog(@"%s",__func__);
-    
     _listenToPositionChanges = NO;
     [_sc stopPlaying:nil rewind:NO];
     [_audioEngine stopAllActivePlayerNodes];
     
     [[NSUserDefaults standardUserDefaults] setValue:@(_sc.backlightValue) forKey:@"backlightvalue"];
-
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    NSLog(@"%s STOP player controller",__func__);
 }
 
 -(void)stopKill {
@@ -78,35 +83,27 @@ JWMixEditDelegate
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me {
     
     [self iosColors];
+    
     _listenToPositionChanges = NO;
     
     id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
-    if (savedBackLightValue) {
-        _backLightValue = [savedBackLightValue floatValue];
-    } else {
-        _backLightValue = 0.22;
-    }
+    _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
     
-    //INITIALIZE ENGINE
+    //INITIALIZE ENGINE AND COMPONENTS
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
     self.audioEngine.engineDelegate = self;
-    
     self.metvc = me;
     self.metvc.delegateMixEdit = self;
     self.metvc.effectsHandler = self.audioEngine;
-    
     self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc andBackLightValue:_backLightValue];
     self.sc.delegate = self;
-    
     self.pcvc = (JWPlayerControlsViewController *)pvc;
     self.pcvc.delegate = self;
-    
     self.pcvc = pvc;
     [self.pcvc initializeWithState:_state withLightBackround:NO];
-    
 }
 
-
+// initialize wrapper
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me
                                 withCompletion:(JWPlayerCompletionHandler)completion
 {
@@ -115,6 +112,7 @@ JWMixEditDelegate
                                                 withCompletion:completion];
 }
 
+// initialize
 -(void) initializePlayerControllerWithScrubberWithAutoplayOn:(BOOL)autoplay
                                                usingScrubberView:(id)svc playerControls:(id)pvc mixEdit:(id)me
                                               withCompletion:(JWPlayerCompletionHandler)completion
@@ -125,14 +123,10 @@ JWMixEditDelegate
     self.metvc = me;
     self.pcvc = (JWPlayerControlsViewController *)pvc;
     
-    [self iosColors];
-
+    
     id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
-    if (savedBackLightValue) {
-        _backLightValue = [savedBackLightValue floatValue];
-    } else {
-        _backLightValue = 0.22;
-    }
+    _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
+
 
     //INITIALIZE ENGINE IN BACKGROUND
 
@@ -152,9 +146,8 @@ JWMixEditDelegate
             
             [self.pcvc initializeWithState:_state withLightBackround:NO];
             
-            if (completion) {
+            if (completion)
                 completion();
-            }
         });
     });
     
@@ -163,11 +156,10 @@ JWMixEditDelegate
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appWillBackground:)
                                                  name:@"AppWillBackground" object:nil];
-
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appWillForeground:)
                                                  name:@"AppWillForeground" object:nil];
-
 }
 
 -(void)appWillBackground:(id)noti {
@@ -217,20 +209,21 @@ JWMixEditDelegate
         if (playerNode)
             [nodeList addObject:playerNode];
     }
-    
+
     _audioEngine.playerNodeList = nodeList;
-    
+
+    [_audioEngine initializeAudioConfig];
     [_audioEngine initializeAudio];
     [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
     [self configureScrubbers:NO];
     self.state = JWPlayerStatePlayFromBeg;
     
-    if (_autoPlay) {
-        double delayInSecs = 0.25;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self play];
-        });
-    }
+//    if (_autoPlay) {
+//        double delayInSecs = 0.25;
+//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//            [self play];
+//        });
+//    }
 
 }
 
@@ -357,7 +350,7 @@ JWMixEditDelegate
 //      }
 
 
-#pragma mark - old setTracks
+#pragma mark  old setTracks
 // -----------------------------------
 // old track itesms Did not contain JWPlayerNodeType
 -(void)setTrackItems:(id)trackItems {
@@ -378,7 +371,7 @@ JWMixEditDelegate
     return playerNode;
 }
 
-#pragma mark -
+#pragma mark - Controller
 
 -(void)deSelectTrack
 {
@@ -524,7 +517,7 @@ JWMixEditDelegate
 }
 
 
-#pragma mark - SCRUBBER
+#pragma mark - CONDIFURE SCRUBBER
 
 -(void)startListening {
     
@@ -754,14 +747,14 @@ JWMixEditDelegate
     if (_colorizedTracks == NO) {  // set the base to whites
         // Track colors whiteColor/ whiteColor - WHITE middle
         [_sc configureColors:[self defaultWhiteColors]];
-        
+
         [_sc configureScrubberColors:
          @{
            JWColorBackgroundHueColor : [UIColor blackColor],
           JWColorBackgroundHeaderGradientColor2 : [UIColor blackColor],
           JWColorBackgroundHeaderGradientColor1 : iosColor8
             }
-         ]; // default blue ocean
+         ];
         
 //        [_sc configureScrubberColors:
 //         @{ JWColorBackgroundHueColor : [UIColor blackColor],
@@ -769,8 +762,10 @@ JWMixEditDelegate
 //            JWColorBackgroundTrackGradientColor2 : [UIColor blueColor],
 //            JWColorBackgroundTrackGradientColor3 : [UIColor clearColor],
 //            }
-//         ]; // default blue ocean
+//         ];
 
+        
+        // default blue ocean
         //         @{ JWColorBackgroundHueColor : iosColor2
         //            }
 
@@ -796,6 +791,8 @@ JWMixEditDelegate
     }
 }
 
+
+#pragma mark scrubber commands
 
 -(BOOL) editSelectedTrackBeginInset {
     if (_sc.selectedTrack) {
@@ -835,7 +832,9 @@ JWMixEditDelegate
 }
 
 
-#pragma mark scrubber controler Delegate for buffers
+#pragma mark - SCRUBBER DELEGATE
+
+#pragma mark scrubber player status
 
 -(CGFloat)progressOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
     return [_audioEngine progressOfAudioFileForPlayerAtIndex:0];
@@ -861,11 +860,8 @@ JWMixEditDelegate
 //    NSUInteger index = 0;
 //    NSString *title;
 //    BOOL found = false;
-//    
 ////    [_delegate trackSets:self titleForSection:section];
 ////    [_delegate trackSets:self titleDetailForSection:section];
-//
-//    // TODO: make delegate call for title
 //    if (sid) {
 //        for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
 //            id trackId = item[@"trackid"];
@@ -876,14 +872,11 @@ JWMixEditDelegate
 //            }
 //            index++;
 //        }
-//        
 //    } else {
-//        
 //        index = 0;
 //    }
 //    
 //    if (index < [_trackItems count]) {
-//        
 //        id titleValue = _trackItems[index][@"usertitle"];
 //        if (titleValue){
 //            title =titleValue;
@@ -893,13 +886,10 @@ JWMixEditDelegate
 //                title =titleValue;
 //        }
 //    }
-//    
 //    if (found == NO) {
 //        title = [_audioEngine processingFormatStr];
 //    }
-//    
 //    return title;
-//}
 
 
 #pragma mark edit scrubber delegate
@@ -1021,7 +1011,7 @@ JWMixEditDelegate
 }
 
 
-#pragma mark Position Changed
+#pragma mark position Changed
 
 -(void)positionChanged:(JWScrubberController*)controller positionSeconds:(CGFloat)position {
     
@@ -1079,7 +1069,7 @@ JWMixEditDelegate
     return doUpdate;
 }
 
-#pragma mark Scrubber track interaction
+#pragma mark scrubber track interaction
 
 -(void)scrubber:(JWScrubberController *)controller selectedTrack:(NSString *)sid {
     NSLog(@"%s %@", __func__,sid);
@@ -1192,245 +1182,4 @@ JWMixEditDelegate
 
 
 
-
-
-//
-//// -----------------------------------
-//// old track itesms
-//-(void)setTrackItems:(id)trackItems {
-//    
-//    _trackItems = trackItems;
-//    
-//    if (trackItems) {
-//        
-//        self.trackItem = nil;
-//        
-//        _state = JWPlayerStateSetToBeg;
-//        
-//        // BUILD A PLAYER NODE LIST
-//        NSMutableArray *nodeList = [NSMutableArray new];
-//        
-//        for (id item in (NSArray *)trackItems) {
-//            NSMutableDictionary *playerNode = [self newEnginePlayerNodeForItem:item];
-//            if (playerNode)
-//                [nodeList addObject:playerNode];
-//        }
-//        
-//        _audioEngine.playerNodeList = nodeList;
-//        [_audioEngine initializeAudio];
-//        [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
-//        
-//        [self configureScrubbers:NO];
-//        
-//        //        dispatch_async(dispatch_get_main_queue(), ^{
-//        //            [self configureScrubbers:NO];
-//        //        });
-//        
-//        
-//        [_sc refresh];
-//        
-//        self.state = JWPlayerStatePlayFromBeg;
-//    }
-//    
-//}
-//
-//-(void)setTrackItem:(id)trackItem {
-//    _trackItem = trackItem;
-//    if (trackItem) {
-//        NSArray *trackItems = @[trackItem];
-//        self.trackItems = trackItems;
-//    }
-//}
-//
-//
-//- (NSMutableDictionary*) newEnginePlayerNodeForItem:(NSDictionary*)item {
-//    
-//    NSMutableDictionary *playerNode;
-//    NSURL *fileURL = item[@"fileURL"];
-//    JWMixerNodeTypes  nodeType = JWMixerNodeTypeNone;
-//    id typeValue = item[@"type"];
-//    if (typeValue) {
-//        nodeType = [typeValue unsignedIntegerValue];
-//        
-//        if (nodeType == JWMixerNodeTypePlayer) {
-//            playerNode =
-//            [@{@"title":@"playernode1",
-//               @"type":@(JWMixerNodeTypePlayer),
-//               } mutableCopy];
-//        } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
-//            playerNode =
-//            [@{@"title":@"playerrecordernode1",
-//               @"type":@(JWMixerNodeTypePlayerRecorder),
-//               } mutableCopy];
-//        }
-//        if (fileURL)
-//            playerNode[@"fileURLString"] = [fileURL path];
-//        
-//        id titleValue = item[@"title"];
-//        if (titleValue)
-//            playerNode[@"title"] = titleValue;
-//        
-//    } else {
-//        
-//        if (fileURL) {
-//            playerNode =
-//            [@{@"title":@"playernode1",
-//               @"type":@(JWMixerNodeTypePlayer),
-//               @"fileURLString":[fileURL path],
-//               } mutableCopy];
-//        } else {
-//            playerNode =
-//            [@{@"title":@"playerrecordernode1",
-//               @"type":@(JWMixerNodeTypePlayerRecorder),
-//               } mutableCopy];
-//        }
-//    }
-//    
-//    id delayItem = item[@"starttime"];
-//    float delay = 0.0;
-//    if (delayItem)
-//        delay = [delayItem floatValue];
-//        
-//        if (delay > 0.0)
-//            playerNode[@"delay"] = @(delay);
-//            
-//            id referenceFileItem = item[@"referencefile"];
-//            if (referenceFileItem)
-//                playerNode[@"referencefile"] = referenceFileItem;
-//                
-//                //TODO: fill this in
-//                
-//                NSArray *effectsArray =
-//                @[
-//                  @{@"type" : @(JWEffectNodeTypeReverb),
-//                    @"title" : @"Reverb",
-//                    @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
-//                    },
-//                  
-//                  @{@"type" : @(JWEffectNodeTypeDistortion),
-//                    @"title" : @"Distortion",
-//                    @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
-//                    @"pregain" : @(0.0)
-//                    }
-//                  ];
-//                
-//                if (effectsArray) {
-//                    //    playerNode[@"effects"] = effectsArray;
-//                }
-//    return playerNode;
-//}
-
-//- (NSMutableDictionary*) newEnginePlayerRecorderNodeForItem:(NSDictionary*)item {
-//    
-//    //NSURL *fileURL = item[@"fileURL"];
-//    NSMutableDictionary *playerNode =
-//    [@{@"title":@"playerrecordernode1",
-//       @"type":@(JWMixerNodeTypePlayerRecorder),
-//       } mutableCopy];
-//    id delayItem = item[@"starttime"];
-//    float delay = 0.0;
-//    if (delayItem)
-//        delay = [delayItem floatValue];
-//        if (delay > 0.0)
-//            playerNode[@"delay"] = @(delay);
-//            id referenceFileItem = item[@"referencefile"];
-//            if (referenceFileItem)
-//                playerNode[@"referencefile"] = referenceFileItem;
-//                
-//                return playerNode;
-//}
-
-
-
-//    SampleSize ssz =  SampleSize14;
-//    VABKindOptions kind =  VABOptionCenter;
-//    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
-//    NSDictionary * fileReference;
-//    NSURL * fileURL;
-//        float delay = 0.0;
-//        id delayItem = item[@"starttime"];
-//        if (delayItem)
-//            delay = [delayItem floatValue];
-//
-//        id referenceFileItem = item[@"referencefile"];
-//        if (referenceFileItem)
-//            fileReference = referenceFileItem;
-
-//            SamplingOptions so = SamplingOptionDualChannel;
-//            if (_sc.pulseBackLight)
-//                so &= SamplingOptionCollectPulseData;
-//
-//            //If its a player node that has a file url that buffer info can be recieved
-//            if (fileURL) {
-//                NSString *sid =
-//                [_sc prepareScrubberFileURL:fileURL
-//                             withSampleSize:ssz
-//                                    options:so
-//                                       type:kind
-//                                     layout:layout
-//                                     colors:nil
-//                              referenceFile:fileReference
-//                                  startTime:delay
-//                               onCompletion:nil];
-//
-//                [item setValue:sid forKey:@"trackid"];
-//
-//            } else {
-//                // no file URL for player
-//                NSLog(@"%s NO file url for Player Node at index %d",__func__,index);
-//            }
-
-//        colorizedTracks
-//        ? @{
-//            JWColorScrubberTopAvg : [[UIColor blueColor] colorWithAlphaComponent:0.8] ,
-//            JWColorScrubberBottomAvg : [[UIColor blueColor] colorWithAlphaComponent:0.5],
-//            }:nil
-//            BOOL usePlayerScrubber = YES;  // determine whther to use player or recorder for scrubber
-//            //TODO: B resolve this.
-//            if (fileURL == nil)
-//                usePlayerScrubber = NO; // USE recorder There is no file, no audio
-//
-//            NSLog(@"%s usePlayerScrubber for recorderplayer %@ at index %d",__func__,usePlayerScrubber?@"YES":@"NO",index);
-//            //If recorder has audio file, dont need to listen to it, should just play its audio
-//            if (usePlayerScrubber) {
-//                NSString *sid =
-//                [_sc prepareScrubberFileURL:fileURL
-//                             withSampleSize:SampleSize14
-//                                    options:SamplingOptionDualChannel
-//                                       type:VABOptionNone
-//                                     layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine
-//                                     colors:nil
-//                              referenceFile:fileReference
-//                                  startTime:delay
-//                               onCompletion:nil];
-//
-//                [item setValue:sid forKey:@"trackid"];
-//
-//            } else if (recordMix == NO) {
-//
-//                //This recorder has no audio and is used to record user audio
-//                // While Exporting Dont show the Recorder
-//                // A Recorder uses a different config than a tap on The Mixer
-//
-//                // use recorder
-//                NSString *recorderTrackId =
-//                [_sc prepareScrubberListenerSource:nil
-//                                    withSampleSize:SampleSize8
-//                                           options:SamplingOptionDualChannel
-//                                              type:VABOptionCenter
-//                                            layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples
-//                                            colors:
-//                 @{
-//                   JWColorScrubberTopPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
-//                   JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-//                   JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-//                   JWColorScrubberBottomPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
-//                   }
-//
-//                                      onCompletion:nil];
-//
-//                [_audioEngine registerController:_sc withTrackId:recorderTrackId forPlayerRecorderAtIndex:index];
-//
-//                [item setValue:recorderTrackId forKey:@"trackid"];
-//            }
 

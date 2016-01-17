@@ -91,12 +91,49 @@
 }
 
 
+- (void)stopPlayersForReset {
+
+    NSLog(@"%s",__func__);
+    NSUInteger index = 0;
+    for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
+        
+        id pn = playerNodeInfo[@"player"];
+        if (pn) {
+//            [pn stop];
+//            [pn reset];
+        }
+        
+        id rc = playerNodeInfo[@"recorderController"];
+        if (rc) {
+//            if ([(JWAudioRecorderController*)rc recording]) {
+//                [rc stopRecording];
+//            }
+        }
+
+//        NSLog(@"%@",[playerNodeInfo description]);
+        
+        [playerNodeInfo removeObjectForKey:@"recorderController"];
+        [playerNodeInfo removeObjectForKey:@"player"];
+        [playerNodeInfo removeObjectForKey:@"audiobuffer"];
+        [playerNodeInfo removeObjectForKey:@"audiofile"];
+        [playerNodeInfo removeObjectForKey:@"effectnodes"];
+
+//        NSLog(@"%@",[playerNodeInfo description]);
+        
+        index++;
+    }
+    
+}
+
+
 #pragma mark - player node data
 
 -(void)loadPlayerNodeData {
     
-    [self readPlayerNodeList];
-    
+//    [self readPlayerNodeList];
+
+    NSLog(@"%s %@",__func__,[_playerNodeList description]);
+
     if (_playerNodeList == nil) {
         NSLog(@"%s no list creating new one ",__func__ );
 //        [self defaultPlayerNodeList];
@@ -592,7 +629,10 @@
 }
 
 - (void)createEngineAndAttachNodes {
-    [super createEngineAndAttachNodes];
+    
+    if (self.audioEngine == nil) {
+        [super createEngineAndAttachNodes];
+    }
 
     /*  An AVAudioEngine contains a group of connected AVAudioNodes ("nodes"), each of which performs
      an audio signal generation, processing, or input/output task.

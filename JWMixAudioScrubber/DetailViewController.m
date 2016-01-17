@@ -52,9 +52,11 @@
         _detailItem = newDetailItem;
         
         if (_playerController)
-        {
             [self configureView];
-        }
+        
+    } else {
+        if (_playerController)
+            [self configureView];
     }
 }
 // Update the view.
@@ -69,13 +71,16 @@
         id hasTrackObjectSet = _detailItem[@"trackobjectset"];
         if (hasTrackObjectSet) {
             self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+            NSLog(@"%s %@",__func__,[_trackItems description]);
             
         } else {
+            
+            NSLog(@"%s DEPRECATED FIXME %@",__func__,[_trackItems description]);
             self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
         }
         
         if (_playerController) {
-            // SETUP AUDIO ENGINE
+            // SETUP AUDIO PLAYER CONTROLLER
             
             if (_trackItems) {
                 // MULTIPLE items
@@ -83,38 +88,31 @@
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [_playerController setTrackSet:_trackItems];
                     });
-                } else {
                     
+                } else {
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [_playerController setTrackItems:_trackItems];
                     });
-                    
                 }
             } else {
                 // SINGLE detail item
-                if (self.detailItem) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [_playerController setTrackItem:_detailItem];
-                    });
-                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [_playerController setTrackItem:_detailItem];
+                });
             }
         }
     }
     
     [self revealScrubber];
-    
     double delayInSecs = 0.80;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [_scrubberActivity stopAnimating];
     });
-
 }
-
 
 -(void)revealScrubber {
     [self revealScrubberAnimated:YES];
 }
-
 
 -(void)revealScrubberAnimated:(BOOL)animated {
     
@@ -127,7 +125,6 @@
             [UIView animateWithDuration:0.10 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.view.backgroundColor = self.restoreColor;
             } completion:nil];
-            
         }];
         
     } else {
@@ -166,7 +163,6 @@
 
     self.playerController = [JWAudioPlayerController new];
     self.playerController.delegate = self;
-
     [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:YES
                                                               usingScrubberView:_scrubber
                                                                  playerControls:_playerControls mixEdit:_mixEdit
@@ -176,18 +172,7 @@
                                                                  }];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
-
 }
-
-//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit];
-
-//    _playerController.autoPlay = YES;
-//    [self.playerController initializePlayerControllerWithScrubber:_scrubber playerControls:_playerControls mixEdit:_mixEdit
-//                                                   withCompletion:^{
-//                                                       [self configureView];
-//                                                       [self.navigationController setToolbarHidden:NO];
-//                                                   }];
-
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -195,15 +180,12 @@
     [self updateAmpImage];
 }
 
--(void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-}
-
--(void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-//    [self.playerController stop];
-//    self.playerController = nil;  // kill the player controller
-}
+//-(void)viewWillDisappear:(BOOL)animated {
+//    [super viewWillDisappear:animated];
+//}
+//-(void)viewDidDisappear:(BOOL)animated {
+//    [super viewDidDisappear:animated];
+//}
 
 -(void)dealloc
 {
@@ -218,13 +200,11 @@
 #pragma mark - amp image
 
 //NSLog(@"%s %ld",__func__,selectedAmpImageIndex);
-//// jwframesandscreens - 3
-////jwscreensandcontrols
-////jwjustscreensandlogos
+//// jwframesandscreens - 3 jwscreensandcontrols jwjustscreensandlogos jwjustscreensonly
 //NSLog(@"%s %@",__func__,[[noti userInfo] description]);
 
 -(void)updateAmpImage {
-    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %ld",selectedAmpImageIndex + 1]];
+    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %ld",selectedAmpImageIndex + 1]];
     dispatch_async(dispatch_get_main_queue(), ^{
         _logoImageView.image = ampImage;
         [self.logoImageView setNeedsLayout];
@@ -265,14 +245,13 @@
     
     if (sender == _playButton) {
         NSLog(@"%s PLAY",__func__);
-        
         _playing = YES;
         [self toolbar2WithPlay:_playing];
         [_playerController play];
                 
     } else if (sender == _forwardButton) {
-        NSLog(@"%s PAUSE",__func__);
-        
+        NSLog(@"%s FWD",__func__);
+
     } else  if (sender == _rewindButton) {
         NSLog(@"%s REWIND",__func__);
 
@@ -283,7 +262,6 @@
         [self toolbar2WithPlay:_playing];
         [_playerController pause];
     }
-    
 }
 
 -(void)toolbar1 {
@@ -320,19 +298,17 @@
 
 -(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller {
     
-    if (_sctv.hidden) {
+    if (_sctv.hidden)
         return CGSizeZero;
-    }
     
     CGFloat tracksz = 60.0f;
     NSUInteger nTracks = controller.numberOfTracks;
-    if (nTracks == 1) {
+    if (nTracks == 1)
         tracksz = 120;
-    } else if (nTracks == 2) {
+    else if (nTracks == 2)
         tracksz = 85.0f;
-    } else if (nTracks == 3) {
+    else if (nTracks == 3)
         tracksz = 95.0f;
-    }
     
     CGFloat expectedHeight = (controller.numberOfTracks  * tracksz);// + 40;  // labels on scrubber
     
@@ -345,32 +321,27 @@
     [self saveAction:nil];
 }
 
-
 -(void)noTrackSelected:(JWAudioPlayerController *)controller {
     _mixeditContainerView.hidden = YES;
     [self toolbar1];
 }
 
 -(void)trackSelected:(JWAudioPlayerController *)controller {
-    if ([_mixeditContainerView isHidden]) {
+    if ([_mixeditContainerView isHidden])
         [self effectsAction:nil];
-    }
 }
 
 -(void)playTillEnd {
-    
     _playing = NO;
-    
-    if (_mixeditContainerView.hidden == NO) {
+    if (_mixeditContainerView.hidden == NO)
         [self toolbar2WithPlay:_playing];
-    }
 }
 
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index {
     [self clipActions];
 }
 
--(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
     
     if ( index <  [self.trackItems count]){
         id nodeItem = _trackItems[index];
@@ -382,18 +353,14 @@
 
 
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key {
-//    
 //}
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key {
-//    
 //}
 
 -(NSString*)playerControllerTitleForTrackSetContainingKey:(JWAudioPlayerController*)controllerkey {
     
     return [_delegate detailController:self titleForJamTrackKey:_detailItem[@"key"]];
 }
-
-
 
 #pragma mark - ActionSheets and ALert
 
@@ -416,7 +383,6 @@
         if ([_playerController editSelectedTrackBeginInset]){
             // SELECTED and EDITING
             self.editing = YES;
-            
             [self editingButtons];
         }
     }];
@@ -426,7 +392,6 @@
             // SELECTED and EDITING
             self.editing = YES;
             [self editingButtons];
-
         }
     }];
     UIAlertAction* startPosition =
@@ -435,7 +400,6 @@
             // SELECTED and EDITING
             self.editing = YES;
             [self editingButtons];
-
         }
     }];
     UIAlertAction* cancelAction =
@@ -446,7 +410,6 @@
     [actionController addAction:startPosition];
     [actionController addAction:cancelAction];
     [self presentViewController:actionController animated:YES completion:nil];
-    
 }
 
 -(void)clipActionsEditing {
@@ -476,9 +439,7 @@
     [actionController addAction:cancelClipEdit];
     [actionController addAction:cancelAction];
     [self presentViewController:actionController animated:YES completion:nil];
-    
 }
-
 
 
 -(void)addEffectAction {
@@ -505,9 +466,7 @@
     [addEffect addAction:addDistortionAction];
     [addEffect addAction:addEQAction];
     [addEffect addAction:cancel];
-    
     [self presentViewController:addEffect animated:YES completion:nil];
-    
 }
 
 #pragma mark -
@@ -522,7 +481,13 @@
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
     UIAlertAction *addNodeAction = [UIAlertAction actionWithTitle:@"Add Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
 
-        NSLog(@"%s ADD NODE not implemented",__func__);
+        if ([_delegate respondsToSelector:@selector(addTrackNode:toJamTrackWithKey:)]) {
+            [_delegate addTrackNode:self toJamTrackWithKey:_detailItem[@"key"]];
+            [self configureView];
+        }
+
+        // [_delegate addTrack:self cachKey:_detailItem[@"key"]];
+        // NSLog(@"%s ADD NODE not implemented",__func__);
     }];
     
     if (self.mixeditContainerView.hidden == YES) {
@@ -543,7 +508,6 @@
     self.mixeditContainerView.hidden == NO ? [addNodeOrEffect addAction:addEffectAction] : NO;
     [addNodeOrEffect addAction:addNodeAction];
     [addNodeOrEffect addAction:cancel];
-    
     [self presentViewController:addNodeOrEffect animated:YES completion:nil];
 }
 
@@ -560,11 +524,10 @@
         if (_mixeditContainerView.hidden == NO) {
             
             // EFFECTS ON
-            if (self.playerController.state == JWPlayerStatePlayFromPos) {
+            if (self.playerController.state == JWPlayerStatePlayFromPos)
                 _playing = YES;
-            } else {
+            else
                 _playing = NO;
-            }
             
             [self toolbar2WithPlay:_playing];
             
@@ -577,13 +540,10 @@
             
         } else {
             // EFFECTS OFF
-            
             [self toolbar1];
             [self.playerController deSelectTrack];
-            
         }
     }
-
 }
 
 
