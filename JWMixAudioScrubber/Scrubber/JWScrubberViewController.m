@@ -126,7 +126,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.bounces = NO;
     self.recordingProgressView.hidden = YES;
     self.recordingProgressView.layer.transform = CATransform3DMakeScale(1.0, 6.2, 1.0);
-    self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 7.4, 1.0);
+    self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 8.4, 1.0);
     self.scrubberProgressView.progress = 0.0;
     
     self.playHeadWindow.hidden = YES;
@@ -553,6 +553,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (self.playHeadWindow.hidden == YES) {  // first time at viewDidload
         self.playHeadWindow.alpha = 0.0;
         self.playHeadWindow.hidden = NO;
+        
+        
+        
         [UIView animateWithDuration:.10 delay:0.0 options:UIViewAnimationOptionCurveLinear
                          animations:^{
                              self.playHeadWindow.alpha = 1.0;
@@ -567,7 +570,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     CGFloat pos = 0.00; //offset.x + self.scrollView.contentInset.left;
     
-    self.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",pos/_uiPointsPerSecondLength];
+    self.playHeadValueStr = @"";
+    
+//    self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+
+    CGFloat endPosition = [self largestTrackEndPosition];
+    self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
     
     [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
 }
@@ -577,8 +585,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat endPosition = [self largestTrackEndPosition];
     CGFloat pos = endPosition;
     
-    self.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",pos/_uiPointsPerSecondLength];
-        
+    self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+    self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+
     [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
 }
 
@@ -592,10 +601,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         //        NSUInteger progressTrack = 1;
         CGFloat endPosition = [self largestTrackEndPosition];
         if (pos < endPosition) {
-            CGFloat pointsPerSecond = _isScaled ? _scaleduiPointsPerSecondLength : _uiPointsPerSecondLength;
-            self.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",pos/pointsPerSecond];
-            
-            [_delegate positionInTrackChangedPosition:pos/pointsPerSecond];
+            self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+            self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+
+            [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
         }
     }
 }
@@ -610,10 +619,20 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat endPosition = [self largestTrackEndPosition];
     
     if (pos < endPosition) {
-        CGFloat pointsPerSecond = _isScaled ? _scaleduiPointsPerSecondLength : _uiPointsPerSecondLength;
-        self.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",pos/pointsPerSecond];
         
-        [_delegate positionInTrackChangedPosition:pos/pointsPerSecond];
+        CGFloat cp = pos/_uiPointsPerSecondLength;
+        if (cp < 0)
+            cp = 0.0;
+        
+        if  (cp < 1.00)
+            self.playHeadValueStr = @"";
+        else
+            self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",cp];
+        
+//        self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+        self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+
+        [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
     }
 }
 
@@ -2361,7 +2380,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.18];
 //    self.playHeadWindow.alpha = 0.0;
     self.scrollView.userInteractionEnabled = NO;
-    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.10];
+    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.09];
+    
+    UIColor *playPinColor= [[UIColor whiteColor] colorWithAlphaComponent:0.80];
+    UIView *playHeadPin = [_playHeadWindow subviews][0];
+    playHeadPin.backgroundColor = playPinColor;
+
 }
 
 -(void)transitionToStopPlaying {
@@ -2378,7 +2402,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.userInteractionEnabled = YES;
     self.recordingProgressView.progress = 0.0;
     self.recordingProgressView.hidden = YES;
-    self.playHeadWindow.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.15];
+    self.playHeadWindow.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.10];
+    UIColor *playPinColor= [[UIColor lightGrayColor] colorWithAlphaComponent:0.80];
+    UIView *playHeadPin = [_playHeadWindow subviews][0];
+    playHeadPin.backgroundColor = playPinColor;
+
 }
 
 -(void)transitionToRecording {
@@ -2391,7 +2419,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [CATransaction commit];
     self.scrollView.userInteractionEnabled = NO;
     self.recordingProgressView.hidden = NO;
-    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.10];
+    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.09];
+    UIColor *playPinColor= [[UIColor whiteColor] colorWithAlphaComponent:0.80];
+    UIView *playHeadPin = [_playHeadWindow subviews][0];
+    playHeadPin.backgroundColor = playPinColor;
 }
 
 -(void)transitionToPlayTillEnd {
@@ -2794,12 +2825,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CATransform3D scaleTrans = CATransform3DMakeScale(1.1, 1.0, 1.0);
 
     UIColor *playHColor;
+    UIColor *playPinColor;
     if ([_delegate isPlaying]) {
-        playHColor= [[UIColor cyanColor] colorWithAlphaComponent:0.10];
+        playHColor= [[UIColor cyanColor] colorWithAlphaComponent:0.09];
+        playPinColor= [[UIColor whiteColor] colorWithAlphaComponent:0.80];
+
     } else {
-        playHColor = [[UIColor redColor] colorWithAlphaComponent:0.15];
+        playHColor = [[UIColor redColor] colorWithAlphaComponent:0.10];
+        playPinColor= [[UIColor lightGrayColor] colorWithAlphaComponent:0.80];
     }
 
+    UIView *playHeadPin = [_playHeadWindow subviews][0];
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         _playHeadWindow.alpha = 1.0;
         [UIView animateWithDuration:.250f delay:0.0
@@ -2809,6 +2846,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                              //_playHeadWindow.layer.transform = scaleTrans;
                              _playHeadWindow.alpha = 0.55f;
                              //_playHeadWindow.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.5];
+                             playHeadPin.backgroundColor = playPinColor;
                          } completion:^(BOOL fini){
                              
                              [UIView animateWithDuration:.150f delay:0.00
@@ -2817,9 +2855,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                                                   _playHeadWindow.transform = CATransform3DGetAffineTransform(CATransform3DIdentity);
                                                   //_playHeadWindow.layer.transform = CATransform3DIdentity;
                                                   _playHeadWindow.alpha = 1.0;
-                                                  
                                                   _playHeadWindow.backgroundColor = playHColor;
-
                                                   //_playHeadWindow.backgroundColor = restoreColor;
 
                                               } completion:^(BOOL fini){

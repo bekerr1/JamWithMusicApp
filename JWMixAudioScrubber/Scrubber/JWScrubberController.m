@@ -1360,12 +1360,14 @@ EDITING PROTOCOL PUBLIC API
         
         if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",0.0];
+                _scrubber.playHeadValueStr = @"";
+//                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",0.0];
+                
                 if ([_delegate respondsToSelector:@selector( durationInSecondsOfAudioFile:forScrubberId:)]) {
                     _scrubber.remainingValueStr =
-                    [NSString stringWithFormat:@"%.2f s",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
+                    [NSString stringWithFormat:@"-%.0f",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
                     _scrubber.durationValueStr =
-                    [NSString stringWithFormat:@"%.2f s",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
+                    [NSString stringWithFormat:@"%.0f seconds",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
                 }
                 
                 if ([_delegate respondsToSelector:@selector( processingFormatStr:forScrubberId:)])
@@ -1455,13 +1457,20 @@ EDITING PROTOCOL PUBLIC API
     if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if ([_delegate respondsToSelector:@selector( currentPositionInSecondsOfAudioFile:forScrubberId:)]) {
-                _scrubber.playHeadValueStr =
-                [NSString stringWithFormat:@"%.2f s",[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid]];
+                CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
+                if (cp < 0)
+                    cp = 0.0;
+                
+                if  (cp < 1.00)
+                    _scrubber.playHeadValueStr = @"";
+                else
+                    _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",cp];
+            
             }
             
             if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
                 _scrubber.remainingValueStr =
-                [NSString stringWithFormat:@"%.2f s",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
+                [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
             }
             
         });
@@ -1481,13 +1490,23 @@ EDITING PROTOCOL PUBLIC API
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 if ([_delegate respondsToSelector:@selector( currentPositionInSecondsOfAudioFile:forScrubberId:)]) {
-                    _scrubber.playHeadValueStr =
-                    [NSString stringWithFormat:@"%.2f s",[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid]];
+                    
+                    CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
+                    if (cp < 0)
+                        cp = 0.0;
+                    
+                    if  (cp < 1.0)
+                        _scrubber.playHeadValueStr = @"";
+                    else
+                        _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",cp];
+
+//                    _scrubber.playHeadValueStr =
+//                    [NSString stringWithFormat:@"%.0f",[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid]];
                 }
                 
                 if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
                     _scrubber.remainingValueStr =
-                    [NSString stringWithFormat:@"%.2f s",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
+                    [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
                 }
             });
         }
@@ -2030,7 +2049,7 @@ EDITING PROTOCOL PUBLIC API
         if (autoAdvance) {
             // is primary track
             dispatch_async(dispatch_get_main_queue(), ^{
-                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",_elapsedTimesSoFar[track]];
+                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",_elapsedTimesSoFar[track]];
             });
         }
         

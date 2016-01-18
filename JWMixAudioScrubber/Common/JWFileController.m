@@ -9,6 +9,7 @@
 #import "JWFileController.h"
 #import "JWDBKeys.h"
 @import UIKit;  // for UIImage
+@import AVFoundation;  // for audio length
 
 //#define JWSampleFileName @"trimmedMP3-45"
 //#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
@@ -17,6 +18,7 @@
     dispatch_queue_t _imageRetrievalQueue;
     dispatch_queue_t _fileInfoRetrievalQueue;
 }
+@property id lockFiles;
 @property (nonatomic,readwrite) NSArray *downloadedJamTrackFiles;
 @property (nonatomic,readwrite) NSArray *jamTrackFiles;
 @property (nonatomic,readwrite) NSArray *mp3Files;
@@ -24,11 +26,13 @@
 @property (nonatomic,readwrite) NSArray *sourceFiles;
 @property (nonatomic,readwrite) NSArray *trimmedFiles;
 @property (nonatomic) NSMutableArray *mp3filesFilesData;
-@property (nonatomic) NSMutableArray *filesData;   // holds filesystem sections
 @property (nonatomic) NSMutableArray *recordingsFilesData;
 @property (nonatomic) NSMutableArray *clipsFilesData;
 @property (nonatomic) NSMutableArray *finalsFilesData;
 @property (nonatomic) NSMutableArray *trimmedFilesData;
+
+@property (nonatomic) NSMutableDictionary *dbMetaData;
+
 @end
 
 
@@ -51,17 +55,17 @@
 -(instancetype)init {
     if (self = [super init]) {
         [self initdb];
-        if (_imageRetrievalQueue == nil) {
+        if (_imageRetrievalQueue == nil)
             _imageRetrievalQueue =
             dispatch_queue_create("imageFileProcessingYoutubeMP3",
                                   dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_UTILITY, 0));
-        }
         
-        if (_fileInfoRetrievalQueue == nil) {
+        if (_fileInfoRetrievalQueue == nil)
             _fileInfoRetrievalQueue =
             dispatch_queue_create("imageProcessingSourceAudio",
                                   dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_UTILITY, 0));
-        }
+        
+        _dbMetaData = [NSMutableDictionary new];
     }
     
     return self;
@@ -99,9 +103,18 @@
 }
 
 -(void)readFsData {
-    [self loadFilesystemData];
+    [self loadFilesystemDataPrtotected];
 }
 
+-(double)audioLengthForFileWithName:(NSString*)fileName {
+    
+    double result = 0.0;
+    NSString *dbKey = [self dbKeyForFileName:fileName];
+    if (dbKey)
+        result = [_dbMetaData[dbKey][@"faudiolength"] doubleValue];
+
+    return result;
+}
 
 #pragma mark -
 -(NSString*)documentsDirectoryPath {
@@ -211,8 +224,14 @@
 }
 
 - (void)loadAllData {
-    [self loadFilesystemData];
+    [self loadFilesystemDataPrtotected];
     [self loadMetaData];
+}
+
+- (void)loadFilesystemDataPrtotected {
+    @synchronized(self) {
+        [self loadFilesystemData];
+    }
 }
 
 - (void)loadFilesystemData {
@@ -365,6 +384,9 @@
     
     _jamTrackFiles = [NSArray arrayWithArray:jamTrackFiles];
     
+    
+    [self processMetaDataForFiles];
+    
 }
 
 
@@ -376,6 +398,83 @@
 
 - (void)saveUserList {
     [self saveUserOrderedList];
+}
+
+#pragma mark -
+
+
+-(NSString*)dbKeyForFileName:(NSString*)fileName {
+    NSString *result;
+    
+    NSString *basename = [fileName stringByDeletingPathExtension];
+    NSRange range = [basename rangeOfString:@"_" options:NSBackwardsSearch];
+    if (range.location != NSNotFound && range.location < basename.length) {
+        result = [basename substringFromIndex:range.location+1];
+    }
+    return result;
+}
+
+
+-(void)processMetaDataForFile:(NSDictionary*)fileInfo {
+    
+    NSURL *fileURL = fileInfo[@"furl"];
+    NSString *name = [fileURL lastPathComponent];
+    
+    NSString *basename = [name stringByDeletingPathExtension];
+    NSRange range = [basename rangeOfString:@"_" options:NSBackwardsSearch];
+    NSString *dbkey;
+    NSString *ftypeName; // ie trimmedMP3_
+    double audioLength = 0.0;
+    
+    if (range.location != NSNotFound && range.location < basename.length) {
+        dbkey = [basename substringFromIndex:range.location+1];
+        ftypeName = [basename substringToIndex:range.location];
+        audioLength = [self audioLengthForFile:fileURL];
+    }
+    
+    if (dbkey) {
+        _dbMetaData[dbkey] = @{
+                               @"furl":fileURL,
+                               @"fsize":fileInfo[@"fsize"],
+                               @"faudiolength":@(audioLength)
+                               };
+    }
+    
+//    NSLog(@"%@ %@ %.0f secs",dbkey,ftypeName,audioLength);
+    
+}
+
+-(void)processMetaDataForFiles {
+    
+    for (id fileInfo in _trimmedFilesData) {
+        [self processMetaDataForFile:fileInfo];
+    }
+    for (id fileInfo in _mp3filesFilesData) {
+        [self processMetaDataForFile:fileInfo];
+    }
+    for (id fileInfo in _clipsFilesData) {
+        [self processMetaDataForFile:fileInfo];
+    }
+    for (id fileInfo in _recordingsFilesData) {
+        [self processMetaDataForFile:fileInfo];
+    }
+    
+//    NSLog(@"%@",[_dbMetaData description]);
+}
+
+-(double)audioLengthForFile:(NSURL*)fileURL {
+
+    double result = 0;
+    NSError *error = nil;
+    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
+    if (audioFile && error == nil) {
+        AVAudioFormat *processingFormat = [audioFile processingFormat];
+        result = audioFile.length / processingFormat.sampleRate;
+    } else {
+        NSLog(@"error in audio file %@",[fileURL lastPathComponent]);
+    }
+    
+    return result;
 }
 
 #pragma mark -
@@ -415,13 +514,12 @@
                 });
             });
             
-        } else {
-            if (completion)
-                completion(nil);
-        }
-    } else {
-        if (completion)
+        } else if (completion) {
             completion(nil);
+        }
+        
+    } else if (completion) {
+        completion(nil);
     }
 }
 
@@ -439,13 +537,12 @@
                     }
                 });
             });
-        } else {
-            if (completion)
-                completion(nil);
-        }
-    } else {
-        if (completion)
+        } else if (completion) {
             completion(nil);
+        }
+        
+    } else if (completion) {
+        completion(nil);
     }
 }
 
@@ -517,7 +614,6 @@
 //NSString *fileSizeStr; // = [self fileSizeStr:fileSzNumber];
 //if (fileSizeStr == nil)
 //fileSizeStr = @"";
-
 
     return result;
 }

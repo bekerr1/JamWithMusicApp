@@ -6,7 +6,10 @@
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 
-// ENTER text and search as you type
+/*
+ ENTER text and search as you type
+ currently disabled (buggy) will search on return
+*/
 
 #import "JWYTSearchTypingViewController.h"
 #import "JWYouTubeSearchTypingData.h"
@@ -43,34 +46,41 @@
         _youTubeData = [JWYouTubeSearchTypingData new];
         _youtubeLinkWithoutId = @"http://youtu.be/";
     }
+    
     return _youTubeData;
 }
 
 - (void)viewDidLoad {
 
     [super viewDidLoad];
-    
     self.clearsSelectionOnViewWillAppear = NO;
+    if (_imageRetrievalQueue == nil)
+        _imageRetrievalQueue =
+        dispatch_queue_create("imageProcessing",
+                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, 0));
 
     _newSearchResults = YES;
-
+    if (_searchTerm)
+        _searchString = _searchTerm;
+    
     UITextField *txfSearchField = [_youTubeSearchQuery valueForKey:@"_searchField"];
     [(UITextField*)txfSearchField addTarget:self
                                      action:@selector(textFieldDidChange:)
                            forControlEvents:UIControlEventEditingChanged];
 
+    txfSearchField.text = _searchString;
+
     _channelsDataArray = [[NSMutableArray alloc] init];
     _images = [@{} mutableCopy];
-    
+
     self.youTubeSearchQuery.delegate = self;
     
-    if (_imageRetrievalQueue == nil)
-        _imageRetrievalQueue =
-        dispatch_queue_create("imageProcessing",
-                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, 0));
+    [_youTubeSearchQuery becomeFirstResponder];
+
 }
 
 - (void)didReceiveMemoryWarning {
+    NSLog(@"%s",__func__);
     [super didReceiveMemoryWarning];
 }
 
@@ -78,17 +88,14 @@
 #pragma mark - Delegate
 
 -(void)finishedTrim:(JWYoutubeMP3ViewController *)controller withTrimKey:(NSString*)trimKey forKey:(NSString*)key {
-    
     if ([_delegate respondsToSelector:@selector(finishedTrim:withDBKey:)])
         [_delegate finishedTrim:self withDBKey:trimKey];
 }
 
 -(void)finishedTrim:(JWYoutubeMP3ViewController *)controller withTrimKey:(NSString*)trimKey title:(NSString*)title forKey:(NSString*)key {
-    
     if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)])
         [_delegate finishedTrim:self title:title withDBKey:trimKey];
 }
-
 
 
 #pragma mark - Table view data source
@@ -109,7 +116,6 @@
     return result;
 }
 
-
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
     NSString *titleStr;
     NSUInteger count = 0;
@@ -126,7 +132,6 @@
     return titleStr;
 }
 
-
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JWYoutubeSearchResultCell" forIndexPath:indexPath];
 
@@ -135,9 +140,9 @@
         if (indexPath.row < self.channelsDataArray.count) {
             
             NSDictionary* ytVideoInfo = self.channelsDataArray[indexPath.row];
-            cell.textLabel.text = [ytVideoInfo valueForKey:(NSString*)JWDbKeyVideoTitle];
-
             id description = ytVideoInfo[@"ytdescriptionsnippet"];
+            
+            cell.textLabel.text = [ytVideoInfo valueForKey:(NSString*)JWDbKeyVideoTitle];
             cell.detailTextLabel.text = description;
             
             _youtubeVideoTitle = [self.channelsDataArray[indexPath.row] valueForKey:(NSString*)JWDbKeyVideoTitle];
@@ -155,51 +160,39 @@
     return cell;
 }
 
-
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    NSLog(@"%ld row chosen", (long)indexPath.row);
-    
     if (indexPath.row < self.channelsDataArray.count) {
-        
         _youtubeVideoId = [self.channelsDataArray[indexPath.row] valueForKey:@"ytvideoid"];
         _youtubeVideoCompleteURL = [_youtubeLinkWithoutId stringByAppendingString:_youtubeVideoId];
         _youtubeVideoTitle = [self.channelsDataArray[indexPath.row] valueForKey:(NSString*)JWDbKeyVideoTitle];
         
         [self performSegueWithIdentifier:@"JWYoutubeSearchToMP3Segue" sender:nil];
-        
     } else {
         _newSearchResults = NO;
-        
         [self getYoutubeDataFromSearchText:_searchString];
     }
 }
 
-
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    
     self.selectedDetailIndexPath = indexPath;
     [self detailInfo];
 }
-
 
 #pragma mark -
 
 -(void)detailInfo {
     
     if (_selectedDetailIndexPath.row < self.channelsDataArray.count) {
-        
+        NSDictionary* ytVideoInfo = self.channelsDataArray[_selectedDetailIndexPath.row];
+
         NSString *title;
         NSMutableString *message = [NSMutableString new];
-
-        NSDictionary* ytVideoInfo = self.channelsDataArray[_selectedDetailIndexPath.row];
-        
         NSString *videoTitleValue = ytVideoInfo[JWDbKeyVideoTitle];
-        if  (videoTitleValue) {
+        if  (videoTitleValue)
             title = [NSString stringWithFormat:@"Youtube Video\n %@",videoTitleValue];
-        } else {
+        else
             title = @"Youtube Video";
-        }
         
         id description = ytVideoInfo[@"ytdescriptionsnippet"];
         if (description) {
@@ -213,18 +206,22 @@
             [message appendString:[NSString stringWithFormat:@"Youtube Videoid %@",videoId]];
         }
         
-        UIAlertController* actionController =
-        [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction* okAction =
-        [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
-            self.selectedDetailIndexPath = nil;
-        }];
-        
-        [actionController addAction:okAction];
-        [self presentViewController:actionController animated:YES completion:nil];
+        [self detailInfoAlertController:title message:message];
     }
 }
+
+-(void)detailInfoAlertController:(NSString*)title message:(NSString*)message {
+    
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* okAction =
+    [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        self.selectedDetailIndexPath = nil;
+    }];
+    [actionController addAction:okAction];
+    [self presentViewController:actionController animated:YES completion:nil];
+}
+
 
 
 #pragma mark -
@@ -307,6 +304,7 @@
 //    [searchBar resignFirstResponder];
 //}
 
+
 -(void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     
     NSLog(@"%s",__func__);
@@ -314,18 +312,21 @@
     self.lastKeyHitTimeStamp = nil;
 
     [self cleanupImageCache];
-    NSString* searchText = [NSString stringWithString:searchBar.text];
-    self.searchString = searchText;
+//    NSString* searchText = [NSString stringWithString:searchBar.text];
+    self.searchString = [NSString stringWithString:searchBar.text];
+    _searchTerm = _searchString;
+
+    [_delegate searchTermChanged:self];
     
+    [searchBar resignFirstResponder];
     @synchronized(_channelsDataArray) {
         [self.channelsDataArray removeAllObjects];
     }
-    _newSearchResults = YES;
-    [self.tableView reloadData];
-    //        _images = [@{} mutableCopy];
-    [self getYoutubeDataFromSearchText:_searchString];
     
-    [searchBar resignFirstResponder];
+    [self.tableView reloadData];
+
+    _newSearchResults = YES;
+    [self getYoutubeDataFromSearchText:_searchString];
 
 //    UITextField *txfSearchField = [_youTubeSearchQuery valueForKey:@"_searchField"];
 //    [txfSearchField resignFirstResponder];
@@ -384,9 +385,6 @@
             }
         }
     });
-
-
-    
 }
 
 
@@ -396,17 +394,17 @@
         [self.channelsDataArray removeAllObjects];
     }
     [self.tableView reloadData];
-    // _images = [@{} mutableCopy];
     _newSearchResults = YES;
-    [self getYoutubeDataFromSearchText:_searchString];
     
+    [self getYoutubeDataFromSearchText:_searchString];
 }
 
+//#define TRACEIMAGE
+
+//    NSString* modifiedString = [text stringByReplacingOccurrencesOfString:@" " withString:@"+"];
 
 -(void)getYoutubeDataFromSearchText:(NSString *)text {
     
-    
-    //    NSString* modifiedString = [text stringByReplacingOccurrencesOfString:@" " withString:@"+"];
     NSString *modifiedString = (NSString *)
     CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(
                                                               NULL,(CFStringRef)text,
@@ -414,97 +412,104 @@
                                                               kCFStringEncodingUTF8 ));
   
     [self.youTubeData initWebDataKeyWithSearchString:modifiedString newSearch:_newSearchResults];
-    [self.youTubeData getSearchKeywordDetailsWithString:text newSearch:_newSearchResults onCompletion:^(NSMutableArray* channelData,NSString* searchStr) {
-        
-        //        NSUInteger count = [self.channelsDataArray count];  // get the index before adding
-        
-        if ([searchStr isEqualToString:self.searchString]) {
-            
-            @synchronized(_channelsDataArray) {
-                [_channelsDataArray addObjectsFromArray:channelData];
-            }
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.tableView reloadData];
-            });
-            
-            NSUInteger countAlreadyHas = 0;
-            NSUInteger retrieveCount = 0;
-            NSUInteger index = 0;
-            
-            @synchronized(_channelsDataArray) {
-                
-                index = 0;
-                
-                for (id channelItem in _channelsDataArray) {
-                    
-                    NSString *youtubeVideoId = [channelItem valueForKey:@"ytvideoid"];
+    
+    [self.youTubeData getSearchKeywordDetailsWithString:text newSearch:_newSearchResults onCompletion:
+     ^(NSMutableArray* channelData,NSString* searchStr) {
+         
+         //        NSUInteger count = [self.channelsDataArray count];  // get the index before adding
+         
+         if ([searchStr isEqualToString:self.searchString]) {
+             
+#ifdef TRACEIMAGE
+             for (id channelItem in channelData) {
+                 NSLog(@"%@",[channelItem valueForKey:@"ytvideoid"]);
+             }
+#endif
+             @synchronized(_channelsDataArray) {
+                 _channelsDataArray = channelData;
 
-                    id obj;
+//                 [_channelsDataArray addObjectsFromArray:channelData];
+             }
+             
+             NSUInteger countAlreadyHas = 0;
+             NSUInteger retrieveCount = 0;
+             NSUInteger index = 0;
+             @synchronized(_channelsDataArray) {
+                 
+                 index = 0;
+                 
+                 for (id channelItem in _channelsDataArray) {
+                     NSString *youtubeVideoId = [channelItem valueForKey:@"ytvideoid"];
+                     id obj;
+                     @synchronized(_images) {
+                         obj = _images[youtubeVideoId];
+                     }
+                     if (obj) {
+#ifdef TRACEIMAGE
+//                         NSLog(@"already has image");
+#endif
+                         countAlreadyHas++;
+                         // already have image
+                         
+                     } else {
+#ifdef TRACEIMAGE
+                         NSLog(@"retrieve %ld %@ image %@",index,youtubeVideoId,[channelItem valueForKey:@"thumbnail"]);
+#endif
+                         retrieveCount++;
+                         
+                         dispatch_async(_imageRetrievalQueue, ^{
+                             UIImage* youtubeThumb = [UIImage imageWithData:[NSData dataWithContentsOfURL:
+                                                                             [NSURL URLWithString:[channelItem valueForKey:@"thumbnail"]]]];
+                             @synchronized(_images) {
+                                 self.images[youtubeVideoId] = youtubeThumb;
+                             }
+                             
+                             dispatch_async(dispatch_get_main_queue(), ^{
+                                 NSUInteger index = NSNotFound;
+                                 @synchronized(_channelsDataArray) {
+                                     index = [_channelsDataArray indexOfObjectPassingTest:
+                                              ^BOOL(NSDictionary *dict, NSUInteger idx, BOOL *stop){
+                                                  return [[dict objectForKey:@"ytvideoid"] isEqualToString:youtubeVideoId];
+                                              }];
+                                 }
+                                 if (index == NSNotFound) {
+                                     //                NSLog(@"%s delete image",__func__);
+                                 } else{
+                                     //                NSLog(@"%s keep image",__func__);
+                                     [self.tableView beginUpdates];
+                                     [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]]
+                                                           withRowAnimation:UITableViewRowAnimationFade];
+                                     [self.tableView endUpdates];
+                                 }
+                             });
+                         });
+                     }
+                     
+                     index++;
+                 }  // for
+                 
+                 
+             } // synchronozed
+             
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 [self.tableView reloadData];
+             });
 
-                    @synchronized(_images) {
-                        obj = _images[youtubeVideoId];
-                    }
-                    if (obj) {
-                        //NSLog(@"already has image");
-                        countAlreadyHas++;
-                        
-                        // already have image
-                        
-                    } else {
-                        
-                        //NSLog(@"retrieve %ld %@ image %@",index,youtubeVideoId,[channelItem valueForKey:@"thumbnail"]);
-                        retrieveCount++;
-                        dispatch_async(_imageRetrievalQueue, ^{
-                            UIImage* youtubeThumb = [UIImage imageWithData:[NSData dataWithContentsOfURL:
-                                                                            [NSURL URLWithString:[channelItem valueForKey:@"thumbnail"]]]];
-                            @synchronized(_images) {
-                                self.images[youtubeVideoId] = youtubeThumb;
-                            }
-                            
-                            dispatch_async(dispatch_get_main_queue(), ^{
-                                NSUInteger index = NSNotFound;
-                                @synchronized(_channelsDataArray) {
-                                    index = [_channelsDataArray indexOfObjectPassingTest:
-                                             ^BOOL(NSDictionary *dict, NSUInteger idx, BOOL *stop){
-                                                 return [[dict objectForKey:@"ytvideoid"] isEqualToString:youtubeVideoId];
-                                             }];
-                                }
-                                if (index == NSNotFound) {
-                                    //                NSLog(@"%s delete image",__func__);
-                                } else{
-                                    //                NSLog(@"%s keep image",__func__);
-                                    [self.tableView beginUpdates];
-                                    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]]
-                                                          withRowAnimation:UITableViewRowAnimationFade];
-                                    [self.tableView endUpdates];
-                                }
-                            });
-                            
-                        });
-                    }
-                    
-                    index++;
-                }  // for
-            }
-            
-            NSLog(@"%ld already has images",countAlreadyHas);
-            NSLog(@"%ld retrieve images",retrieveCount);
-            
-        } else {
-            NSLog(@"Searchstr is DIFFERENT");
-        }
-        
-    }];
+             NSLog(@"%ld already has images",countAlreadyHas);
+             NSLog(@"%ld retrieve images",retrieveCount);
+             
+         } else {
+             // Not interested in these results
+             NSLog(@"Searchstr is DIFFERENT");
+         }
+     }];
     
 }
-
 
 
 #pragma mark - Navigation
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    NSLog(@"%s %@",__func__,[segue identifier]);
     
     if ([[segue identifier] isEqualToString:@"JWYoutubeSearchToMP3Segue"]) {
         
@@ -514,11 +519,7 @@
         youtubeMP3ViewController.tapToJam = YES;
         youtubeMP3ViewController.delegate = self;
     }
-    
-    // TODO: brendan verify
-    
 }
-
 
 @end
 

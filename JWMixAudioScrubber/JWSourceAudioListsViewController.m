@@ -8,8 +8,11 @@
 
 #import "JWSourceAudioListsViewController.h"
 #import "JWSourceAudioFilesTableViewController.h"
+#import "JWFileController.h"
 
 @interface JWSourceAudioListsViewController () <JWSourceAudioFilesDelegate>
+
+@property id lockFiles;
 @property (strong, nonatomic) IBOutlet UIView *leftContainerView;
 @property (strong, nonatomic) IBOutlet UIView *rightContainerView;
 @property (strong, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
@@ -73,11 +76,29 @@
 
 #pragma mark - source audio files delegate
 
--(void)finishedTrim:(id)controller title:(NSString*)title withDBKey:(NSString*)key
-{
-    if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)]) {
-        [_delegate finishedTrim:self title:title withDBKey:key];
+-(void)loadDataWithCompletion:(void (^)())completion {
+    
+    @synchronized(_lockFiles) {
+        [[JWFileController sharedInstance] readFsData];
+        if (completion) {
+            completion();
+        }
     }
+}
+
+-(void)loadDataAllWithCompletion:(void (^)())completion {
+    @synchronized(_lockFiles) {
+        [[JWFileController sharedInstance] readFsData];
+        if (completion) {
+            completion();
+        }
+    }
+}
+
+-(void)finishedTrim:(id)controller title:(NSString*)title withDBKey:(NSString*)key {
+    
+    if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)])
+        [_delegate finishedTrim:self title:title withDBKey:key];
 }
 
 @end

@@ -27,6 +27,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 @property NSMutableArray *homeControllerSections;  // collects objects
 @property NSIndexPath *selectedDetailIndexPath;
 @property NSString *nameChangeString;
+@property NSString *lastSearchTerm;
+
 @end
 
 //#define JWSampleFileNameAndExtension @"trimmedMP3.m4a"
@@ -221,6 +223,32 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 
 #pragma mark - Youtube search delegate JWYTSearchTypingDelegate
+-(void)searchTermChanged:(JWYTSearchTypingViewController *)controller {
+    _lastSearchTerm = controller.searchTerm;
+    NSUInteger section = [self indexOfSectionOfType:JWHomeSectionTypeYoutube];
+    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:section]] withRowAnimation:UITableViewRowAnimationAutomatic];
+}
+//
+//    else if (sectionType == JWHomeSectionTypeYoutube) {
+//        
+//        if (indexPath.row > 1) {
+//            
+//            UITableViewCell *toClipCell =
+//            [tableView dequeueReusableCellWithIdentifier:@"JWTrackSetToClipCell" forIndexPath:indexPath];
+//            cell = toClipCell;
+//            virtualRow--;
+//            virtualRow--;
+//            
+//        } else {
+//            
+//            if (indexPath.row == 0) {
+//                UITableViewCell *toYoutubeSearchCell =
+//                [tableView dequeueReusableCellWithIdentifier:@"JWYoutubeSearchCell" forIndexPath:indexPath];
+//                cell = toYoutubeSearchCell;
+//                cell.detailTextLabel.text = _lastSearchTerm; // @"acdc"; // last search term
+//            } else if (indexPath.row == 1) {
+//                UITableViewCell *toSourceAudioCell =
+
 
 
 // This is the active one
@@ -279,7 +307,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 #pragma mark -
 
--(void) userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid {
+-(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid {
     
     id nodeInJamTrack = [self jamTrackNodeObjectForKey:nodeKey];
     
@@ -451,6 +479,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     NSURL *fileURL;
     NSMutableDictionary *track1;
     NSMutableDictionary *track2;
+    
     // JAMTRACK 1
     NSMutableDictionary *jamTrack1 = [self newJamTrackObject];
     jamTrack1[@"title"] = @"Brendans mix The killers";
@@ -571,21 +600,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 //] mutableCopy
 
 
-
-//    // Copy from savedObjects object collections
-//    for (id objectCollection in _objectCollections) {
-//        NSMutableDictionary *jamTrack = [self newJamTrackObject];
-//        jamTrack[@"trackobjectset"] = [NSMutableArray arrayWithArray:objectCollection];
-//        [jamTracks addObject:jamTrack];
-//    }
-
-//    result =[@[
-//               [self newJamTrackObject],
-//               [self newJamTrackObject]
-//               ] mutableCopy];
-
-
-
 #pragma mark - Segues
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -631,7 +645,9 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
         }
         
     } else if ([segue.identifier isEqualToString:@"JWClipAudio"]) {
-        
+
+        JWClipAudioViewController *clipController = (JWClipAudioViewController*)segue.destinationViewController;
+
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         NSString *titleText;
         
@@ -649,7 +665,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
             }
         }
         
-        JWClipAudioViewController *clipController = (JWClipAudioViewController*)segue.destinationViewController;
         clipController.trackName = titleText;
         
 //        clipController.thumbImage = self.imageView.image;
@@ -658,6 +673,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
         
         JWYTSearchTypingViewController *controller = (JWYTSearchTypingViewController*)segue.destinationViewController;
         controller.delegate = self;
+        controller.searchTerm = _lastSearchTerm;
         
     } else if ([segue.identifier isEqualToString:@"JWSourceAudioFiles"]) {
         
@@ -902,11 +918,10 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     if (userTitleValue) {
         result = userTitleValue;
     } else {
-        if (titleValue) {
+        if (titleValue)
             result = titleValue;
-        } else {
+        else
             result = @"";
-        }
     }
     
     return result;
@@ -1203,17 +1218,14 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 #pragma mark - Table View
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-//    return [_objectCollections count];
     return [_homeControllerSections count];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-//    return [_objectCollections[section] count];
     
     NSUInteger result = 0;
     
     if (section < [_homeControllerSections count]) {
-
         id trackObjects = _homeControllerSections[section][@"trackobjectset"];
         if (trackObjects)
             result = [trackObjects count];
@@ -1323,7 +1335,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
                     UITableViewCell *toYoutubeSearchCell =
                     [tableView dequeueReusableCellWithIdentifier:@"JWYoutubeSearchCell" forIndexPath:indexPath];
                     cell = toYoutubeSearchCell;
-                    cell.detailTextLabel.text = @"acdc"; // last search term
+                    cell.detailTextLabel.text = _lastSearchTerm; // @"acdc"; // last search term
                 } else if (indexPath.row == 1) {
                     UITableViewCell *toSourceAudioCell =
                     [tableView dequeueReusableCellWithIdentifier:@"JWSourceAudioFilesSelectionCell" forIndexPath:indexPath];
@@ -1363,33 +1375,58 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
             if (trackObjects) {
                 
                 NSArray *objectCollection = trackObjects;
-                NSDictionary *object = objectCollection[virtualRow];
-                
-                id startTimeValue = object[@"starttime"];
-                NSTimeInterval startTime = 0;
-                if (startTimeValue)
-                    startTime = [startTimeValue doubleValue];
-                id fileURLValue = object[@"fileURL"];
-                NSString *fileName = @"";
-                if (fileURLValue)
-                    fileName = [[(NSURL*)fileURLValue path] lastPathComponent];
-
+                NSDictionary *jamTrack = objectCollection[virtualRow];
                 
                 NSString *titleText;
                 NSString *detailText;
 
-                titleText = [self preferredTitleForObject:object];
+                titleText = [self preferredTitleForObject:jamTrack];
                 
-                if ([titleText length] == 0) {
+                if ([titleText length] == 0)
                     titleText = @"no title";
-                }
                 
-                id titleTypeValue = object[@"titletype"];
+                id titleTypeValue = jamTrack[@"titletype"];
                 if (titleTypeValue)
                     detailText = titleTypeValue;
                 
+                NSString *durationString;
+                UIColor *durationColor = [UIColor blackColor];
+                
+                id trackNodes = jamTrack[@"trackobjectset"];
+                if (trackNodes) {
+                    double audioLength = 0;
+                    for (id trackNode in trackNodes) {
+                        NSURL *fileURL = trackNode[@"fileURL"];
+                        id startTimeValue = trackNode[@"starttime"];
+                        NSTimeInterval startTime = 0;
+                        if (startTimeValue)
+                            startTime = [startTimeValue doubleValue];
+                        
+                        if (fileURL)
+                            audioLength += [[JWFileController sharedInstance] audioLengthForFileWithName:[fileURL lastPathComponent]];
+                    }
+                    durationString = [NSString stringWithFormat:@" %.0f sec ",audioLength];
+                    durationColor = [UIColor orangeColor];
+                }
+                
+//                NSString *textLabelText =[NSString stringWithFormat:@"%@%@",durationString,titleText];
+                NSString *textLabelText =[NSString stringWithFormat:@"%@%@",detailText, durationString];
+                
+                NSDictionary *attrs = @{ NSForegroundColorAttributeName : [UIColor whiteColor] };
+                
+                NSMutableAttributedString *textLabelAttributedText =
+                [[NSMutableAttributedString alloc] initWithString:textLabelText attributes:attrs];
+                
+                [textLabelAttributedText addAttribute:NSForegroundColorAttributeName value:durationColor
+                                                range:NSMakeRange(detailText.length,durationString.length)];
+                
+//                cell.textLabel.attributedText = textLabelAttributedText;
+                
                 cell.textLabel.text = titleText;
-                cell.detailTextLabel.text = detailText;
+
+                cell.detailTextLabel.attributedText = textLabelAttributedText;
+
+//                cell.detailTextLabel.text = detailText;
             }
         }
     }
@@ -1472,19 +1509,14 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
                 id trackObjects = objectSection[@"trackobjectset"];
                 if (trackObjects) {
                     if (virtualRow < [trackObjects count]) {
-                        
                         [trackObjects removeObjectAtIndex:virtualRow];
                         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
-
                     }
                 }
             }
         }
 
         [self saveHomeMenuLists];
-
-//        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
-//        [self saveUserOrderedList];
         
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
@@ -1618,8 +1650,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
                 }
             }
         }
-
-        
     }
 
     //        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
@@ -1723,7 +1753,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 -(NSURL *)fileURLWithFileFlatFileURL:(NSURL*)flatURL{
     NSString *fileName = [flatURL lastPathComponent];
     NSArray *pathComponents = [flatURL pathComponents];
-    
     __block NSUInteger indexToDocuments = 0;
     [pathComponents enumerateObjectsWithOptions:NSEnumerationReverse
                                      usingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -1777,8 +1806,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     if (furl) {
         jamTrackNode[@"fileRelativePath"] = [(NSURL*)furl relativeString];
         [jamTrackNode removeObjectForKey:@"fileURL"];
-    } else {
-        NSLog(@"%s NO FURL %@",__func__,[jamTrackNode description]);
+     } else {
+//        NSLog(@"%s NO FURL %@",__func__,[jamTrackNode description]);
     }
 }
 
@@ -1790,11 +1819,9 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 -(void)serializeOutJamTracks {
     for (id objectSection in _homeControllerSections) {
         id jamTracksInSection = objectSection[@"trackobjectset"];
-        
         for (id jamTrack in jamTracksInSection) {
             id jamTrackNodes = jamTrack[@"trackobjectset"];
             for (id jamTrackNode in jamTrackNodes) {
-                
                 [self serializeOutJamTrackNode:jamTrackNode];
             }
         }
@@ -1804,9 +1831,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 -(void)serializeInJamTrackNode:(id)jamTrackNode {
     id fileRelativePath = jamTrackNode[@"fileRelativePath"];
-    if (fileRelativePath) {
+    if (fileRelativePath)
         jamTrackNode[@"fileURL"] =[self fileURLWithRelativePathName:fileRelativePath];
-    }
 }
 
 -(void)serializeInJamTrackNodeWithKey:(NSString*)key {
@@ -1830,19 +1856,14 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 -(void)saveHomeMenuLists {
     [self serializeOutJamTracks];
 //    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
-
     [_homeControllerSections writeToURL:[self fileURLWithFileName:@"homeObjects"] atomically:YES];
-    
     [self serializeInJamTracks];
-
     NSLog(@"%s HOMEOBJECTS [%ld]",__func__,[_homeControllerSections count]);
 }
 
 -(void)readHomeMenuLists {
     _homeControllerSections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"homeObjects"]];
-
     [self serializeInJamTracks];
-    
 //    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
     NSLog(@"%s HOMEOBJECTS [%ld]",__func__,[_homeControllerSections count]);
 }

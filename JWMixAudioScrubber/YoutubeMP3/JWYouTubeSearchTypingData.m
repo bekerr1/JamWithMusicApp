@@ -39,7 +39,6 @@ HTTP GET request on the googleapis/youtube URL and once the request is complete 
     return _searchResults;
 }
 
-
 -(void)initWebDataKeyWithSearchString:(NSString *)searchQuery newSearch:(BOOL)newSearch {
     self.apiKey = [NSString stringWithFormat:@"AIzaSyDZX_Y5M0XIp69bPqOwM0fezYpSwQ2oUdg"];
     self.searchString = searchQuery;
@@ -163,6 +162,10 @@ HTTP GET request on the googleapis/youtube URL and once the request is complete 
                             //                    [self performSelector:@selector(getSearchKeywordDetailsWithCompletion:) withObject:completion];
 
                         } else {
+                            
+                            for (id channelItem in _searchResults) {
+                                NSLog(@"%@",[channelItem valueForKey:@"ytvideoid"]);
+                            }
                             NSLog(@"LAST of Page and RETURN results");
                             completion(_searchResults,searchStr);
                         }

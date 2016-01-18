@@ -55,52 +55,43 @@ UIGestureRecognizerDelegate
     _viewStartColor = self.view.backgroundColor;
     
     [super viewDidLoad];
-    
-    [self initAVAudioSession];
-    
-    self.songProgress.layer.transform = CATransform3DMakeScale(1.0, 4.2, 1.0);
-    self.clipProgressBar.layer.transform = CATransform3DMakeScale(1.0, 9.2, 1.0);
-    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
-    self.clipProgressBar.layer.opacity = 0.75f;
-    self.songProgress.layer.opacity = 0.85f;
-    
     [self.activity stopAnimating];
-    
-    _trackTimeInterval = 7;
-    
+    [self initAVAudioSession];
+    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
+    self.songProgress.progress = 0.0f;
+    self.songProgress.layer.opacity = 0.85f;
+    self.songProgress.layer.transform = CATransform3DMakeScale(1.0, 7.4, 1.0);
+    self.clipProgressBar.progress = 1.0f;
+    self.clipProgressBar.layer.opacity = 0.75f;
+    self.clipProgressBar.layer.transform = CATransform3DMakeScale(1.0, 10.4, 1.0);
+
+
+    _trackTimeInterval = 15;
     if (!_trackName)
         _trackName = @"Unknown Track Name";
-    
-    self.audioClipper = [JWClipAudioController new];
-    _audioClipper.delegate = self;
-    
     [self.trackNameDisplay setText:_trackName];
     self.secondsPicker.delegate = self;
     self.secondsPicker.dataSource = self;
-    
+
+    self.audioClipper = [JWClipAudioController new];
+    _audioClipper.delegate = self;
     _audioClipper.sourceMP3FileURL = [NSURL fileURLWithPath:self.testMP3FileURL];
     [_audioClipper initializeAudioController];
-    
     _volumeSlider.value = [_audioClipper volume];
     
     [self addNotifications];
     
-    
     if (_thumbImage) {
         self.ampImageView.image = _thumbImage;
         self.ampImageView.layer.borderWidth = 4.2f;
-        //        self.ampImageView.layer.cornerRadius = 12.0f;
-        //        self.ampImageView.layer.masksToBounds = YES;
-        self.ampImageView.contentMode = UIViewContentModeScaleAspectFill;
+        self.ampImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.ampImageView.backgroundColor = [UIColor blackColor];
     }
     
-    // Do any additional setup after loading the view.
-    
     UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
-    
     self.view.gestureRecognizers = @[panGestureRecognizer];
     
-    [self.navigationController setToolbarHidden:NO];
+    //[self.navigationController setToolbarHidden:YES];
     
     NSLog(@"%s",__func__);
 }
@@ -109,15 +100,15 @@ UIGestureRecognizerDelegate
     [super didReceiveMemoryWarning];
 }
 
-
-
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [_audioClipper ummmStartPlaying];
     
-    if (! [self.playerTimer isValid]) {
+//    [_clipProgressBar setProgress:0.0f animated:animated];
+//    [_songProgress setProgress:0.0f animated:animated];
+
+    if (! [self.playerTimer isValid])
         [self resumeTimer];
-    }
     
     // Set the background image on every appear
     selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
@@ -341,26 +332,23 @@ UIGestureRecognizerDelegate
     }
     
     [self syncScrubber:_currentTrackStartTime];
-    
-    // The rest below is just fluff to change color foreffects
-    
+
+    // log every so often, not all
     static int counter = 0;  // log counter
-    if (counter > 5)
+    if (counter > 10)
         counter = 0;
-    
-    if (counter == 0) { // only log so many
+    if (counter == 0)
+    {
         NSLog(@"%s",__func__);
-        
     }
     counter++;
 
-
     return;
-    
+
+    // The rest below is just fluff to change color foreffects
     // REST is just effects
     static int toggle = 1;  //
     static int toggleCounter = 0; //
-    
     if (toggleCounter > 3)
         toggleCounter = 0;
     if (toggleCounter == 0) {
@@ -370,7 +358,6 @@ UIGestureRecognizerDelegate
         CGFloat alpha = toggle/maxToggles * 0.6f;
         self.view.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.30 + alpha];
         toggle++;
-
         // lowest oocur
         if (toggleCounter <2){
             CGFloat alpha = toggle/maxToggles * 0.5f;
@@ -379,14 +366,12 @@ UIGestureRecognizerDelegate
                 self.secondRight.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha];
                 //            self.jamButton.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha];
             });
-
         }
-        
-        if (toggle == 2){
+        if (toggle == 2)
             [self effectsBackgroundLight];
-        }
     }
     toggleCounter++;
+    
 }
 
 
@@ -411,17 +396,15 @@ UIGestureRecognizerDelegate
 
     if ([_delegate respondsToSelector:@selector(finishedTrim:withDBKey:)])
         [_delegate finishedTrim:self withDBKey:key];
-    
 }
 
--(void)exportAudioSection
-{
+-(void)exportAudioSection {
+    
     [_audioClipper exportAudioSectionStart: _startTime
                                        end: _endTime
                          fiveSecondsBefore: _5_secondsBeforeStartTime withCompletion:^(NSString *key){
                              
                              [self finishedTrimmingWithKey:key];
-                                 //[self presentJam];
                          }];
 }
 
@@ -433,22 +416,19 @@ UIGestureRecognizerDelegate
     _startTime = sender.value;
     _endTime = (sender.value) + _trackTimeInterval;
     
-    NSLog(@"Slider Moved to start time: %f and should end at time: %f", _startTime, _endTime);
-    
+    NSLog(@"sldr mvd to strt tm: %f shld end at tm %f", _startTime, _endTime);
     
     self.playerTimer =
     [NSTimer scheduledTimerWithTimeInterval:_trackTimeInterval target:self selector:@selector(timerFireMethod:) userInfo:nil repeats:NO];
     
     _clipProgressBar.progress = 0.0f;
-    
     [_audioClipper seekToTime:(float)sender.value];
     
-    
-    return;
+    return;  // <== returns
+
     
     // REST IS EFFECTS
     static int toggle = 1;  //
-    
     CGFloat maxToggles = 5;
     if (toggle > maxToggles)
         toggle = 1;
@@ -483,70 +463,51 @@ UIGestureRecognizerDelegate
 
 //    dispatch_async(dispatch_get_main_queue(), ^{
 //        self.ampImageView.layer.borderColor = [_viewStartColor colorWithAlphaComponent:0.8].CGColor;
-//    });
-
 //    dispatch_async(dispatch_get_main_queue(), ^{
 //        self.ampImageView.layer.borderColor = [_viewStartColor colorWithAlphaComponent:0.2].CGColor;
-//    });
-
 
 //NSLog(@"Slider : max %.3f min %.3f  curr %.3f",
 //      _currentTrackStartTime.maximumValue,_currentTrackStartTime.minimumValue,
 //      _currentTrackStartTime.value);
 
 
-- (void)syncScrubber:(UISlider *)sliderValue
-{
-    if ([_audioClipper timeIsValid])
-    {
+- (void)syncScrubber:(UISlider *)sliderValue {
+    
+    if ([_audioClipper timeIsValid]){
         double duration = [_audioClipper duration];
-        
         if (isfinite(duration) && (duration > 0))
         {
 //            NSLog(@"Time : %.3f", [_audioClipper trackProgress]);
             
             [self.songProgress setProgress:[_audioClipper trackProgress] animated:YES];
-            
         } else {
             NSLog(@"duration : %.3f", duration);
-
         }
     } else {
-        NSLog(@"invalid time");
+        NSLog(@"invld tm");
     }
     
-    NSTimeInterval timeRemaining;
-    NSTimeInterval currentPosInTrackSeconds;
-    
-    currentPosInTrackSeconds = [_audioClipper trackProgress] * _currentTrackStartTime.maximumValue;
-    
-    timeRemaining = _endTime - currentPosInTrackSeconds;
+    NSTimeInterval currentPosInTrackSeconds = [_audioClipper trackProgress] * _currentTrackStartTime.maximumValue;
+
+    NSTimeInterval timeRemaining = _endTime - currentPosInTrackSeconds;
 
     [_clipProgressBar setProgress:(_trackTimeInterval - timeRemaining)/_trackTimeInterval animated:YES];
-    
 }
 
 - (IBAction)jamButtonPressed:(UIButton *)sender {
 
     [self.playerTimer invalidate];
-
     [_audioClipper prepareToClipAudio];
-
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.activity startAnimating];
     });
-
     [self exportAudioSection];
 }
-
-//    [self performSelector:@selector(exportAudioSection) withObject:nil afterDelay:.50f];
-
 
 - (IBAction)volumeSliderChanged:(id)sender {
     
     [_audioClipper setVolume:[(UISlider*)sender value]];
 }
-
 
 #pragma mark - RECORD jam delegate
 
@@ -577,7 +538,7 @@ UIGestureRecognizerDelegate
 
 -(void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
     if (row == 0) {
-        _trackTimeInterval = 7;
+        _trackTimeInterval = 15;
         [self sliderValueMoved:self.currentTrackStartTime];
     } else if (row == 1) {
         _trackTimeInterval = 30;
@@ -601,11 +562,8 @@ UIGestureRecognizerDelegate
     return 0;
 }
 
-
 #pragma mark - AVAudioSession
-
-- (void)initAVAudioSession
-{
+- (void)initAVAudioSession {
     // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
     // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
     
@@ -629,7 +587,6 @@ UIGestureRecognizerDelegate
 }
 
 
-
 @end
 
 
@@ -638,24 +595,3 @@ UIGestureRecognizerDelegate
 //            [self presentViewController:viewController animated:YES completion:nil];
 //        });
 
-
-
-
-//-(void)presentJam {
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        [self performSegueWithIdentifier:@"ShowRecordController" sender:nil];
-//    });
-//    [self.activity stopAnimating];
-//}
-
-//-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-//    
-//    if ([[segue identifier] isEqualToString:@"ShowRecordController"]) {
-//        
-//        UINavigationController* destination = (UINavigationController *) segue.destinationViewController;
-//        JWRecordJamViewController* recordJamController = (JWRecordJamViewController *)[destination viewControllers][0];;
-//        //        JWRecordJamViewController* destination = (JWRecordJamViewController *) segue.destinationViewController;
-//        [recordJamController setTrimmedAudioURL:[_audioClipper trimmedFileURL] andFiveSecondURL:[_audioClipper fiveSecondFileURL]];
-//        recordJamController.delegate = self;
-//    }
-//}

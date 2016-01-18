@@ -110,14 +110,34 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 
 - (void)loadData {
-    
+    dispatch_async (dispatch_get_global_queue( QOS_CLASS_UTILITY,0),^{
+        [[JWFileController sharedInstance] readFsData];
+        [self loadModel];
+    });
+}
+
+// wip
+//    if (_allFiles) {
+//        dispatch_async (dispatch_get_global_queue( QOS_CLASS_BACKGROUND,0),^{
+//            [_delegate loadDataAllWithCompletion:^{
+//                [self loadModel];
+//            }];
+//        });
+//    } else {
+//        dispatch_async (dispatch_get_global_queue( QOS_CLASS_BACKGROUND,0),^{
+//            [_delegate loadDataWithCompletion:^{
+//                [self loadModel];
+//            }];
+//        });
+//    }
+
+- (void)loadModel {
+
     _mp3FilesInfo = [[JWFileController sharedInstance] mp3FilesInfo];
 
     _mp3filesFilesData = [NSMutableDictionary new];  // fs info
 
     self.images = [@{} mutableCopy];
-
-    [[JWFileController sharedInstance] readFsData];
     
     if (_allFiles) {
         _allFilesSections = @[
@@ -178,8 +198,11 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         }
     }
 
-    [self.tableView reloadData];
-    [self.refreshControl endRefreshing];
+    dispatch_async (dispatch_get_main_queue(),^{
+        
+        [self.tableView reloadData];
+        [self.refreshControl endRefreshing];
+    });
 
 }
 

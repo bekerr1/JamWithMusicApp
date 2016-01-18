@@ -119,7 +119,7 @@
     if (animated) {
         _scrubberContainerView.alpha = 0;
         _scrubberContainerView.hidden = NO;
-        [UIView animateWithDuration:0.20 delay:0.75 options:UIViewAnimationOptionCurveLinear animations:^{
+        [UIView animateWithDuration:0.10 delay:1.0 options:UIViewAnimationOptionCurveLinear animations:^{
             _scrubberContainerView.alpha = 1.0;
         } completion:^(BOOL fini){
             [UIView animateWithDuration:0.10 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -155,11 +155,10 @@
     self.restoreColor = self.view.backgroundColor;
     self.view.backgroundColor = [UIColor blackColor];
 
-    [[self.navigationController navigationBar]  setBackgroundImage:[UIImage new]
-                       forBarPosition:UIBarPositionAny
-                           barMetrics:UIBarMetricsDefault];
+    [[self.navigationController navigationBar]
+     setBackgroundImage:[UIImage new] forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
     [[self.navigationController navigationBar] setShadowImage:[UIImage new]];
-    [[self.navigationController navigationBar]  setBackgroundColor:[UIColor blackColor]];
+    [[self.navigationController navigationBar] setBackgroundColor:[UIColor blackColor]];
 
     self.playerController = [JWAudioPlayerController new];
     self.playerController.delegate = self;

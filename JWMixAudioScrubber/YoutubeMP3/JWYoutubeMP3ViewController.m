@@ -79,39 +79,35 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [super viewDidLoad];
 
     _showsYoutubeMP3 = NO;
-    _proceedForwardOnSuccess = NO;
-    _convertProgressOfTotal = .20f;
-    _downloadProgressOfTotal = .80f;
+    _proceedForwardOnSuccess = YES;
+    
+    _convertProgressOfTotal = .35f;
+    _downloadProgressOfTotal = .65f;
     
     _mp3FilesInfo = [[JWFileController sharedInstance] mp3FilesInfo];
     _linksDirector = [[JWFileController sharedInstance] linksDirector];
     
     [self.activity stopAnimating];
-    
     self.effectsView.hidden = NO;
     self.webView.hidden = YES;
     self.imageView.hidden = YES;
-//    self.activity.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(3.0, 3.0, 1.0));
-    self.progressView.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(1.0, 11.2, 1.0));
+    self.progressView.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(1.0, 8.0, 1.0));
     self.progressView.progress = 0.0;
     self.progressView.hidden = YES;
     self.imageView.layer.borderWidth = 3.2f;
     self.imageView.layer.borderColor = [[UIColor blueColor] colorWithAlphaComponent:0.70f].CGColor;
     self.imageView.layer.cornerRadius = 12.0f;
     self.imageView.layer.masksToBounds = YES;
-    self.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.imageView.backgroundColor = [UIColor blackColor];
 
     self.mp3ConvertController = [[JWYoutubeMP3ConvertController alloc] initWithWebview:_webView andDelegate:self];
     
-    if (_imageRetrievalQueue == nil) {
+    if (_imageRetrievalQueue == nil)
         _imageRetrievalQueue =
         dispatch_queue_create("imageProcessingYoutubeMP3",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_UTILITY, 0));
-    }
 
-    //    [self newSessionWithLinkURLString:_youtubeString andVideoTitle:_videoTitle];
-    // TODO: brendan lets use below sett the linkurl
-    
     if (_youTubeLinkURL ) {
         
         [self newSessionWithLinkURLString:[_youTubeLinkURL absoluteString]];
@@ -178,15 +174,12 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }
 }
 
-
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    NSLog(@"%s",__func__);
     
     if ([segue.identifier isEqualToString:@"AVPlayerView"]) {
         self.avPlayerViewController = (AVPlayerViewController*)segue.destinationViewController;
@@ -245,10 +238,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
             title = titleValue;
     }
 
-    if ([_delegate respondsToSelector:@selector(finishedTrim:withTrimKey:title:forKey:)]) {
+    if ([_delegate respondsToSelector:@selector(finishedTrim:withTrimKey:title:forKey:)])
         [_delegate finishedTrim:self withTrimKey:key title:title forKey:_currentCacheItem];
-    }
-    
 }
 
 #pragma mark -
@@ -413,6 +404,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         // GET YouTube DATA for video
 
         NSString *videoId = _youtubeVideoId ? _youtubeVideoId : [linkURLStr lastPathComponent];
+        
+        // CHOOSE A RETRIEVE METHOD
         
         if (doesConvert) {
             [self retrieveYoutubeDataDoesConvert:dbkey videoId:videoId linkURLString:linkURLStr andTitle:videoTitle];
@@ -607,6 +600,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }];
 }
 
+
+// helper to Retrieve Methods
 
 -(void)processTheYoutubeDataRecord:(NSDictionary*)youtubeDataRecord forDbKey:(NSString*)dbkey
 {
@@ -861,7 +856,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     if (mp3DataRecord)
         [mp3DataRecord setValue:linkStr forKey:(NSString*)JWDbKeyDownloadLink];
 
-    if (_showsYoutubeMP3){
+    // typically NO, dont show youtube MP3 webview
+    if (_showsYoutubeMP3) {
         self.webviewHeightConstraint.constant = 310; // shows converted
         double delayInSecs = 1.5 + 1.0; // plus animdelay
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -878,10 +874,10 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         [self.progressView setProgress:totalProgress animated:YES];
     });
 
+    
     // begin Download
 
     [self downloadTask:[NSURL URLWithString:linkStr]  dbKey:controller.dbkey];
-    
 }
 
 
@@ -1175,34 +1171,6 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - save retrieve metadata
 
--(void)saveMetaData {
-    [_linksDirector writeToURL:
-     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyLinksDirectoryFileName]] atomically:YES];
-    [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]] atomically:YES];
-
-    NSLog(@"%sLINKSCOUNT[%ld] MP3INFOCOUNT[%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
-//    NSLog(@"\n%s\nLINKS\n%@\nMP3INFO\n%@",__func__,[_linksDirector description],[_mp3FilesInfo description]);
-}
--(void)readMetaData {
-    _linksDirector = [[NSMutableDictionary alloc] initWithContentsOfURL:
-                      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyLinksDirectoryFileName]]];
-    
-    NSMutableDictionary *mp3Dict = [[NSMutableDictionary alloc] initWithContentsOfURL:
-                                    [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
-    _mp3FilesInfo = [@{} mutableCopy];
-    for (id key in [mp3Dict allKeys]) {
-        _mp3FilesInfo[key] = [mp3Dict[key] mutableCopy];
-    }
-    
-//    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
-//                     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
-
-    
-    NSLog(@"%sLINKSCOUNT[%ld] MP3INFOCOUNT[%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
-//    NSLog(@"\n%s\nLINKS\n%@\nMP3INFO\n%@",__func__,[_linksDirector description],[_mp3FilesInfo description]);
-}
-
-
 -(void)saveDescriptions {
     [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
     NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
@@ -1212,7 +1180,6 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
                              [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
     NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
 }
-
 
 #pragma mark - effects background
 
@@ -1288,4 +1255,35 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 
 @end
+
+
+
+
+//-(void)saveMetaData {
+//    [_linksDirector writeToURL:
+//     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyLinksDirectoryFileName]] atomically:YES];
+//    [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]] atomically:YES];
+//
+//    NSLog(@"%sLINKSCOUNT[%ld] MP3INFOCOUNT[%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
+////    NSLog(@"\n%s\nLINKS\n%@\nMP3INFO\n%@",__func__,[_linksDirector description],[_mp3FilesInfo description]);
+//}
+//-(void)readMetaData {
+//    _linksDirector = [[NSMutableDictionary alloc] initWithContentsOfURL:
+//                      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyLinksDirectoryFileName]]];
+//
+//    NSMutableDictionary *mp3Dict = [[NSMutableDictionary alloc] initWithContentsOfURL:
+//                                    [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
+//    _mp3FilesInfo = [@{} mutableCopy];
+//    for (id key in [mp3Dict allKeys]) {
+//        _mp3FilesInfo[key] = [mp3Dict[key] mutableCopy];
+//    }
+//
+////    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
+////                     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
+//
+//
+//    NSLog(@"%sLINKSCOUNT[%ld] MP3INFOCOUNT[%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
+////    NSLog(@"\n%s\nLINKS\n%@\nMP3INFO\n%@",__func__,[_linksDirector description],[_mp3FilesInfo description]);
+//}
+
 

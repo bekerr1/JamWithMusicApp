@@ -1090,7 +1090,7 @@
                     
                     if ([audioFile readIntoBuffer: readBuffer error: &error]) {
                         
-                        NSLog(@"FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
+                        NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
                               fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
                         
                         [playerNode scheduleBuffer:readBuffer

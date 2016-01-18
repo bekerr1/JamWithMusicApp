@@ -8,7 +8,7 @@
 
 #import "JWTrackSetsViewController.h"
 #import "DetailViewController.h"
-
+#import "JWFileController.h"
 #import "JWTableHeaderView.h"
 
 @interface JWTrackSetsViewController () <JWDetailDelegate>
@@ -90,14 +90,16 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     
     if ([[segue identifier] isEqualToString:@"JWShowDetailFromFiles"]) {
-        
-        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        
-        NSDictionary *object = _jamTracks[indexPath.section];
-        
+
         DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
         controller.delegate = self;
+
+        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+
+        NSDictionary *object = _jamTracks[indexPath.section];
+        
         [controller setDetailItem:object];
+        
         controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
         controller.navigationItem.leftItemsSupplementBackButton = YES;
         
@@ -109,6 +111,7 @@
 #pragma mark - helpers
 
 // the trackNode object
+// returns tableView indexPath
 -(NSIndexPath*)indexPathOfCacheItem:(NSString*)key {
     
     NSIndexPath *result;
@@ -292,11 +295,36 @@
     id titleValue = object[@"title"];
     id titleTypeValue = object[@"titletype"];
 
-    cell.textLabel.text = [NSString stringWithFormat:@"%@%@",
-                           [object[@"key"] substringToIndex:5],
-                           [fileName length] > 0 ? [NSString stringWithFormat:@"  %@",fileName ] : fileName
-                           ];
+    NSString *durationString;
+    UIColor *durationColor = [UIColor blackColor]; // select needed color
+
+    if (fileName.length > 0) {
+        double audioLength = [[JWFileController sharedInstance] audioLengthForFileWithName:fileName];
+        durationString = [NSString stringWithFormat:@"%.0f sec",audioLength];
+        durationColor = [UIColor blackColor];
+    } else {
+        durationString = @"no recording";
+        durationColor = [UIColor darkGrayColor];
+    }
     
+    NSString *textLabelText =[NSString stringWithFormat:@"%@%@",
+                              durationString,
+                              [fileName length] > 0 ? [NSString stringWithFormat:@" %@",fileName ] : fileName
+                              ];
+
+    NSDictionary *attrs = @{ NSForegroundColorAttributeName : [UIColor darkGrayColor] };
+    NSMutableAttributedString *textLabelAttributedText =
+    [[NSMutableAttributedString alloc] initWithString:textLabelText attributes:attrs];
+    
+    [textLabelAttributedText addAttribute:NSForegroundColorAttributeName value:durationColor
+                    range:NSMakeRange( 0,durationString.length)];
+    
+    cell.textLabel.attributedText = textLabelAttributedText;
+
+//    cell.textLabel.text = textLabelText;
+
+//    [object[@"key"] substringToIndex:5],
+
     cell.detailTextLabel.text =
     [NSString stringWithFormat:@"startTime %00.2f, Ref %@, %@ %@",
      startTime,

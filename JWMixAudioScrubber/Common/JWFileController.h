@@ -22,6 +22,8 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 -(void)saveMeta;
 -(void)saveUserList;
 
+-(double)audioLengthForFileWithName:(NSString*)fileName;
+
 // returns records URLs and size for Files arrays
 @property (nonatomic,readonly) NSArray *downloadedJamTrackFiles;
 @property (nonatomic,readonly) NSArray *jamTrackFiles;

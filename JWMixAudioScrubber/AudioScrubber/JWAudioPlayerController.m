@@ -80,6 +80,8 @@ JWMixEditDelegate
     self.sc = nil;
 }
 
+#pragma mark -
+
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me {
     
     [self iosColors];
@@ -130,7 +132,7 @@ JWMixEditDelegate
 
     //INITIALIZE ENGINE IN BACKGROUND
 
-    dispatch_async (dispatch_get_global_queue( QOS_CLASS_BACKGROUND,0),^{
+    dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INITIATED,0),^{
         
         self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
         self.audioEngine.engineDelegate = self;
@@ -218,12 +220,12 @@ JWMixEditDelegate
     [self configureScrubbers:NO];
     self.state = JWPlayerStatePlayFromBeg;
     
-//    if (_autoPlay) {
-//        double delayInSecs = 0.25;
-//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//            [self play];
-//        });
-//    }
+    if (_autoPlay) {
+        double delayInSecs = 0.25;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self play];
+        });
+    }
 
 }
 
