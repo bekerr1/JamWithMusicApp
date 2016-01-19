@@ -98,6 +98,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    //        _playerProgressFormatString = @"%.0f";
+    _playerProgressFormatString = @"%00.2f";
+
     _uiPointsPerSecondLength = 102.0; // 80 width per second
 //    _uiPointsPerSecondLength = 320.0; // 80 width per second
 
@@ -523,13 +526,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #pragma mark -
 
 -(void)prepareForTracks {
-    
     CGSize size = [_delegate viewSize];
     _tracksOffest = size.width/2;  // playhead is in middle
-    
     self.scrollView.contentInset = UIEdgeInsetsMake(0, _tracksOffest, 0, _tracksOffest);
     self.scrollView.contentSize = CGSizeZero;
-    
     [self configureBookendClips:size];
 }
 
@@ -553,9 +553,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (self.playHeadWindow.hidden == YES) {  // first time at viewDidload
         self.playHeadWindow.alpha = 0.0;
         self.playHeadWindow.hidden = NO;
-        
-        
-        
         [UIView animateWithDuration:.10 delay:0.0 options:UIViewAnimationOptionCurveLinear
                          animations:^{
                              self.playHeadWindow.alpha = 1.0;
@@ -567,27 +564,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #pragma mark -
 
 -(void)userTrackingProgressBeginning {
-    
     CGFloat pos = 0.00; //offset.x + self.scrollView.contentInset.left;
-    
     self.playHeadValueStr = @"";
-    
-//    self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
-
     CGFloat endPosition = [self largestTrackEndPosition];
     self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-    
     [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
 }
 
 -(void)userTrackingProgressEnd {
-    
     CGFloat endPosition = [self largestTrackEndPosition];
     CGFloat pos = endPosition;
-    
-    self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+    self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,pos/_uiPointsPerSecondLength];
     self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-
     [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
 }
 
@@ -601,9 +589,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         //        NSUInteger progressTrack = 1;
         CGFloat endPosition = [self largestTrackEndPosition];
         if (pos < endPosition) {
-            self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+            self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,pos/_uiPointsPerSecondLength];
             self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-
             [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
         }
     }
@@ -617,21 +604,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     //        NSUInteger progressTrack = 1;
     
     CGFloat endPosition = [self largestTrackEndPosition];
-    
     if (pos < endPosition) {
-        
         CGFloat cp = pos/_uiPointsPerSecondLength;
         if (cp < 0)
             cp = 0.0;
-        
-        if  (cp < 1.00)
-            self.playHeadValueStr = @"";
-        else
-            self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",cp];
-        
-//        self.playHeadValueStr = [NSString stringWithFormat:@"%.0f",pos/_uiPointsPerSecondLength];
+//        if  (cp < 1.00)
+//            self.playHeadValueStr = @"";
+//        else
+        self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
         self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-
         [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
     }
 }
@@ -657,8 +638,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         
         // Start doesnt move _editType == ScrubberEditStart
     }
-    
-    
+}
+
 //    else {
 //        NSLog(@"%s not tracking edit",__func__);
 //
@@ -668,10 +649,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 ////        } else {
 ////            NSLog(@"%s not tracking edit and current position",__func__);
 ////        }
-//        
+//
 //    }
-    
-}
 
 #pragma mark - scrollViewDelegate
 
@@ -697,30 +676,13 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #ifdef TRACESCROLL
     NSLog(@"%s velocity %@ traget %@",__func__,NSStringFromCGPoint(velocity),NSStringFromCGPoint(*targetContentOffset));
 #endif
-    
     CGPoint targetPoint = *targetContentOffset;
     CGFloat scrubberBegin = - self.scrollView.contentInset.left;
     if (targetPoint.x == scrubberBegin) {
-//        CGPoint offest = CGPointMake( scrubberBegin,0);
-//        [_scrollView setContentOffset:offest animated:YES];
-//        if (_trackingCurrentPosition) {
-////            [self userTrackingProgressBeginning];
-//            //        NSLog(@"%s",__func__);
-////            [self userTrackingComputeProgress];
-//        }
     }
-
     CGFloat scrubberEnd = - self.scrollView.contentInset.left + [self largestTrackEndPosition];
     if (targetPoint.x == scrubberEnd) {
-//        CGPoint offest = CGPointMake( scrubberEnd,0);
-//        [_scrollView setContentOffset:offest animated:YES];
-//        if (_trackingCurrentPosition) {
-////            [self userTrackingProgressEnd];
-//            //        NSLog(@"%s",__func__);
-////            [self userTrackingComputeProgress];
-//        }
     }
- 
 #ifdef TRACESCROLL
     NSLog(@"%s scrubberBegin %.2f end %.2f",__func__,scrubberBegin,scrubberEnd);
 #endif
@@ -730,8 +692,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #ifdef TRACESCROLL
     NSLog(@"%s willDecelerate %@",__func__,@(decelerate));
 #endif
-
     if (decelerate == NO) {
+        
         if (_listenToScrolling) {
             CGFloat pos = scrollView.contentOffset.x + self.scrollView.contentInset.left;
             if (pos  < 0) {
@@ -750,7 +712,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView   {
-
     
 #ifdef TRACESCROLL
     NSLog(@"%s",__func__);
@@ -785,7 +746,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #ifdef TRACESCROLL
     NSLog(@"%s",__func__);
 #endif
-
 
     if (_waitForAnimated) {
         _listenToScrolling = YES;
@@ -829,9 +789,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 - (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated {
     CGFloat offset = self.scrollView.contentInset.left;
     CGFloat destinationX = progress * _vTrackLength - offset;
-    CGFloat pointsPerSecond = _isScaled ? _scaleduiPointsPerSecondLength : _uiPointsPerSecondLength;
+    CGFloat pointsPerSecond = _uiPointsPerSecondLength;
     destinationX = destinationX; // + pointsPerSecond * 0.085; // seconds adjustment
-
+    
     CGRect bounds = self.scrollView.bounds;
     CGFloat currentx = bounds.origin.x;
     bounds.origin.x = destinationX;
@@ -845,22 +805,24 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (animated) {
             distanceToTravelX = destinationX - currentx;
             duration = distanceToTravelX / pointsPerSecond;
-            
             [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionCurveLinear
                              animations:^{
                                  self.scrollView.bounds = bounds;
                              } completion:nil];
         } else {
-            self.scrollView.bounds = bounds;
+            [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
+//            self.scrollView.bounds = bounds;
         }
     } else {
-        distanceToTravelX = currentx - destinationX - offset;
-        duration = -distanceToTravelX / pointsPerSecond;
-        self.scrollView.bounds = bounds;
+//        distanceToTravelX = currentx - destinationX - offset;
+//        duration = -distanceToTravelX / pointsPerSecond;
+        //self.scrollView.bounds = bounds;
+        [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
     }
 }
 
 - (void)setProgress:(CGFloat)progress {
+    
     CGFloat destinationX = progress * _vTrackLength - self.scrollView.contentInset.left;
     CGFloat pointsPerSecond = _isScaled ? _scaleduiPointsPerSecondLength : _uiPointsPerSecondLength;
 
@@ -1679,7 +1641,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     else if (_editType == ScrubberEditStart) {
         if (_editLayerRight) {
             if (animated) {
-                
                 [UIView animateWithDuration:0.45 delay:0.0  options: UIViewAnimationOptionCurveEaseIn
                                  animations:^{
                                      _editLayerRight.alpha = 0.0;
@@ -1696,7 +1657,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     _startPositions[0] = 0.0;
     _editType = ScrubberEditNone;
-    
 }
 
 
@@ -2028,9 +1988,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (pos < 0) {
         // NEGATIVE position in scrollview - read out of bounds
         NSLog(@"%s negative unreadable pos %.2f ",__func__,pos);
-        
     } else {
-        
         [self userTrackingComputeEditingLeftProgressAtPosition:pos];
     }
 }
@@ -2394,11 +2352,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     [CATransaction begin];
     [CATransaction setAnimationDuration:0.8];
-//    _scrubberEffectsLayer.color1 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.5];
-//    _scrubberEffectsLayer.color2 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.2];
     [CATransaction commit];
     self.pulseBaseLayer.backgroundColor = [UIColor clearColor].CGColor;
-//    self.pulseLightLayer.backgroundColor = [UIColor clearColor].CGColor;
     self.scrollView.userInteractionEnabled = YES;
     self.recordingProgressView.progress = 0.0;
     self.recordingProgressView.hidden = YES;
@@ -2414,8 +2369,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         _pulseBlocked = NO;
     [CATransaction begin];
     [CATransaction setAnimationDuration:1.2];
-//    _scrubberEffectsLayer.color1 = [[UIColor redColor] colorWithAlphaComponent:0.5];
-//    _scrubberEffectsLayer.color2 = [[UIColor redColor] colorWithAlphaComponent:0.2];
     [CATransaction commit];
     self.scrollView.userInteractionEnabled = NO;
     self.recordingProgressView.hidden = NO;
@@ -2622,9 +2575,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //                trect.size.height = CGRectGetHeight(sfr) - _topLayoutScrollViewConstraint.constant;
 
                 [(CALayer*)_trackGradients[i] setFrame:trect];
-                
                 [(JWScrubberGradientLayer*)_trackGradients[i] render];
-                
                 [(CALayer*)_trackGradients[i] setPosition:CGPointMake(CGRectGetWidth(trect)/2, trackY + CGRectGetHeight(trect)/2)];
             }
         }
@@ -2660,11 +2611,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)configureEditLayer:(CGSize)size {
     
-    if (_editType == ScrubberEditLeft )
-    {
+    if (_editType == ScrubberEditLeft ){
         [self configureEditLayerLeft:size];
     } else if (_editType == ScrubberEditStart ||  _editType == ScrubberEditRight ) {
-
         [self configureEditLayerRight:size];
     }
     
@@ -2735,21 +2684,20 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGRect gfr = fr;
 
     if (_clipBegin == nil) {
-        _clipBegin = [UIView new];
         
+        _clipBegin = [UIView new];
         self.gradientLeft = [[JWScrubberClipEndsLayer alloc] initWithKind:JWScrubberClipEndsKindLeft];
         // TODO whatEver the effects layer is using
-        if (_trackGradientColor1) {
+        if (_trackGradientColor1)
             _gradientLeft.color = _trackGradientColor1;
-        } else {
+        else
             _gradientLeft.color = [UIColor blackColor];
-        }
 
         _clipBegin.backgroundColor = [UIColor clearColor];
         [self.clipBegin.layer insertSublayer:_gradientLeft atIndex:0];
         [_scrollView addSubview:_clipBegin];
-        
     }
+    
     gfr = fr;
     gfr.origin = CGPointZero;
     _gradientLeft.frame = gfr;
@@ -2764,12 +2712,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (_clipEnd == nil) {
         _clipEnd = [UIView new];
         self.gradientRight = [[JWScrubberClipEndsLayer alloc] initWithKind:JWScrubberClipEndsKindRight];
-        
-        if (_trackGradientColor1) {
+        if (_trackGradientColor1)
             _gradientRight.color = _trackGradientColor1;
-        } else {
+        else
             _gradientRight.color = [UIColor blackColor];
-        }
 
         _clipEnd.backgroundColor = [UIColor clearColor];
         [self.clipEnd.layer insertSublayer:_gradientRight atIndex:0];
@@ -2789,7 +2735,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)deSelectTrack {
     if (_selectedTrack > 0 ) {
         // DESELECT if SELECTED
-        [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+//        [self modifyTrack:_selectedTrack colors:self.userProvidedColorsAllTracks];
+        [self modifyTrack:_selectedTrack colors:[_delegate trackColorsForTrack:_selectedTrack]];
         _selectedTrack = 0;
     }
 }
@@ -2821,9 +2768,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void) bouncePlayhead {
     
-    
     CATransform3D scaleTrans = CATransform3DMakeScale(1.1, 1.0, 1.0);
-
     UIColor *playHColor;
     UIColor *playPinColor;
     if ([_delegate isPlaying]) {

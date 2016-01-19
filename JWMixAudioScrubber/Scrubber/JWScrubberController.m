@@ -38,6 +38,7 @@ const int scMaxTracks = 10;
 @property (nonatomic,strong)  NSMutableArray *pulseSamples;
 @property (nonatomic,strong)  NSMutableArray *pulseSamplesDurations;
 @property (nonatomic,readwrite) BOOL isPlaying;
+@property (nonatomic,strong)  NSString *playerProgressFormatString;
 @end
 
 
@@ -65,7 +66,8 @@ const int scMaxTracks = 10;
         [self reset];
         _pulseSamples = [@[] mutableCopy];
         _pulseSamplesDurations = [@[] mutableCopy];
-        
+        _playerProgressFormatString = @"%.0f";
+//        _playerProgressFormatString = @"%00.2f";
     }
     return self;
 }
@@ -1029,6 +1031,16 @@ EDITING PROTOCOL PUBLIC API
 }
 
 
+-(NSDictionary*)trackColorsForTrack:(NSUInteger)track {
+
+    id trackId = [self trackIdForTrack:track];
+    id trackColors = _trackColorsByTrackId[trackId];
+    if (trackColors == nil)
+        trackColors = _trackColorsAllTracks;
+    return trackColors;
+}
+
+
 #pragma mark edit delegate
 
 -(NSString*)trackIdForTrack:(NSUInteger)track {
@@ -1351,18 +1363,13 @@ EDITING PROTOCOL PUBLIC API
     
     [self configureColors:trackColors forTackId:sid];
     
-    
-    if (track==1) {
-        
-        // Do some first track stuff
+    if (track==1) { // Do some first track stuff
         _scrubber.viewOptions = _viewOptions;
         [_scrubber prepareForTracks];
-        
         if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 _scrubber.playHeadValueStr = @"";
 //                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",0.0];
-                
                 if ([_delegate respondsToSelector:@selector( durationInSecondsOfAudioFile:forScrubberId:)]) {
                     _scrubber.remainingValueStr =
                     [NSString stringWithFormat:@"-%.0f",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
@@ -1451,90 +1458,62 @@ EDITING PROTOCOL PUBLIC API
     return [_playerTimer isValid];
 }
 
--(void)startPlayTimer {
-    NSString *sid = _playerTrackId;
-
+-(void)progressPlayHead {
+    
     if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
+
+        NSString *sid = _playerTrackId;
         dispatch_async(dispatch_get_main_queue(), ^{
             if ([_delegate respondsToSelector:@selector( currentPositionInSecondsOfAudioFile:forScrubberId:)]) {
                 CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
                 if (cp < 0)
                     cp = 0.0;
-                
-                if  (cp < 1.00)
+                if  (cp < 1.0)
                     _scrubber.playHeadValueStr = @"";
                 else
-                    _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",cp];
-            
+                    _scrubber.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
+                //                    _scrubber.playHeadValueStr =
+                //                    [NSString stringWithFormat:@"%.0f",[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid]];
             }
-            
             if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
                 _scrubber.remainingValueStr =
                 [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
             }
-            
         });
     }
+}
 
-    
+-(void)startPlayTimer {
+    [self progressPlayHead];
     self.playerTimer = [NSTimer timerWithTimeInterval:0.10 target:self selector:@selector(playTimerFired:) userInfo:nil repeats:YES];
     [[NSRunLoop mainRunLoop] addTimer:_playerTimer forMode:NSRunLoopCommonModes];
 }
 
 -(void)playTimerFired:(NSTimer*)timer {
-    
-    NSString *sid = _playerTrackId;
-    
     if (timer.valid) {
-        if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if ([_delegate respondsToSelector:@selector( currentPositionInSecondsOfAudioFile:forScrubberId:)]) {
-                    
-                    CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
-                    if (cp < 0)
-                        cp = 0.0;
-                    
-                    if  (cp < 1.0)
-                        _scrubber.playHeadValueStr = @"";
-                    else
-                        _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",cp];
-
-//                    _scrubber.playHeadValueStr =
-//                    [NSString stringWithFormat:@"%.0f",[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid]];
-                }
-                
-                if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
-                    _scrubber.remainingValueStr =
-                    [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
-                }
-            });
-        }
-        
+        [self progressPlayHead];
         // Obtain the progress of the audio file from the Engine
         // and set the scrubber to that progress
-
         float progress = 0.0;
-
-        if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)]) {
-            progress = [_delegate progressOfAudioFile:self forScrubberId:sid];
-        }
-
-        
-        [self.scrubber trackScrubberToProgress:progress];
-        
-        if (_pulseOn) {
-
-            [self pulseOnProgress:progress trackId:sid];
-        }
-        
-    } // timer valid
+        if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
+            progress = [_delegate progressOfAudioFile:self forScrubberId:_playerTrackId];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            [self.scrubber trackScrubberToProgress:progress];
+            if (_pulseOn)
+                [self pulseOnProgress:progress];
+        });
+    }
 }
 
 
 #pragma mark - pulse types
 
 //#define TRACEPULSE
+
+-(void)pulseOnProgress:(CGFloat)progress {
+    [self pulseOnProgress:progress trackId:_playerTrackId];
+}
 
 -(void)pulseOnProgress:(CGFloat)progress trackId:(NSString*)trackId {
     // float currentPosSeconds = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
@@ -1548,11 +1527,9 @@ EDITING PROTOCOL PUBLIC API
     }
     
     float buffersDuration = [_pulseSamplesDurations[0] floatValue];
-    
     NSUInteger indexOfBuffer = 0;
-    if (buffersDuration > 0) {
+    if (buffersDuration > 0)
         indexOfBuffer = floor(currentPosSeconds/buffersDuration);
-    }
     
     float remainder = (currentPosSeconds / buffersDuration);
     remainder -= indexOfBuffer;
@@ -1566,9 +1543,8 @@ EDITING PROTOCOL PUBLIC API
     } else {
         
         NSUInteger pulseType = 3;
-        
         NSArray *pulsData = _pulseSamples[indexOfBuffer];
-
+        
         if (pulseType == 1) {
             float progressValue = [pulsData[0] floatValue];  // as a fraction of duration
             float endSampleValue = [pulsData[1] floatValue]; // the first sample value
@@ -1654,48 +1630,39 @@ EDITING PROTOCOL PUBLIC API
 #ifdef TRACEPULSE
                 NSLog(@"SKIP\n");
 #endif
-
-                
             }
             
         } else if (pulseType == 4) {
             
             float pulseDataAvg = ([pulsData[1] floatValue] + [pulsData[3] floatValue])/2;
+            float progressValue = [pulsData[0] floatValue];  // as a fraction of duration
+
             float startSampleValue;
             float endSampleValue;
-            
-            float progressValue = [pulsData[0] floatValue];  // as a fraction of duration
             
             startSampleValue = [pulsData[1] floatValue];; // the first sample value
             endSampleValue = [pulsData[3] floatValue]; // the second sample value
             
             float middleProgressValue =([pulsData[2] floatValue] * buffersDuration) - progressValue;
             float remainingDuration = buffersDuration - middleProgressValue;
-            
 #ifdef TRACEPULSE
             NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
                   indexOfBuffer,buffersDuration,currentPosSeconds,
                   pulseDataAvg,progressValue,endSampleValue);
 #endif
-
-            
             float lastStartValue = endSampleValue;
             float lastEndValue = pulseDataAvg;
             double delayInSecs = progressValue;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 // pulse anim 2 -  first point to second point
                 [_scrubber pulseBackLight:startSampleValue endValue:endSampleValue duration:middleProgressValue];
-                
                 double delayInSecs = middleProgressValue;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     // pulse anim 3 -  second value to avg
                     [_scrubber pulseBackLight:lastStartValue endValue:lastEndValue duration:remainingDuration];
                 });
             });
-
-            
         }
-        
     }
 }
 

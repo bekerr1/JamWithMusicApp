@@ -106,16 +106,6 @@
     [self loadFilesystemDataPrtotected];
 }
 
--(double)audioLengthForFileWithName:(NSString*)fileName {
-    
-    double result = 0.0;
-    NSString *dbKey = [self dbKeyForFileName:fileName];
-    if (dbKey)
-        result = [_dbMetaData[dbKey][@"faudiolength"] doubleValue];
-
-    return result;
-}
-
 #pragma mark -
 -(NSString*)documentsDirectoryPath {
     NSString *result = nil;
@@ -187,10 +177,6 @@
 }
 
 
--(NSURL *)fileURLWithFileName:(NSString*)name
-{
-    return [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:name]];
-}
 
 - (void)copyResources {
     
@@ -223,6 +209,67 @@
                                             error:&error];
 }
 
+#pragma mark -
+
+-(double)audioLengthForFileWithName:(NSString*)fileName {
+    double result = 0.0;
+    NSString *dbKey = [self dbKeyForFileName:fileName];
+    if (dbKey)
+        result = [_dbMetaData[dbKey][@"faudiolength"] doubleValue];
+    return result;
+}
+
+-(NSURL *)fileURLWithFileFlatFileURL:(NSURL*)flatURL{
+    NSString *fileName = [flatURL lastPathComponent];
+    NSArray *pathComponents = [flatURL pathComponents];
+    __block NSUInteger indexToDocuments = 0;
+    [pathComponents enumerateObjectsWithOptions:NSEnumerationReverse
+                                     usingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                                         if ([obj isEqualToString:@"Documents"]) {
+                                             indexToDocuments = idx;
+                                             *stop = YES;
+                                         }
+                                     }];
+    
+    NSMutableArray *pathFromDocuments = [NSMutableArray new];
+    // Iterate one past Documents til count -1 end slash
+    for (NSUInteger i = (indexToDocuments + 1); i <  ([pathComponents count] - 1); i++) {
+        [pathFromDocuments addObject:pathComponents[i]];
+    }
+    
+    NSURL *result = [self fileURLWithFileName:fileName  inPath:pathFromDocuments];
+    return result;
+}
+
+-(NSURL *)fileURLWithFileName:(NSString*)name inPath:(NSArray*)pathComponents{
+    NSURL *result;
+    NSURL *baseURL = [NSURL fileURLWithPath:[self documentsDirectoryPath]];
+    NSString *pathString = @"";
+    for (id path in pathComponents) {
+        pathString = [pathString stringByAppendingPathComponent:path];
+    }
+    pathString = [pathString stringByAppendingPathComponent:name];
+    NSURL *url = [NSURL fileURLWithPath:pathString relativeToURL:baseURL];
+    result = url;
+    return result;
+}
+
+-(NSURL *)fileURLWithRelativePathName:(NSString*)pathName {
+    NSURL *result;
+    NSURL *baseURL = [NSURL fileURLWithPath:[self documentsDirectoryPath]];
+    NSURL *url = [NSURL fileURLWithPath:pathName relativeToURL:baseURL];
+    result = url;
+    return result;
+}
+
+-(NSURL *)fileURLWithFileName:(NSString*)name {
+    return [self fileURLWithFileName:name inPath:nil];
+}
+
+//-(NSURL *)fileURLWithFileName:(NSString*)name {
+//    return [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:name]];
+//}
+
 - (void)loadAllData {
     [self loadFilesystemDataPrtotected];
     [self loadMetaData];
@@ -233,6 +280,9 @@
         [self loadFilesystemData];
     }
 }
+
+
+
 
 - (void)loadFilesystemData {
 
@@ -401,7 +451,6 @@
 }
 
 #pragma mark -
-
 
 -(NSString*)dbKeyForFileName:(NSString*)fileName {
     NSString *result;

@@ -38,6 +38,7 @@
 @property (nonatomic) UIColor *headerColor1;
 @property (nonatomic) UIColor *headerColor2;
 @property (nonatomic) BOOL pulseBackLight;
+@property (nonatomic) NSString *playerProgressFormatString;
 
 - (void)selectTrack:(NSUInteger)track;
 - (void)deSelectTrack;
@@ -142,6 +143,8 @@
 
 -(CGSize)viewSize;
 -(BOOL)isPlaying;
+
+-(NSDictionary*)trackColorsForTrack:(NSUInteger)track;
 
 // EDIT Delegate methods
 -(NSDictionary*)trackInfoForTrack:(NSUInteger)track;

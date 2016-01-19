@@ -20,7 +20,6 @@
 @protocol JWSourceAudioFilesDelegate <NSObject>
 -(void)loadDataWithCompletion:(void (^)())completion;
 -(void)loadDataAllWithCompletion:(void (^)())completion;
-
 @optional
 -(void)finishedTrim:(JWSourceAudioFilesTableViewController *)controller;
 -(void)finishedTrim:(JWSourceAudioFilesTableViewController *)controller withDBKey:(NSString*)key;

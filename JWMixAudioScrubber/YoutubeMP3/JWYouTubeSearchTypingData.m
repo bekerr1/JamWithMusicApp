@@ -162,10 +162,11 @@ HTTP GET request on the googleapis/youtube URL and once the request is complete 
                             //                    [self performSelector:@selector(getSearchKeywordDetailsWithCompletion:) withObject:completion];
 
                         } else {
-                            
-                            for (id channelItem in _searchResults) {
-                                NSLog(@"%@",[channelItem valueForKey:@"ytvideoid"]);
-                            }
+
+                            // LOG results
+//                            for (id channelItem in _searchResults) {
+//                                NSLog(@"%@",[channelItem valueForKey:@"ytvideoid"]);
+//                            }
                             NSLog(@"LAST of Page and RETURN results");
                             completion(_searchResults,searchStr);
                         }

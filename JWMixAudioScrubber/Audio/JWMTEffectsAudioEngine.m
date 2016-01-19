@@ -326,6 +326,7 @@
     distortion.preGain = preGain;
     effect = distortion;
     
+    distortion.wetDryMix = 0.1;
     return effect;
     
 }

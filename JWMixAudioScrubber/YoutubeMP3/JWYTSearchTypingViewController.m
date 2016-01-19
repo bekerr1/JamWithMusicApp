@@ -53,37 +53,27 @@
 - (void)viewDidLoad {
 
     [super viewDidLoad];
+    
     self.clearsSelectionOnViewWillAppear = NO;
     if (_imageRetrievalQueue == nil)
         _imageRetrievalQueue =
         dispatch_queue_create("imageProcessing",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, 0));
 
+    _channelsDataArray = [[NSMutableArray alloc] init];
+    _images = [@{} mutableCopy];
     _newSearchResults = YES;
     if (_searchTerm)
         _searchString = _searchTerm;
-    
-    UITextField *txfSearchField = [_youTubeSearchQuery valueForKey:@"_searchField"];
-    [(UITextField*)txfSearchField addTarget:self
-                                     action:@selector(textFieldDidChange:)
-                           forControlEvents:UIControlEventEditingChanged];
-
-    txfSearchField.text = _searchString;
-
-    _channelsDataArray = [[NSMutableArray alloc] init];
-    _images = [@{} mutableCopy];
-
-    self.youTubeSearchQuery.delegate = self;
-    
+    _youTubeSearchQuery.text = _searchString;
+    _youTubeSearchQuery.delegate = self;
     [_youTubeSearchQuery becomeFirstResponder];
-
 }
 
 - (void)didReceiveMemoryWarning {
     NSLog(@"%s",__func__);
     [super didReceiveMemoryWarning];
 }
-
 
 #pragma mark - Delegate
 
@@ -97,7 +87,6 @@
         [_delegate finishedTrim:self title:title withDBKey:trimKey];
 }
 
-
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -110,7 +99,6 @@
     @synchronized(_channelsDataArray) {
         if (self.channelsDataArray.count > 0)
             more = 1;
-        
         result = self.channelsDataArray.count + more;
     }
     return result;
@@ -141,12 +129,10 @@
             
             NSDictionary* ytVideoInfo = self.channelsDataArray[indexPath.row];
             id description = ytVideoInfo[@"ytdescriptionsnippet"];
-            
             cell.textLabel.text = [ytVideoInfo valueForKey:(NSString*)JWDbKeyVideoTitle];
             cell.detailTextLabel.text = description;
             
             _youtubeVideoTitle = [self.channelsDataArray[indexPath.row] valueForKey:(NSString*)JWDbKeyVideoTitle];
-
             @synchronized(_images) {
                 cell.imageView.image = _images[ ytVideoInfo[@"ytvideoid"] ];
             }
@@ -223,9 +209,7 @@
 }
 
 
-
 #pragma mark -
-
 
 -(void)cleanupImageCache {
     
@@ -300,37 +284,21 @@
 //    }
 
 
-//-(void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
-//    [searchBar resignFirstResponder];
-//}
-
 
 -(void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
-    
-    NSLog(@"%s",__func__);
-    
     self.lastKeyHitTimeStamp = nil;
-
     [self cleanupImageCache];
-//    NSString* searchText = [NSString stringWithString:searchBar.text];
     self.searchString = [NSString stringWithString:searchBar.text];
     _searchTerm = _searchString;
-
     [_delegate searchTermChanged:self];
-    
     [searchBar resignFirstResponder];
     @synchronized(_channelsDataArray) {
         [self.channelsDataArray removeAllObjects];
     }
-    
-    [self.tableView reloadData];
-
     _newSearchResults = YES;
-    [self getYoutubeDataFromSearchText:_searchString];
 
-//    UITextField *txfSearchField = [_youTubeSearchQuery valueForKey:@"_searchField"];
-//    [txfSearchField resignFirstResponder];
-    
+    [self.tableView reloadData];
+    [self getYoutubeDataFromSearchText:_searchString];
 }
 
 -(void)textFieldDidChange:(id)sender
@@ -389,13 +357,12 @@
 
 
 -(void)doYoutubeSearch {
-    
+
+    _newSearchResults = YES;
     @synchronized(_channelsDataArray) {
         [self.channelsDataArray removeAllObjects];
     }
     [self.tableView reloadData];
-    _newSearchResults = YES;
-    
     [self getYoutubeDataFromSearchText:_searchString];
 }
 
@@ -427,7 +394,6 @@
 #endif
              @synchronized(_channelsDataArray) {
                  _channelsDataArray = channelData;
-
 //                 [_channelsDataArray addObjectsFromArray:channelData];
              }
              
@@ -503,9 +469,7 @@
              NSLog(@"Searchstr is DIFFERENT");
          }
      }];
-    
 }
-
 
 #pragma mark - Navigation
 

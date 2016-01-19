@@ -119,21 +119,17 @@ JWMixEditDelegate
                                                usingScrubberView:(id)svc playerControls:(id)pvc mixEdit:(id)me
                                               withCompletion:(JWPlayerCompletionHandler)completion
 {
+    id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
+    _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
+
     _autoPlay = autoplay;
 //    _listenToPositionChanges = _autoPlay ? NO : YES;
     _listenToPositionChanges = NO;
     self.metvc = me;
     self.pcvc = (JWPlayerControlsViewController *)pvc;
-    
-    
-    id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
-    _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
-
 
     //INITIALIZE ENGINE IN BACKGROUND
-
     dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INITIATED,0),^{
-        
         self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
         self.audioEngine.engineDelegate = self;
         self.metvc.delegateMixEdit = self;
@@ -143,25 +139,22 @@ JWMixEditDelegate
         dispatch_async(dispatch_get_main_queue(), ^{
             self.sc = [[JWScrubberController alloc]
                        initWithScrubber:(JWScrubberViewController*)svc andBackLightValue:_backLightValue];
-            
             self.sc.delegate = self;
-            
             [self.pcvc initializeWithState:_state withLightBackround:NO];
-            
             if (completion)
                 completion();
         });
     });
     
-    // AND RETURN
-    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appWillBackground:)
                                                  name:@"AppWillBackground" object:nil];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appWillForeground:)
                                                  name:@"AppWillForeground" object:nil];
+    
+    // AND RETURN
+
 }
 
 -(void)appWillBackground:(id)noti {
@@ -192,7 +185,6 @@ JWMixEditDelegate
 -(void)setTrackSet:(id)trackSet {
     
     NSLog(@"%s",__func__);
-    
     _trackItems = trackSet;
     if (_trackItems) {
         _state = JWPlayerStateSetToBeg;
@@ -216,17 +208,15 @@ JWMixEditDelegate
 
     [_audioEngine initializeAudioConfig];
     [_audioEngine initializeAudio];
-    [_audioEngine playerForNodeAtIndex:0].volume = 0.50;
     [self configureScrubbers:NO];
+    [_audioEngine playerForNodeAtIndex:0].volume = 0.750;
     self.state = JWPlayerStatePlayFromBeg;
-    
     if (_autoPlay) {
-        double delayInSecs = 0.25;
+        double delayInSecs = 0.20;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self play];
         });
     }
-
 }
 
 - (NSMutableDictionary*) newEnginePlayerNodeForTrackSetItem:(NSDictionary*)item {
@@ -239,7 +229,6 @@ JWMixEditDelegate
     id typeValue = item[@"type"];
     if (typeValue) {
         nodeType = [typeValue unsignedIntegerValue];
-        
         if (nodeType == JWMixerNodeTypePlayer) {
             playerNode =
             [@{@"title":@"playernode1",
@@ -252,14 +241,11 @@ JWMixEditDelegate
                @"nodekey":item[@"key"],
                } mutableCopy];
         }
-        
         if (fileURL)
             playerNode[@"fileURLString"] = [fileURL path];
         
-    } else {
-
-        // NO TYPE VALUE
-        NSLog(@"%s No Type Value in node config",__func__);
+    } else { // NO TYPE VALUE
+        NSLog(@"%s No Type SHOULD NEVER HAPPEN Value in node config",__func__);
         if (fileURL) {
             playerNode =
             [@{@"title":@"playernode",
@@ -291,6 +277,9 @@ JWMixEditDelegate
         playerNode[@"referencefile"] = referenceFileItem;
     
     id effects = item[@"effects"];
+//#warning auto effcts
+//    effects = [NSNull null];
+    
     if (effects) {
         NSArray *effectsArray =
         @[
@@ -309,11 +298,9 @@ JWMixEditDelegate
         playerNode[@"effects"] = effectsArray;
     }
     
-    
     id confignode = item[@"config"];
-    if (confignode) {
+    if (confignode)
         playerNode[@"config"] = confignode; //  slider values
-    }
 
     NSLog(@"node type %ld title %@  fname %@  ",[playerNode[@"type"] unsignedIntegerValue],
           titleValue?titleValue:@"notitle",
@@ -407,11 +394,9 @@ JWMixEditDelegate
     
     NSUInteger selectedIndex = [self firstValidTrackIndexForSelection];
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
-
     NSString *sid = [(NSDictionary*)playerNodeList[selectedIndex] valueForKey:@"trackid"];
 
     _sc.selectedTrack = sid;
-    
     [_metvc setSelectedNodeIndex:selectedIndex];
     [_metvc refresh];
 }
@@ -538,13 +523,15 @@ JWMixEditDelegate
     if (referenceFileItem)
         fileReference = referenceFileItem;
     
-    SampleSize ssz =  SampleSize14;
+    SampleSize ssz =  SampleSize18;
     VABKindOptions kind =  VABOptionCenter;
     VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
     
     SamplingOptions so = SamplingOptionDualChannel;
     if (_sc.pulseBackLight)
-        so &= SamplingOptionCollectPulseData;
+        so |= SamplingOptionCollectPulseData;
+
+//        so &= SamplingOptionCollectPulseData;
     
     //If its a player node that has a file url that buffer info can be recieved
     NSString *sid =
@@ -553,7 +540,13 @@ JWMixEditDelegate
                         options:so
                            type:kind
                          layout:layout
-                         colors:nil
+                         colors:@{
+                                  JWColorScrubberTopPeak : [ iosColor4 colorWithAlphaComponent:0.5],
+//                                  JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+//                                  JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+                                  JWColorScrubberBottomPeak : [ iosColor3 colorWithAlphaComponent:0.5],
+                                  }
+     
                   referenceFile:fileReference
                       startTime:delay
                    onCompletion:nil];
@@ -562,6 +555,10 @@ JWMixEditDelegate
     
 }
 
+//        iosColor5 = [UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0]; // aluminum
+//        iosColor6 = [UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1.0]; // mercury
+//        iosColor7 = [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1.0]; // tungsten
+//        iosColor8 = [UIColor colorWithRed:102/255.0 green:102/255.0 blue:102/255.0 alpha:1.0]; // steel
 
 -(void)scrubberConfigurePlayerRecorder:(id)playerNode atIndex:(NSUInteger)index withFileURL:(NSURL*)fileURL playerOnly:(BOOL)playerOnly {
     
