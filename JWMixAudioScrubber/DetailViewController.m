@@ -63,41 +63,24 @@
 
 - (void)configureView {
     
+    self.view.backgroundColor = [UIColor blackColor];
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
-    
     if (_detailItem) {
-        
         id hasTrackObjectSet = _detailItem[@"trackobjectset"];
         if (hasTrackObjectSet) {
+            
             self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+
             NSLog(@"%s %@",__func__,[_trackItems description]);
-            
-        } else {
-            
-            NSLog(@"%s DEPRECATED FIXME %@",__func__,[_trackItems description]);
-            self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
         }
         
         if (_playerController) {
             // SETUP AUDIO PLAYER CONTROLLER
-            
-            if (_trackItems) {
-                // MULTIPLE items
-                if (hasTrackObjectSet) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [_playerController setTrackSet:_trackItems];
-                    });
-                    
-                } else {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [_playerController setTrackItems:_trackItems];
-                    });
-                }
-            } else {
-                // SINGLE detail item
+            if (_trackItems && hasTrackObjectSet) {
+                
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [_playerController setTrackItem:_detailItem];
+                    [_playerController setTrackSet:_trackItems];
                 });
             }
         }
@@ -110,6 +93,7 @@
     });
 }
 
+
 -(void)revealScrubber {
     [self revealScrubberAnimated:YES];
 }
@@ -119,9 +103,11 @@
     if (animated) {
         _scrubberContainerView.alpha = 0;
         _scrubberContainerView.hidden = NO;
+
         [UIView animateWithDuration:0.10 delay:1.0 options:UIViewAnimationOptionCurveLinear animations:^{
             _scrubberContainerView.alpha = 1.0;
         } completion:^(BOOL fini){
+
             [UIView animateWithDuration:0.10 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.view.backgroundColor = self.restoreColor;
             } completion:nil];
@@ -131,9 +117,24 @@
         _scrubberContainerView.alpha = 1.0;
         _scrubberContainerView.hidden = NO;
         self.view.backgroundColor = self.restoreColor;
+        [self.navigationController setToolbarHidden:NO];
     }
 }
 
+
+-(void)predictScrubberHeight {
+    
+    if (_detailItem) {
+        id hasTrackObjectSet = _detailItem[@"trackobjectset"];
+        if (hasTrackObjectSet) {
+            
+            NSArray *items = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+            if (items) {
+                [self computeScrubberViewHeight:[items count]];
+            }
+        }
+    }
+}
 
 - (void)viewDidLoad {
     
@@ -141,25 +142,28 @@
     
     NSLog(@"%s",__func__);
     [[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
-    [self toolbar1];
+    [self.navigationController setToolbarHidden:NO];
+    [self toolbar1Animated:NO];
 
+    [self predictScrubberHeight];
     self.volumeView.backgroundColor = [UIColor clearColor];
     
 //    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
 //    mpVolume.showsRouteButton = YES;
 //    [_volumeView addSubview:mpVolume];
+
     
+    self.restoreColor = self.view.backgroundColor;
+    self.view.backgroundColor = [UIColor blackColor];
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
 
-    self.restoreColor = self.view.backgroundColor;
-    self.view.backgroundColor = [UIColor blackColor];
-
     [[self.navigationController navigationBar]
      setBackgroundImage:[UIImage new] forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
+    
     [[self.navigationController navigationBar] setShadowImage:[UIImage new]];
     [[self.navigationController navigationBar] setBackgroundColor:[UIColor blackColor]];
-
+    
     self.playerController = [JWAudioPlayerController new];
     self.playerController.delegate = self;
     [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:YES
@@ -167,7 +171,6 @@
                                                                  playerControls:_playerControls mixEdit:_mixEdit
                                                                  withCompletion:^{
                                                                      [self configureView];
-                                                                     [self.navigationController setToolbarHidden:NO];
                                                                  }];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
@@ -218,7 +221,6 @@
     [self updateAmpImage];
 }
 
-
 #pragma mark - commands
 
 -(void)stopPlaying {
@@ -263,8 +265,12 @@
     }
 }
 
+
 -(void)toolbar1 {
-    [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:YES];
+    [self toolbar1Animated:YES];
+}
+-(void)toolbar1Animated:(BOOL)animated {
+    [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:animated];
 }
 
 -(void)toolbar2WithPlay:(BOOL)playbutton {
@@ -293,15 +299,11 @@
 }
 
 
-#pragma mark -  JWAudioPlayerControllerDelegate
 
--(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller {
-    
-    if (_sctv.hidden)
-        return CGSizeZero;
-    
+
+-(void)computeScrubberViewHeight:(NSUInteger)numberOfTracks{
     CGFloat tracksz = 60.0f;
-    NSUInteger nTracks = controller.numberOfTracks;
+    NSUInteger nTracks = numberOfTracks;
     if (nTracks == 1)
         tracksz = 120;
     else if (nTracks == 2)
@@ -309,9 +311,19 @@
     else if (nTracks == 3)
         tracksz = 95.0f;
     
-    CGFloat expectedHeight = (controller.numberOfTracks  * tracksz);// + 40;  // labels on scrubber
+    CGFloat expectedHeight = (nTracks  * tracksz);// + 40;  // labels on scrubber
     
     self.layoutConstraintScrubberHeight.constant = expectedHeight;
+    
+}
+#pragma mark -  JWAudioPlayerControllerDelegate
+
+-(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller {
+    
+    if (_sctv.hidden)
+        return CGSizeZero;
+    
+    [self computeScrubberViewHeight:controller.numberOfTracks];
     
     return CGSizeMake(self.view.bounds.size.width, self.layoutConstraintScrubberHeight.constant);
 }
@@ -590,4 +602,37 @@
 //    } completion:^(BOOL fini){
 //        [_scrubberActivity stopAnimating];
 //    }];
+
+
+
+
+//if (_playerController) {
+//    // SETUP AUDIO PLAYER CONTROLLER
+//    if (_trackItems) {
+//        // MULTIPLE items
+//        if (hasTrackObjectSet) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                [_playerController setTrackSet:_trackItems];
+//            });
+//        } else {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                [_playerController setTrackItems:_trackItems];
+//            });
+//        }
+//    } else {
+//        // SINGLE detail item
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            [_playerController setTrackItem:_detailItem];
+//        });
+//    }
+//}
+
+//if (hasTrackObjectSet) {
+//    self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+//    NSLog(@"%s %@",__func__,[_trackItems description]);
+//} else {
+//    NSLog(@"%s DEPRECATED FIXME %@",__func__,[_trackItems description]);
+//    self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
+//}
+
 

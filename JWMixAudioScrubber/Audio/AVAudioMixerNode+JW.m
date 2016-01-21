@@ -12,12 +12,12 @@
 @implementation AVAudioMixerNode (JW)
 
 -(float)floatValue1 {
-    NSLog(@"%s get outputVolume %.2f",__func__,self.outputVolume);
+//    NSLog(@"%s get outputVolume %.2f",__func__,self.outputVolume);
     return self.outputVolume;
 }
 
 -(float)floatValue2 {
-    NSLog(@"%s get pan %.2f",__func__,self.pan);
+//    NSLog(@"%s get pan %.2f",__func__,self.pan);
     return self.pan;
 }
 -(float)floatValue3 {

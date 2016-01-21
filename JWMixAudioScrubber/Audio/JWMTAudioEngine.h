@@ -59,6 +59,12 @@
 -(void)prepareToRecord;
 -(void)prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:(NSUInteger)index;
 -(void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+- (NSURL*)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+- (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+- (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
+
+- (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+
 -(void)prepareToPlayMix;
 -(void)refresh; // makeconnections if needed
 -(void)pausePlayingAll;

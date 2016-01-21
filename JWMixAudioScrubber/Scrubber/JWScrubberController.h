@@ -135,6 +135,8 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)play:(NSString*)sid;
 -(void)playRecord:(NSString*)sid;
 
+-(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL;
+
 -(void)stopPlaying:(NSString*)sid;
 -(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind;
 
@@ -209,6 +211,7 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)scrubberTrackNotSelected:(JWScrubberController*)controller;
 -(void)scrubberDidLongPress:(JWScrubberController*)controller forScrubberId:(NSString*)sid;
 -(void)scrubberPlayHeadTapped:(JWScrubberController*)controller;
+-(NSURL*)recordingFileURL:(JWScrubberController*)controller;
 
 // to allow the controller to support the play timer
 -(CGFloat)progressOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid;

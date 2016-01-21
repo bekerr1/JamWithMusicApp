@@ -24,6 +24,8 @@ JWMixEditDelegate
     BOOL _rewound;
     BOOL _listenToPositionChanges;
     BOOL _wasPlaying;
+    BOOL _isRecording;
+
     UIColor *iosColor2;
     UIColor *iosColor1;
     UIColor *iosColor3;
@@ -50,8 +52,6 @@ JWMixEditDelegate
 
 
 @implementation JWAudioPlayerController
-
-
 
 -(instancetype)init {
     if (self = [super init]) {
@@ -85,12 +85,9 @@ JWMixEditDelegate
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me {
     
     [self iosColors];
-    
     _listenToPositionChanges = NO;
-    
     id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
     _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
-    
     //INITIALIZE ENGINE AND COMPONENTS
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
     self.audioEngine.engineDelegate = self;
@@ -121,12 +118,13 @@ JWMixEditDelegate
 {
     id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
     _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
-
     _autoPlay = autoplay;
 //    _listenToPositionChanges = _autoPlay ? NO : YES;
+    
     _listenToPositionChanges = NO;
     self.metvc = me;
     self.pcvc = (JWPlayerControlsViewController *)pvc;
+    [self.pcvc initializeWithState:_state withLightBackround:NO];
 
     //INITIALIZE ENGINE IN BACKGROUND
     dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INITIATED,0),^{
@@ -135,14 +133,13 @@ JWMixEditDelegate
         self.metvc.delegateMixEdit = self;
         self.metvc.effectsHandler = self.audioEngine;
         self.pcvc.delegate = self;
-        
         dispatch_async(dispatch_get_main_queue(), ^{
             self.sc = [[JWScrubberController alloc]
                        initWithScrubber:(JWScrubberViewController*)svc andBackLightValue:_backLightValue];
             self.sc.delegate = self;
-            [self.pcvc initializeWithState:_state withLightBackround:NO];
-            if (completion)
+            if (completion) {
                 completion();
+            }
         });
     });
     
@@ -414,6 +411,27 @@ JWMixEditDelegate
              };
 }
 
+
+-(BOOL)recordingWithoutPlayers {
+    
+    BOOL result = NO;
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    
+    if ([playerNodeList count] > 0) {
+        id item = playerNodeList[0];
+        
+        if (item) {
+            JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
+            
+            if (nodeType == JWMixerNodeTypePlayerRecorder)
+                result = YES;
+        }
+    }
+    return result;
+}
+
+
+
 #pragma mark - BUTTON PRESSED PROTOCOL
 
 -(void)play
@@ -428,13 +446,25 @@ JWMixEditDelegate
 
 -(void)pause
 {
-    if (_state != JWPlayerStateRecFromPos) {
-        self.state = JWPlayerStateSetToPos;
-    } else {
+    if (_state == JWPlayerStateRecFromPos) {
         //Ask the user if they want to keep the audio or re-record
         self.state = JWPlayerStateSetToBeg;
+    } else {
+        self.state = JWPlayerStateSetToPos;
     }
 }
+
+//    if (_state != JWPlayerStateRecFromPos) {
+//        self.state = JWPlayerStateSetToPos;
+//    } else {
+//        //Ask the user if they want to keep the audio or re-record
+//        self.state = JWPlayerStateSetToBeg;
+////        if (_isRecording) {
+////            _isRecording = NO;
+////            self.state = JWPlayerStatePlayFromBeg;
+////            [self configureScrubbers:NO];
+////        }
+//    }
 
 -(void)record
 {
@@ -487,8 +517,19 @@ JWMixEditDelegate
             
         case JWPlayerStateRecFromPos:
             
-            [_audioEngine prepareToRecord];
-            [_sc playRecord:nil];
+            if ([self recordingWithoutPlayers]) {
+
+                _isRecording = YES;
+                
+                NSURL *fileURL = [_audioEngine recordOnlyWithPlayerRecorderAtNodeIndex:0];
+
+                [_sc recordAt:[self trackIdForPlayerNodeAtIndex:0] usingFileURL:fileURL];
+                
+            } else {
+                
+                [_audioEngine prepareToRecord];
+                [_sc playRecord:nil];
+            }
 
         default:
             break;
@@ -845,8 +886,19 @@ JWMixEditDelegate
     return [_audioEngine remainingDurationInSecondsOfAudioFileForPlayerAtIndex:0];
 }
 -(CGFloat)currentPositionInSecondsOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
-    return [_audioEngine currentPositionInSecondsOfAudioFileForPlayerAtIndex:0];
+    
+    CGFloat result = 0.0;
+    
+    if (_isRecording) {
+        NSUInteger index = [self playerNodeIndexForTrackId:sid];
+        result = [_audioEngine recordingTimeRecorderAtNodeIndex:index];
+    } else {
+        result = [_audioEngine currentPositionInSecondsOfAudioFileForPlayerAtIndex:0];
+    }
+    
+    return result;
 }
+
 -(NSString*)processingFormatStr:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
 
     return [_delegate playerControllerTitleForTrackSetContainingKey:self];
@@ -943,7 +995,6 @@ JWMixEditDelegate
         });
     }
 }
-
 
 //#define TRACEUPDATES
 
@@ -1057,8 +1108,6 @@ JWMixEditDelegate
 //            [_audioEngine scheduleAllStartSeconds:_currentPositionChange];
 //            [_audioEngine playAllActivePlayerNodes];
 //            _state = JWPlayerStateSetToPos;
-//            
-//        }
         
     } else {
         // silently ignore
@@ -1068,6 +1117,44 @@ JWMixEditDelegate
     return doUpdate;
 }
 
+
+#pragma mark helper
+
+-(id)playerNodeItemForTrackId:(NSString*)sid {
+    id result;
+    NSInteger index = [self playerNodeIndexForTrackId:sid];
+    if (index != NSNotFound)
+        result = [self.audioEngine playerNodeList][index];
+    return result;
+}
+
+-(NSInteger)playerNodeIndexForTrackId:(NSString*)sid {
+    NSInteger result = NSNotFound;
+    NSUInteger index = 0;
+    for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
+        NSString *trackId = item[@"trackid"];
+        if ([sid isEqualToString:trackId]) {
+            result = index;
+            break;
+        }
+        index++;
+    }
+    
+    return result;
+}
+
+-(id)trackIdForPlayerNodeAtIndex:(NSUInteger)index {
+    id result;
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    if (index < [playerNodeList count]) {
+        id trackIdValue = playerNodeList[index][@"trackid"];
+        if (trackIdValue)
+            result = trackIdValue;
+    }
+    return result;
+}
+
+
 #pragma mark scrubber track interaction
 
 -(void)scrubber:(JWScrubberController *)controller selectedTrack:(NSString *)sid {
@@ -1075,16 +1162,10 @@ JWMixEditDelegate
 
     [_delegate trackSelected:self];
     
-    NSUInteger index = 0;
-    for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
-        id trackId = item[@"trackid"];
-        if (trackId && [sid isEqualToString:trackId]) {
-                break; // This one
-        }
-        index++;
-    }
-    
-    [_metvc setSelectedNodeIndex:index];
+    NSInteger index = [self playerNodeIndexForTrackId:sid];
+    if (index != NSNotFound)
+        [_metvc setSelectedNodeIndex:index];
+
     [_metvc refresh];
 }
 
@@ -1094,19 +1175,8 @@ JWMixEditDelegate
 }
 
 -(void)scrubberDidLongPress:(JWScrubberController*)controller forScrubberId:(NSString*)sid {
-    
-    BOOL found = NO;
-    NSUInteger index = 0;
-    for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
-        NSString *trackId = item[@"trackid"];
-        if ([sid isEqualToString:trackId]) {
-            found = YES;
-            break;
-        }
-        index++;
-    }
-    
-    if (found)
+    NSInteger index = [self playerNodeIndexForTrackId:sid];
+    if (index != NSNotFound)
         [_delegate playerController:self didLongPressForTrackAtIndex:index];
 }
 
@@ -1123,6 +1193,13 @@ JWMixEditDelegate
         self.state = JWPlayerStateSetToPos;
 }
 
+-(NSURL*)recordingFileURL:(JWScrubberController*)controller {
+    
+    NSURL *fileURL = [_audioEngine recordingFileURLPlayerRecorderAtNodeIndex:0];
+    
+    return fileURL;
+}
+
 
 #pragma mark - ENGINE DELEGATE
 
@@ -1137,10 +1214,16 @@ JWMixEditDelegate
 
 -(void)userAudioObtained {
     
-    [self configureScrubbers:NO];
-    
-    [_delegate playTillEnd];
-    [_sc playedTillEnd:nil];
+    if (_isRecording) {
+        _isRecording = NO;
+        self.state = JWPlayerStatePlayFromBeg;
+        [self configureScrubbers:NO];
+        
+    } else {
+        [self configureScrubbers:NO];
+        [_delegate playTillEnd];
+        [_sc playedTillEnd:nil];
+    }
 
 }
 
@@ -1161,13 +1244,10 @@ JWMixEditDelegate
     
     id <JWEffectsModifyingProtocol> result;
     
-    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    id trackIdValue = [self trackIdForPlayerNodeAtIndex:index];
+    if (trackIdValue)
+        result = [_sc trackNodeControllerForTrackId:trackIdValue];
 
-    if (index < [playerNodeList count]) {
-        id trackIdValue = playerNodeList[index][@"trackid"];
-        if (trackIdValue)
-            result = [_sc trackNodeControllerForTrackId:trackIdValue];
-    }
     return result;
 }
 

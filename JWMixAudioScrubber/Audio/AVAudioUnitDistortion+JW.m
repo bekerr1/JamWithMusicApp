@@ -13,12 +13,12 @@
 @implementation AVAudioUnitDistortion (JW)
 
 -(float)floatValue1 {
-    NSLog(@"%s get wetdrymix %.2f",__func__,self.wetDryMix);
+//    NSLog(@"%s get wetdrymix %.2f",__func__,self.wetDryMix);
     return self.wetDryMix;
 }
 
 -(float)floatValue2 {
-    NSLog(@"%s not used, ignored",__func__);
+//    NSLog(@"%s not used, ignored",__func__);
     return self.preGain;
 }
 

@@ -79,7 +79,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 @property (strong, nonatomic) IBOutlet UILabel *formatValueLabel;
 @property (nonatomic) CGRect lastRect;
 @property (nonatomic) UIView *clipBegin;
-@property (nonatomic) UIView *clipEnd;
+//@property (nonatomic) UIView *clipEnd;
 @property (nonatomic) UIView *editLayerLeft;
 @property (nonatomic) UIView *editLayerRight;
 @property (nonatomic) CAGradientLayer *gradient;
@@ -98,7 +98,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    //        _playerProgressFormatString = @"%.0f";
+    //_playerProgressFormatString = @"%.0f";
     _playerProgressFormatString = @"%00.2f";
 
     _uiPointsPerSecondLength = 102.0; // 80 width per second
@@ -112,6 +112,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     }
 
     CGFloat scrubberLengthSeconds = 7.0;
+    scrubberLengthSeconds = 0;
     _overrideScrubberLength = scrubberLengthSeconds * _uiPointsPerSecondLength;
     
     _lastRect = CGRectZero;
@@ -128,6 +129,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
     self.scrollView.bounces = NO;
     self.recordingProgressView.hidden = YES;
+    self.recordingProgressView.alpha = 0.5;
     self.recordingProgressView.layer.transform = CATransform3DMakeScale(1.0, 6.2, 1.0);
     self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 8.4, 1.0);
     self.scrubberProgressView.progress = 0.0;
@@ -202,6 +204,39 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     }
 
 //    [self.scrollView setNeedsLayout];
+    [self.view setNeedsLayout];
+}
+
+
+- (void)resetScrubberForReload {  // public
+    // SOFT RESET - could be used for changing jamtracks altogether
+    // keeping anything intact
+    
+    _isRecording = NO;
+    
+    self.scrollView.layer.transform = CATransform3DIdentity;
+    
+    [self reset];
+    
+    self.playHeadValueStr = nil;
+    self.durationValueStr = nil;
+    self.remainingValueStr = nil;
+    self.formatValueStr = nil;
+    self.playheadValueLabel.text = _playHeadValueStr;
+    self.durationValueLabel.text = _durationValueStr;
+    self.remainingValueLabel.text = _remainingValueStr;
+    self.formatValueLabel.text = _formatValueStr;
+    [_playheadValueLabel setNeedsDisplay];
+    [_durationValueLabel setNeedsDisplay];
+    [_remainingValueLabel setNeedsDisplay];
+    [_formatValueLabel setNeedsDisplay];
+    
+    _vTrackLength = 0.0;
+    for (int i=0; i < maxTracks; i++) {
+        _vTrackLengths[i] = 0.0f;
+    }
+    
+    //    [self.scrollView setNeedsLayout];
     [self.view setNeedsLayout];
 }
 
@@ -412,7 +447,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (len > resultLargestLen)
             resultLargestLen = len;
     }
+    
+//    NSLog(@"%s %.3f",__func__,resultLargestLen);
     return resultLargestLen;
+    
 }
 
 
@@ -520,6 +558,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)setPulseBackLight:(BOOL)pulseBackLight {
     _pulseBackLight = pulseBackLight;
+}
+
+
+-(void)setScrubberLength:(CGFloat)scrubberLength {
+    _overrideScrubberLength = scrubberLength * _uiPointsPerSecondLength;
+
+    CGFloat h = self.scrollView.contentSize.height;
+    [self adjustContentSize:CGSizeMake(_overrideScrubberLength, h)];
+    
 }
 
 
@@ -800,11 +847,14 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     CGFloat duration = 0.0;
     CGFloat distanceToTravelX;
+    
     if (destinationX > currentx) {
         
         if (animated) {
+            
             distanceToTravelX = destinationX - currentx;
             duration = distanceToTravelX / pointsPerSecond;
+            
             [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionCurveLinear
                              animations:^{
                                  self.scrollView.bounds = bounds;
@@ -834,6 +884,79 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
     self.scrollView.bounds = bounds;
 }
+
+
+- (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated {
+    
+    CGFloat offset = self.scrollView.contentInset.left;
+
+    CGFloat contentWidth = _scrollView.contentSize.width;
+    
+    CGFloat endx = contentWidth - offset;
+
+    CGFloat destinationX = position * _uiPointsPerSecondLength - offset;
+
+    CGFloat overage = 0;
+    if (destinationX  > endx ) {
+//        NSLog(@"destinationX %.2f endx %.2f  contentWidth %.3f !!!!!",destinationX,endx,contentWidth);
+        overage = destinationX - endx;
+        destinationX = endx;
+//    if (destinationX > (endx + (.5 * _uiPointsPerSecondLength)) ) {
+//        NSLog(@"destinationX %.2f endx %.2f  contentWidth %.3f !!!!!",destinationX,endx,contentWidth);
+//        return;
+    } else {
+//        NSLog(@"destinationX %.2f endx %.2f",destinationX,endx);
+    }
+
+    CGRect bounds = self.scrollView.bounds;
+    CGFloat currentx = bounds.origin.x;
+    bounds.origin.x = destinationX;
+
+//    CGFloat ltl = [self largestTrackLen];
+//    if (destinationX > ltl)
+//        destinationX = ltl;
+
+    CGFloat duration = 0.0;
+    CGFloat distanceToTravelX;
+    
+    //NSLog(@"destinationX %.2f currentx %.3f",destinationX,currentx);
+
+    if (destinationX > currentx - 0.0001) {
+        
+        if (animated) {
+            
+//            [self.scrollView setContentOffset:CGPointMake(destinationX + offset, _scrollView.contentOffset.y) animated:NO];
+
+            distanceToTravelX = destinationX - currentx;
+            duration = distanceToTravelX / _uiPointsPerSecondLength;
+
+            if (duration < 0.009) {
+                duration = 0;
+            }
+//            duration -= (overage / _uiPointsPerSecondLength);
+//            self.scrollView.bounds = bounds;
+
+//            NSLog(@"destinationX %.2f distanceToTravelX %.2f dur %.4f currentx %.3f",destinationX,distanceToTravelX,duration,currentx);
+            [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionCurveLinear
+                             animations:^{
+                                 self.scrollView.bounds = bounds;
+                             } completion:nil];
+        } else {
+            [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
+            //            self.scrollView.bounds = bounds;
+        }
+    } else {
+        
+        NSLog(@"destinationX %.2f greatter currentx %.2f",destinationX,currentx);
+
+        //        distanceToTravelX = currentx - destinationX - offset;
+        //        duration = -distanceToTravelX / pointsPerSecond;
+        //self.scrollView.bounds = bounds;
+//        [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
+    }
+}
+
+
 
 //NSLog(@"%s %.4f",__func__,progress);
 
@@ -2367,6 +2490,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)transitionToRecording {
     if (_usePulse)
         _pulseBlocked = NO;
+    
     [CATransaction begin];
     [CATransaction setAnimationDuration:1.2];
     [CATransaction commit];
@@ -2817,11 +2941,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 - (IBAction)didTap:(id)sender {
     
     UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
-    
-//    NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([tap locationInView:self.scrollView]),
-//          NSStringFromCGPoint([tap locationInView:self.view]));
-    //    self.topLayoutScrollViewConstraint.constant = 38; // just below numbers
-    //    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
     
     CGPoint phTouchPoint = [tap locationInView:self.playHeadWindow];
     

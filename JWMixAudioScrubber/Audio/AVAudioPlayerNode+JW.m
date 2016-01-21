@@ -12,12 +12,12 @@
 @implementation AVAudioPlayerNode (JW)
 
 -(float)floatValue1 {
-    NSLog(@"%s get volume %.2f",__func__,self.volume);
+//    NSLog(@"%s get volume %.2f",__func__,self.volume);
     return self.volume;
 }
 
 -(float)floatValue2 {
-    NSLog(@"%s get pan %.2f",__func__,self.pan);
+//    NSLog(@"%s get pan %.2f",__func__,self.pan);
     return self.pan;
 }
 -(float)floatValue3 {
@@ -28,7 +28,6 @@
     NSLog(@"%s not used, ignored",__func__);
     return 0.0;
 }
-
 
 -(BOOL)boolValue1 {
     NSLog(@"%s get isPlaying %@",__func__,@(self.isPlaying));

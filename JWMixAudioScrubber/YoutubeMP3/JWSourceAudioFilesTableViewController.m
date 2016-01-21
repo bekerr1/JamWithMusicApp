@@ -707,11 +707,11 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
                     [UIView animateWithDuration:1.0 delay:0.0 options:UIViewAnimationOptionCurveEaseIn animations:^{
                         iv1.alpha = 0.0;
-                    } completion:^(bool fini){
+                    } completion:^(BOOL fini){
                     }];
                     [UIView animateWithDuration:1.4 delay:0.650 options:UIViewAnimationOptionCurveEaseIn animations:^{
                         iv.alpha = 1.0;
-                    } completion:^(bool fini){
+                    } completion:^(BOOL fini){
                     }];
 
                     CGPoint center1 = iv.center;
@@ -724,7 +724,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
                                      animations:^{
                                          iv.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(1.85, 1.85, 1.0));
                                          iv.center = center1;
-                                     } completion:^(bool fini){
+                                     } completion:^(BOOL fini){
                                          [UIView animateWithDuration:0.50 delay:0.25
                                                              options:UIViewAnimationOptionCurveEaseOut
                                                           animations:^{
@@ -733,7 +733,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
                                                               iv.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(1.4, 1.4, 1.0));
                                                               iv.center = center;
                                                               // iv.transform = CATransform3DGetAffineTransform(CATransform3DIdentity);
-                                                          } completion:^(bool fini){}];
+                                                          } completion:^(BOOL fini){}];
                                      }];
                     
                 });
@@ -795,18 +795,23 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 #pragma mark -
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    NSLog(@"%s",__func__);
     
     if ([segue.identifier isEqualToString:@"JWSourceFilesToClipSegue"]) {
 
         JWClipAudioViewController *clipController = (JWClipAudioViewController*)segue.destinationViewController;
 
         NSString *dbKey = _userOrderList[_selectedIndexPath.row];
+
         UIImage* youtubeImage = self.images[dbKey];
+        NSString *title;
 
         id mp3DataRecord = _mp3FilesInfo[dbKey];
-        NSString *title = mp3DataRecord ? mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYouTubeTitle] : @"unknown";
-        
+        if (mp3DataRecord) {
+            title = [self preferredTitleForMP3Record:mp3DataRecord];
+        } else {
+            title = @"";
+        }
+
         clipController.trackName = title;
         clipController.thumbImage = youtubeImage;  // start with the thumb
 
@@ -817,8 +822,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"high"][@"url"];
         if (!urlStr)
             urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
-        if (!urlStr)
-           urlStr = mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYoutubeThumbnails][@"medium"][@"url"];
+        
         NSURL *imageURL = urlStr ? [NSURL URLWithString:urlStr] : nil;
         if (imageURL) {
             NSLog(@"DISPATCH %@",[imageURL absoluteString]);
@@ -835,13 +839,104 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     } else if ([segue.identifier isEqualToString:@"JWSourceAllFilesToClipSegue"]) {
         
         JWClipAudioViewController *clipController = (JWClipAudioViewController*)segue.destinationViewController;
+        
         NSURL *fileURL = _allFilesSections[_selectedIndexPath.section][_selectedIndexPath.row][@"furl"];
         
         clipController.trackName = [fileURL lastPathComponent];
         clipController.delegate = self;
     }
-
 }
+
+
+
+//
+//
+//NSURL *fileURL;
+//NSString *title;
+//UIImage *imageIcon;
+//
+//if (_allFiles) {
+//    id dbKey = [[JWFileController sharedInstance] dbKeyForFileName:[fileURL lastPathComponent]];
+//    if (dbKey) {
+//        id mp3DataRecord = [self trimmedFileReference:dbKey];
+//        NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
+//        @synchronized(_images){
+//            imageIcon = self.images[dbKey];
+//            if (imageIcon==nil) {
+//                imageIcon = self.images[@"iconmusic120"];
+//            } else {
+//                imageIcon = [UIImage imageWithCGImage:imageIcon.CGImage scale:1.0 orientation:UIImageOrientationUp];
+//            }
+//        }
+//        
+//    } else {
+//        
+//        UIImage *imageIcon;
+//        if (indexPath.section == 3) {
+//            @synchronized(_images){
+//                imageIcon = self.images[@"iconmusic120"];
+//            }
+//        } else {
+//            imageIcon = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %u",(1 + 1)]];
+//        }
+//    }
+//    
+//} else {
+//    
+//    NSString *dbKey = _userOrderList[_selectedIndexPath.row];
+//    UIImage* youtubeImage = self.images[dbKey];
+//    
+//    id mp3DataRecord = _mp3FilesInfo[dbKey];
+//    NSString *title = mp3DataRecord ? mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYouTubeTitle] : @"unknown";
+//    
+//    
+//    
+//    NSString *dbKey = _userOrderList[indexPath.row];
+//    id mp3DataRecord =  _mp3FilesInfo[dbKey];
+//    NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
+//    
+//    [self playFileUsingAVPlayer:fileURL image:self.images[_userOrderList[indexPath.row]] imageURL:imageURL];
+//}
+//
+//
+//
+//
+//
+//NSURL *fileURL;
+//NSString *title;
+//
+//UIImage* image;
+//
+//if (_allFiles) {
+//    
+//    fileURL = _allFilesSections[_selectedIndexPath.section][_selectedIndexPath.row][@"furl"];
+//    if ([_selectedCacheItemKey isEqualToString:@"source"]) {
+//        title = [[fileURL lastPathComponent] stringByDeletingPathExtension];
+//        
+//    } else if ([_selectedCacheItemKey isEqualToString:@"trimmed"]) {
+//        title = [self preferredTitleForFile:fileURL];
+//        id mp3Data = [self trimmedFileReference:key];
+//        if (mp3Data)
+//            title = [self preferredTitleForMP3Record:mp3Data];
+//    }
+//    
+//} else {
+//    
+//    NSString *dbKey = _userOrderList[_selectedIndexPath.row];
+//    UIImage* youtubeImage = self.images[dbKey];
+//    
+//    id mp3DataRecord = _mp3FilesInfo[dbKey];
+//    NSString *title = mp3DataRecord ? mp3DataRecord[JWDbKeyYouTubeData][JWDbKeyYouTubeTitle] : @"unknown";
+//    
+//    //            mp3DataRecord = _mp3FilesInfo[_selectedCacheItemKey];
+//    //            if (mp3DataRecord == nil) {
+//    //                NSLog(@"arranged wo mp3record ODD in func %s key %@",__func__,key);
+//    //                fileURL = [self fileURLForCacheItem:_userOrderList[_selectedIndexPath.row]];
+//    //                title = [self preferredTitleForFile:fileURL];
+//    //            }
+//}
+//
+//
 
 
 #pragma mark - JWCLipAudioViewDelegate
@@ -867,50 +962,63 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     return result;
 }
 
+
+-(NSString*)preferredTitleForMP3Record:(id)mp3Data {
+    
+    NSString *result;
+    id ytData = mp3Data[JWDbKeyYouTubeData];
+    id titleValue;
+    if (ytData)
+        titleValue = ytData[JWDbKeyYouTubeTitle];
+    else
+        titleValue = mp3Data[JWDbKeyVideoTitle];
+    if (titleValue)
+        result = titleValue;
+    return result;
+}
+
+-(NSString*)preferredTitleForFile:(NSURL*)fileURL {
+
+    NSString *result;
+    result = [[fileURL lastPathComponent] stringByDeletingPathExtension];
+    if (result.length > 10)
+        result = [result substringToIndex:10];
+    return result;
+}
+
 // passes the new key for the trimmed files
 //-(void)finishedTrim:(JWClipAudioViewController *)controller withDBKey:(NSString*)key {
 
 -(void)finishedTrim:(id)controller withDBKey:(NSString*)key {
-    
+
     NSString *title;
     NSURL *fileURL;
     
     id mp3DataRecord;
     
-    if ([_selectedCacheItemKey isEqualToString:@"source"]) {
-        
-        if (_allFiles) {
-            fileURL = _allFilesSections[_selectedIndexPath.section][_selectedIndexPath.row][@"furl"];
+    if (_allFiles) {
+
+        fileURL = _allFilesSections[_selectedIndexPath.section][_selectedIndexPath.row][@"furl"];
+        if ([_selectedCacheItemKey isEqualToString:@"source"]) {
             title = [[fileURL lastPathComponent] stringByDeletingPathExtension];
-        }
-        
-    } else if ([_selectedCacheItemKey isEqualToString:@"trimmed"]) {
-        
-        if (_allFiles) {
-            fileURL = _allFilesSections[_selectedIndexPath.section][_selectedIndexPath.row][@"furl"];
-            title = [[fileURL lastPathComponent] stringByDeletingPathExtension];
-            if (title.length > 10)
-                title = [title substringToIndex:10];
             
+        } else if ([_selectedCacheItemKey isEqualToString:@"trimmed"]) {
+            title = [self preferredTitleForFile:fileURL];
             id mp3Data = [self trimmedFileReference:key];
-            if (mp3Data) {
-                id ytData = mp3Data[JWDbKeyYouTubeData];
-                id titleValue;
-                if (ytData)
-                    titleValue = ytData[JWDbKeyYouTubeTitle];
-                else
-                    titleValue = mp3Data[JWDbKeyVideoTitle];
-                if (titleValue)
-                    title = titleValue;
-            }
+            if (mp3Data)
+                title = [self preferredTitleForMP3Record:mp3Data];
         }
         
     } else {
         mp3DataRecord = _mp3FilesInfo[_selectedCacheItemKey];
+        if (mp3DataRecord == nil) {
+            NSLog(@"arranged wo mp3record ODD in func %s key %@",__func__,key);
+            fileURL = [self fileURLForCacheItem:_userOrderList[_selectedIndexPath.row]];
+            title = [self preferredTitleForFile:fileURL];
+        }
     }
     
     if (mp3DataRecord) {
-        
         id trimmedFilesValue = mp3DataRecord[@"trimmedfilekeys"];
         if (trimmedFilesValue)
             [(NSMutableArray*)trimmedFilesValue addObject:key];
@@ -919,25 +1027,8 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         
         [[JWFileController sharedInstance] saveMeta];
 
-        id ytData = mp3DataRecord[JWDbKeyYouTubeData];
-        id titleValue;
-        if (ytData)
-            titleValue = ytData[JWDbKeyYouTubeTitle];
-        else
-            titleValue = mp3DataRecord[JWDbKeyVideoTitle];
-        if (titleValue)
-            title = titleValue;
-    
-    } else {
-        
-        if (_allFiles == NO) {
-            fileURL = [self fileURLForCacheItem:_userOrderList[_selectedIndexPath.row]];
-            title = [[fileURL lastPathComponent] stringByDeletingPathExtension];
-            if (title.length > 10)
-                title = [title substringToIndex:10];
-        }
+        title = [self preferredTitleForMP3Record:mp3DataRecord];
     }
-    
 
     if ([_delegate respondsToSelector:@selector(finishedTrim:title:withDBKey:)])
         [_delegate finishedTrim:self title:title withDBKey:key];
@@ -1026,109 +1117,6 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 @end
 
 
-
-
-//#pragma mark save and retrieve
-//-(void)saveMetaData {
-//    [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:
-//                               [[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]
-//                   atomically:YES];
-//    NSLog(@"%sMP3INFOCOUNT[%ld]",__func__,[_mp3FilesInfo count]);
-//    //    NSLog(@"\n%s\nMP3INFO\n%@",__func__,[_mp3FilesInfo description]);
-//}
-//-(void)readMetaData {
-//    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
-//                     [NSURL fileURLWithPath:
-//                      [[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
-//    NSLog(@"%sMP3INFOCOUNT[%ld]",__func__,[_mp3FilesInfo count]);
-//    //    NSLog(@"\n%s\nMP3INFO\n%@",__func__,[_mp3FilesInfo description]);
-//-(void)saveDescriptions {
-//    [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
-//    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
-//-(void)readDescriptions {
-//    _mp3FilesDescriptions = [[NSMutableDictionary alloc] initWithContentsOfURL:
-//                             [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
-//    NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
-
-//-(void)saveUserOrderedList {
-//    [_userOrderList writeToURL:
-//     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
-//                    atomically:YES];
-//    
-//    NSLog(@"%sUSERLISTCOUNT[%ld] MP3DESCRIPCOUNT[%ld]",__func__,[_userOrderList count],[_mp3FilesDescriptions count]);
-//    
-//    //    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
-//    //    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
-//}
-//-(void)readUserOrderedList {
-//    _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
-//                      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
-//    NSLog(@"%sUSERLISTCOUNT[%ld]",__func__,[_userOrderList count]);
-//    //    NSLog(@"\n%s\nUSERLIST\n%@",__func__,[_userOrderList description]);
-//}
-
-//-(void)convertDescriptions {
-//    for (id dbkey in [_mp3FilesInfo allKeys]) {
-//        [self convertDescription:dbkey];
-//    }
-//    for (id dbkey in [_mp3FilesInfo allKeys]) {
-//        NSLog(@"%s\n%@\nrecord\n%@",__func__,dbkey,[_mp3FilesInfo[dbkey] description]);
-//    }
-//    //    [self saveMetaData];
-//
-//-(void)convertDescription:(NSString*)dbkey {
-//    // Remove the description from ytdata before adding to _mp3Info
-//    NSMutableDictionary *ytdata = [_mp3FilesInfo[dbkey][JWDbKeyYouTubeData] mutableCopy];
-//    if (ytdata) {
-//        //        NSLog(@"%s\nytdata record before\n%@",__func__,[ytdata description]);
-//        id ytdescription = ytdata[JWDbKeyYoutubeDataDescription];
-//        id ytlocalized = ytdata[JWDbKeyYoutubeDataLocalized];
-//        if (ytdescription || ytlocalized) {
-//            NSMutableDictionary *mp3DescriptionRecord = [@{} mutableCopy];
-//            if (ytdescription) {
-//                mp3DescriptionRecord[JWDbKeyYoutubeDataDescription] = ytdescription;
-//            }
-//            if (ytlocalized) {
-//                mp3DescriptionRecord[JWDbKeyYoutubeDataLocalized] = ytlocalized;
-//            }
-//            mp3DescriptionRecord[JWDbKeyYouTubeDataVideoId] = ytdata[JWDbKeyYouTubeDataVideoId];
-//            //            NSLog(@"%s\ndescription record\n%@",__func__,[mp3DescriptionRecord description]);
-//            NSString*descriptionKey = [[NSUUID UUID] UUIDString];
-//            _mp3FilesDescriptions[descriptionKey] = mp3DescriptionRecord;
-//            [ytdata removeObjectForKey:JWDbKeyYoutubeDataDescription];
-//            [ytdata removeObjectForKey:JWDbKeyYoutubeDataLocalized];
-//            // add the crossreference
-//            ytdata[@"ytdescriptionskey"] = descriptionKey;
-//            NSLog(@"%s\nytdata record after\n%@",__func__,[ytdata description]);
-//            //            NSLog(@"%s\ndescription accessed\n%@",__func__,[ytdata[descriptionKey] description]);
-//            _mp3FilesInfo[dbkey][JWDbKeyYouTubeData]=ytdata;
-//            //            NSLog(@"%s\ndescription accessed\n%@",__func__,[_mp3FilesDescriptions[descriptionKey] description]);
-//        } else {
-//            NSLog(@"%s NO DESCRIPTION DATA - RECORD GOOD",__func__);
-//        }
-//    } else {
-//        NSLog(@"%s NO YT DATA ",__func__);
-
-//    BOOL recentsFirst = YES;
-//    NSArray *sortedArray = [_mp3filesFilesData sortedArrayUsingComparator: ^(id obj1, id obj2) {
-//        NSDate *createDate1;
-//        NSDate *createDate2;
-//        NSError *error;
-//        [(NSURL *)obj1[@"furl"] getResourceValue:&createDate1 forKey:NSURLCreationDateKey error:&error];
-//        [(NSURL *)obj2[@"furl"] getResourceValue:&createDate2 forKey:NSURLCreationDateKey error:&error];
-//
-//        NSComparisonResult cresult = [createDate1 compare:createDate2];
-//        // simple date compare cause recents last
-//        if (recentsFirst) {
-//            // swap for Recent first
-//            if (cresult == NSOrderedAscending) {
-//                cresult = NSOrderedDescending;
-//            } else if (cresult == NSOrderedDescending) {
-//                cresult = NSOrderedAscending;
-//            }
-//        return cresult;
-//    }];
-//    _mp3filesFilesData = [sortedArray mutableCopy];
 
 
 

@@ -305,7 +305,9 @@
 {
     
     return;
-    
+}
+/*
+ WIP
     NSLog(@"%s %@",__func__,[(UITextField*)sender text]);
     
     self.lastKeyHitTimeStamp = [NSDate date];
@@ -321,7 +323,7 @@
         if (self.lastKeyHitTimeStamp) {
             if (interval < - maxIntervalBeforeSearch) {  // longer than
                 
-                NSTimeInterval interval = [self.lastKeyHitTimeStamp timeIntervalSinceNow]; // is negative go back in time
+//                NSTimeInterval interval = [self.lastKeyHitTimeStamp timeIntervalSinceNow]; // is negative go back in time
                 
                 [self doYoutubeSearch];
                 NSLog(@"YOUTUBE Search first one");
@@ -354,7 +356,7 @@
         }
     });
 }
-
+*/
 
 -(void)doYoutubeSearch {
 

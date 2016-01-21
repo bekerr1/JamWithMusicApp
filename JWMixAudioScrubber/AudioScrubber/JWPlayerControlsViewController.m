@@ -25,10 +25,11 @@
 }
 
 -(void)setState:(PlayerControllerState)state withRecording:(BOOL)rec {
-    
+
     _state = state;
     _recordButton.enabled = rec;
     [self updateButtonStates];
+    
 }
 
 - (void)initializeUIElements {
@@ -57,12 +58,9 @@
     } else {
         
     }
-    
     _rewindButton.alpha = _rewindButton.enabled ? 1.0 : 0.25;
-    if (_recordButton.drawingStyle == recordEnabledButtonStyle) {
+    if (_recordButton.drawingStyle == recordButtonStyle)
         _recordButton.alpha = _recordButton.enabled ? 1.0 : 0.25;
-    }
-    
 }
 
 -(void)setButtonsToR1 {

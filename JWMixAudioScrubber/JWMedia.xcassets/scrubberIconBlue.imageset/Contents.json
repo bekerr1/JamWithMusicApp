@@ -2,11 +2,11 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "iconmusic120pad.png",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
+      "filename" : "scrub_sq100_enhblue.png",
       "scale" : "2x"
     },
     {

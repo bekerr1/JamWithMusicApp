@@ -11,7 +11,6 @@
 
 @interface JWAudioRecorderController (){
     AVAudioFile* _micOutputFile;
-    BOOL _useMetering;
     BOOL _recorded;
     BOOL _recording;
     BOOL _suspendVAB;
@@ -34,7 +33,7 @@
 -(instancetype)initWithMetering:(BOOL)metering {
 
     if (self = [super init]) {
-        _useMetering = metering;
+        _metering = metering;
         [self initializeController];
     }
     return self;
@@ -42,13 +41,13 @@
 
 -(void)initializeController {
 
-    if (_useMetering) {
+    if (_metering) {
         _meterSamples = [@[[@[] mutableCopy],[@[] mutableCopy]] mutableCopy];
         _meterPeakSamples = [@[[@[] mutableCopy],[@[] mutableCopy]] mutableCopy];
     }
     _recording = NO;
     _recorded = NO;
-    _useMetering = YES;
+    _metering = YES;
     _scrubberTrackIds = [@{} mutableCopy];
     
     [self fileURLs];
@@ -60,7 +59,7 @@
     NSError *error;
     self.audioRecorder = [[AVAudioRecorder alloc] initWithURL:_micOutputFileURL settings:[micFormat settings] error:&error];
     
-    _audioRecorder.meteringEnabled = _useMetering;
+    _audioRecorder.meteringEnabled = _metering;
 
     [_audioRecorder prepareToRecord];
 }
@@ -82,13 +81,22 @@
     }
 }
 
+-(NSTimeInterval)currentTime {
+    
+    return [_audioRecorder currentTime];
+    
+}
+
+
 -(void)record {
+
+    _audioRecorder.meteringEnabled = _metering;
 
     [_audioRecorder record];
     
     _recording = YES;
     
-    if (_useMetering)
+    if (_metering)
         [self startMeteringTimer];
 }
 

@@ -13,12 +13,12 @@
 @implementation AVAudioUnitDelay (JW)
 
 -(float)floatValue1 {
-    NSLog(@"%s get wetdrymix %.2f",__func__,self.wetDryMix);
+//    NSLog(@"%s get wetdrymix %.2f",__func__,self.wetDryMix);
     return self.wetDryMix;
 }
 
 -(float)floatValue2 {
-    NSLog(@"%s get feedback %.2f",__func__,self.feedback);
+//    NSLog(@"%s get feedback %.2f",__func__,self.feedback);
     return self.feedback;
 }
 

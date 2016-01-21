@@ -31,6 +31,8 @@ const int scMaxTracks = 10;
 @property (nonatomic) JWScrubberViewController *scrubber;
 @property (nonatomic) JWPlayerFileInfo *restoreReferenceFileObject;
 @property (nonatomic,strong)  NSTimer *playerTimer;
+@property (nonatomic,strong)  NSTimer *recordingTimer;
+
 @property (nonatomic,strong)  NSString *playerTrackId;
 @property (nonatomic,strong)  NSMutableDictionary *trackColorsByTrackId;
 @property (nonatomic,strong)  NSDictionary *trackColorsAllTracks;
@@ -39,6 +41,12 @@ const int scMaxTracks = 10;
 @property (nonatomic,strong)  NSMutableArray *pulseSamplesDurations;
 @property (nonatomic,readwrite) BOOL isPlaying;
 @property (nonatomic,strong)  NSString *playerProgressFormatString;
+@property (nonatomic)  AVAudioFile *recordingAudioFile;
+@property (nonatomic)  NSTimeInterval recordingLength;
+@property (nonatomic)  NSDate *recordingStartTime;
+@property (nonatomic)  AVAudioFramePosition recordingLastReadPosition;
+@property (nonatomic)  NSURL *recordingURL;
+
 @end
 
 
@@ -67,7 +75,7 @@ const int scMaxTracks = 10;
         _pulseSamples = [@[] mutableCopy];
         _pulseSamplesDurations = [@[] mutableCopy];
         _playerProgressFormatString = @"%.0f";
-//        _playerProgressFormatString = @"%00.2f";
+        _playerProgressFormatString = @"%00.2f";
     }
     return self;
 }
@@ -231,8 +239,46 @@ const int scMaxTracks = 10;
     [_scrubber transitionToRecording];
 }
 
+-(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL {
+    
+    if ([_playerTimer isValid])
+        [_playerTimer invalidate];
+    
+    [_scrubber prepareToPlay:1 atPosition:0.0];
+    [_scrubber transitionToRecording];
+//    [_scrubber transitionToPlay];
+    _playerTrackId = sid;
+    
+    self.recordingURL = fileURL;
+    
+    _recordingLastReadPosition = 0;
+    
+    [self audioFileAnalyzerForRecorderFile:fileURL forTrackId:sid];
+    
+    self.recordingStartTime = [NSDate date];
+    
+    _recordingLength = 0.0; //secs
+    
+    [self startPlayTimer];
+}
+
+
+
 -(void)stopPlaying:(NSString*)sid {
+    
     [_playerTimer invalidate];
+    
+    if (_recordingStartTime != nil) {
+        // we have been recording
+      
+        [_recordingTimer invalidate];
+        NSTimeInterval recordTime = -([_recordingStartTime timeIntervalSinceNow]);
+        self.recordingLength = recordTime;
+        self.recordingStartTime = nil;
+        
+        NSLog(@"RECORDING TIME %.3f",_recordingLength);
+    }
+
     [_scrubber transitionToStopPlaying];
 }
 
@@ -243,6 +289,7 @@ const int scMaxTracks = 10;
         [self rewind:sid];
     }
 }
+
 
 -(void)playedTillEnd:(NSString*)sid {
     [_scrubber transitionToPlayTillEnd];
@@ -1279,6 +1326,18 @@ EDITING PROTOCOL PUBLIC API
 // prepareScrubberFileURL
 
 
+
+-(NSString*)prepareScrubberFileURL:(NSURL*)fileURL
+                      onCompletion:(JWScrubberControllerCompletionHandler)completion
+{
+    return [self prepareScrubberFileURL:fileURL withSampleSize:SampleSize14
+                                options:SamplingOptionDualChannel
+                                   type:VABOptionNone
+                                 layout:VABLayoutOptionShowAverageSamples
+                                 colors:nil
+                           onCompletion:completion];
+}
+
 -(NSString*)prepareScrubberFileURL:(NSURL*)fileURL
                     withSampleSize:(SampleSize)ssz
                            options:(SamplingOptions)options
@@ -1382,10 +1441,8 @@ EDITING PROTOCOL PUBLIC API
             });
         }
         
-        //_scrubber.useTrackGradient = _useTrackGradient;
         // consider scrubber colors
-        if (_scrubberColors == nil)
-        {
+        if (_scrubberColors == nil) {
             [self configureScrubberColors:[self scrubberColorsDefaultConfig1]];
         }
     }
@@ -1441,6 +1498,22 @@ EDITING PROTOCOL PUBLIC API
 
     [self configureColors:trackColors forTackId:sid];
 
+    
+    if (track==1) { // Do some first track stuff
+        _scrubber.viewOptions = _viewOptions;
+        [_scrubber prepareForTracks];
+        if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                _scrubber.playHeadValueStr = @"";
+            });
+        }
+        
+        // consider scrubber colors
+        if (_scrubberColors == nil) {
+            [self configureScrubberColors:[self scrubberColorsDefaultConfig1]];
+        }
+    }
+    
     _buffersReceivedCounts[track] = 0;
     _elapsedTimesSoFar[track] = 0.000f;
     _loudestSamplesSofar[track] = 0.0001f;
@@ -1463,46 +1536,120 @@ EDITING PROTOCOL PUBLIC API
     if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
 
         NSString *sid = _playerTrackId;
+
+        if ([_delegate respondsToSelector:@selector( currentPositionInSecondsOfAudioFile:forScrubberId:)]) {
+            NSString *value;
+            CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
+            if (cp < 0)
+                cp = 0.0;
+            if  (cp < 1.0)
+                value = @"";
+            else
+                value = [NSString stringWithFormat:_playerProgressFormatString,cp];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                _scrubber.playHeadValueStr = value;
+            });
+        }
+
+        if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
+            NSString *value = [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                _scrubber.remainingValueStr = value;
+            });
+        }
+    }
+}
+
+-(void)progressPlayHeadAtPostion:(CGFloat)pos {
+    
+    if ((_viewOptions == ScrubberViewOptionDisplayLabels) || (_viewOptions == ScrubberViewOptionDisplayOnlyValueLabels)) {
+        CGFloat cp = pos;
+        if (cp < 0)
+            cp = 0.0;
+
         dispatch_async(dispatch_get_main_queue(), ^{
-            if ([_delegate respondsToSelector:@selector( currentPositionInSecondsOfAudioFile:forScrubberId:)]) {
-                CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid];
-                if (cp < 0)
-                    cp = 0.0;
-                if  (cp < 1.0)
-                    _scrubber.playHeadValueStr = @"";
-                else
-                    _scrubber.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
-                //                    _scrubber.playHeadValueStr =
-                //                    [NSString stringWithFormat:@"%.0f",[_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:sid]];
-            }
-            if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
-                _scrubber.remainingValueStr =
-                [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
-            }
+            _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f",cp];
+            
+//                if  (cp < 1.0)
+//                    _scrubber.playHeadValueStr = @"";
+//                else
+//                    _scrubber.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
         });
     }
 }
 
+
 -(void)startPlayTimer {
-    [self progressPlayHead];
-    self.playerTimer = [NSTimer timerWithTimeInterval:0.10 target:self selector:@selector(playTimerFired:) userInfo:nil repeats:YES];
+    
+    CGFloat playerTiming = 0.10;
+    
+    if (_recordingStartTime == nil) {
+
+        [self progressPlayHead];
+        
+    } else {
+        
+        _scrubber.clipEnd.hidden = YES;
+        
+        self.recordingTimer = [NSTimer timerWithTimeInterval:0.14 target:self selector:@selector(recorderTimerFired:) userInfo:nil repeats:YES];
+        [[NSRunLoop mainRunLoop] addTimer:_recordingTimer forMode:NSRunLoopCommonModes];
+        
+        playerTiming = .20;
+    }
+    
+    self.playerTimer = [NSTimer timerWithTimeInterval:playerTiming target:self selector:@selector(playTimerFired:) userInfo:nil repeats:YES];
     [[NSRunLoop mainRunLoop] addTimer:_playerTimer forMode:NSRunLoopCommonModes];
 }
 
--(void)playTimerFired:(NSTimer*)timer {
+
+-(void)recorderTimerFired:(NSTimer*)timer {
+    
     if (timer.valid) {
-        [self progressPlayHead];
-        // Obtain the progress of the audio file from the Engine
-        // and set the scrubber to that progress
-        float progress = 0.0;
-        if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
-            progress = [_delegate progressOfAudioFile:self forScrubberId:_playerTrackId];
-        dispatch_async(dispatch_get_main_queue(), ^{
+        if (_recordingStartTime != nil) {
+            dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INTERACTIVE,0),^{
+                [self audioFileAnalyzerForRecorderFile:_recordingURL forTrackId:_playerTrackId];
+            });
+        }
+    }
+}
+
+-(void)playTimerFired:(NSTimer*)timer {
+
+    if (timer.valid) {
+        if (_recordingStartTime == nil) {
             
-            [self.scrubber trackScrubberToProgress:progress];
-            if (_pulseOn)
-                [self pulseOnProgress:progress];
-        });
+            [self progressPlayHead];
+            // Obtain the progress of the audio file from the Engine
+            // and set the scrubber to that progress
+            float progress = 0.0;
+            if ([_delegate respondsToSelector:@selector( progressOfAudioFile:forScrubberId:)])
+                progress = [_delegate progressOfAudioFile:self forScrubberId:_playerTrackId];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.scrubber trackScrubberToProgress:progress];
+            });
+            
+            if (_pulseOn) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self pulseOnProgress:progress];
+                });
+            }
+
+        } else {
+            
+//            NSTimeInterval recordTime = -[_recordingStartTime timeIntervalSinceNow];
+//            NSLog(@"recordtime  %.3f",recordTime);
+            
+            CGFloat cp = [_delegate currentPositionInSecondsOfAudioFile:self forScrubberId:_playerTrackId];
+
+            [self progressPlayHeadAtPostion:cp];
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [_scrubber setScrubberLength:cp];
+                [self.scrubber trackScrubberToPostion:cp timeAnimated:YES];
+            });
+        }
     }
 }
 
@@ -1834,7 +1981,6 @@ EDITING PROTOCOL PUBLIC API
 //      JWColorScrubberBottomPeakNoAvg : [[UIColor lightGrayColor] colorWithAlphaComponent:0.8],
 //      };
     
-    
     // Compute relevant data for this buffer
     
     _buffersReceivedCounts[0]++;   // use first index EDITING
@@ -1970,9 +2116,9 @@ EDITING PROTOCOL PUBLIC API
         // TODO: check the options for autoadvance
         
         BOOL autoAdvance = NO; // maybe we have a tap on mixer
-        if (_numberOfTracks == 1) {
-            autoAdvance = YES;
-        }
+//        if (_numberOfTracks == 1) {
+//            autoAdvance = YES;
+//        }
         
         if (collectPulseData) {
             [self.pulseSamplesDurations addObject:@(bufferSampler.durationThisBuffer)];
@@ -2044,7 +2190,6 @@ EDITING PROTOCOL PUBLIC API
     [_scrubber pulseRecording:[firstSample floatValue] endValue:[lastSample floatValue] duration:duration];
 }
 
-//
 //    NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
 //    SamplingOptions options = [self configOptionsForTrack:tid];
 //    VABLayoutOptions layoutOptions = [self layoutOptionsForTrack:tid];
@@ -2315,14 +2460,99 @@ EDITING PROTOCOL PUBLIC API
 #ifdef TRACEANALYZE
             NSLog(@"%s frameCount: %u, %.3f secs. framesToReadCount %u",__func__,frameCount, frameCount / processingFormat.sampleRate,framesToReadCount);
 #endif
-
-            
         } else {
             NSLog(@"%s NO MORE framesRemaining: %u, %.3f secs. ",__func__,framesRemaining, framesRemaining / processingFormat.sampleRate);
             break;
         }
     }
 
+}
+
+
+// opens file and reads from _recordingLastReadPosition
+
+-(void)audioFileAnalyzerForRecorderFile:(NSURL*)fileURL forTrackId:(NSString*)tid {
+
+    // RESUMES from last read postion
+    NSError *error;
+    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
+    if (audioFile) {
+
+        audioFile.framePosition = _recordingLastReadPosition;
+        
+        [self audioFileAnalyzerForRecorderAudioFile:audioFile forTrackId:tid];
+        
+        _recordingLastReadPosition = audioFile.framePosition;
+        
+    } else {
+        NSLog(@"%sERROR File: %@  ",__func__, [fileURL lastPathComponent]);
+    }
+}
+
+
+// prototype - reading a file opened Once
+-(void)a_udioFileAnalyzerForRecorderFile:(NSURL*)fileURL forTrackId:(NSString*)tid {
+    
+    NSError *error;
+    AVAudioFramePosition startReadPosition = 0;
+    
+    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
+    if (audioFile) {
+        NSLog(@"%sFile: %@  ",__func__, [fileURL lastPathComponent]);
+        audioFile.framePosition = startReadPosition;
+        self.recordingAudioFile = audioFile;
+        [self audioFileAnalyzerForRecorderAudioFile:_recordingAudioFile forTrackId:tid];
+    } else {
+        NSLog(@"%sERROR File: %@  ",__func__, [fileURL lastPathComponent]);
+    }
+}
+
+
+-(void)audioFileAnalyzerForRecorderAudioFile:(AVAudioFile*)audioFile forTrackId:(NSString*)tid {
+    
+    AVAudioFramePosition fileLength = audioFile.length;
+    AVAudioFrameCount remainingFrameCount =  (AVAudioFrameCount)(fileLength - audioFile.framePosition );
+    AVAudioFrameCount framesToReadCount = remainingFrameCount;
+
+    AVAudioFormat *processingFormat = [audioFile processingFormat];
+
+    const AVAudioFrameCount kBufferMaxFrameCapacity = 9 * 1024L;
+
+    AVAudioPCMBuffer *readBuffer = nil;
+    AVAudioFrameCount frameCount = 0; // frames read
+    NSUInteger iterations = 0;
+    
+    while (frameCount < framesToReadCount) {
+        
+        AVAudioFrameCount framesRemaining = framesToReadCount - frameCount;
+        
+        if (framesRemaining > 0) {
+            
+            if (framesRemaining < kBufferMaxFrameCapacity * 0.5 ) {
+                // Done For Now
+                break;
+            } else {
+                readBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:processingFormat frameCapacity:kBufferMaxFrameCapacity];
+                
+                NSError *error;
+                if ([audioFile readIntoBuffer: readBuffer error: &error]) {
+                    frameCount += readBuffer.frameLength;
+                    
+                    [self bufferReceivedForTrackId:tid buffer:readBuffer atReadPosition:audioFile.framePosition];
+                }
+            }
+            
+        } else {
+            NSLog(@"%s NO MORE framesRemaining: %u, %.3f secs. ",__func__,framesRemaining, framesRemaining / processingFormat.sampleRate);
+            break;
+        }
+        
+        iterations++;
+        
+    }
+    
+//    NSLog(@"iter %ld",iterations);
+    
 }
 
 

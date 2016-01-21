@@ -18,6 +18,7 @@
     AVAudioFile* _finalRecordingOutputFile;
     BOOL _suspendPlayAlll;
     dispatch_queue_t _bufferReceivedQueue;
+    BOOL _isRecordingOnly;
 }
 @property (nonatomic) NSURL *trimmedURL;
 @property (nonatomic) NSURL *fiveSecondURL;
@@ -89,7 +90,6 @@
     }
     
 }
-
 
 - (void)stopPlayersForReset {
 
@@ -453,7 +453,6 @@
 
 
 //-(void)stopAll {
-//    
 //    for (JWPlayerNode* pn in self.activePlayerNodes)
 //    {
 //        [pn stop];
@@ -466,7 +465,6 @@
 //        [mainMixer removeTapOnBus:0];
 //        NSLog(@"REMOVED AudioVidual Tap");
 //    }
-//    
 //    [self refresh];
 //}
 
@@ -519,7 +517,9 @@
  caution: player and recorderController are added to dict )non serilaizaable objects
  */
 -(void)createPlayerNodes {
+    
     [_activePlayersIndex removeAllIndexes];
+    
     self.playerNodes = nil;
     
     //NSMutableArray *mPlayerNodes = [NSMutableArray new];
@@ -597,7 +597,6 @@
     if (_fiveSecondURL) {
         
         NSError* error = nil;
-        
         AVAudioFile* audioFile = [[AVAudioFile alloc] initForReading:_fiveSecondURL error:&error];
         if (error == nil) {
             _fiveSecondBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat
@@ -610,7 +609,6 @@
             NSLog(@"%@",[error description]);
         }
     }
-
 }
 
 
@@ -628,75 +626,59 @@
     [self startEngine];
 }
 
+
+/*  An AVAudioEngine contains a group of connected AVAudioNodes ("nodes"), each of which performs
+ an audio signal generation, processing, or input/output task.
+ 
+ Nodes are created separately and attached to the engine.
+ 
+ The engine supports dynamic connection, disconnection and removal of nodes while running,
+ with only minor limitations:
+ - all dynamic reconnections must occur upstream of a mixer
+ - while removals of effects will normally result in the automatic connection of the adjacent
+ nodes, removal of a node which has differing input vs. output channel counts, or which
+ is a mixer, is likely to result in a broken graph. */
+
+
+/*  To support the instantiation of arbitrary AVAudioNode subclasses, instances are created
+ externally to the engine, but are not usable until they are attached to the engine via
+ the attachNode method. */
+
+
 - (void)createEngineAndAttachNodes {
     
     if (self.audioEngine == nil) {
         [super createEngineAndAttachNodes];
     }
-
-    /*  An AVAudioEngine contains a group of connected AVAudioNodes ("nodes"), each of which performs
-     an audio signal generation, processing, or input/output task.
-     
-     Nodes are created separately and attached to the engine.
-     
-     The engine supports dynamic connection, disconnection and removal of nodes while running,
-     with only minor limitations:
-     - all dynamic reconnections must occur upstream of a mixer
-     - while removals of effects will normally result in the automatic connection of the adjacent
-     nodes, removal of a node which has differing input vs. output channel counts, or which
-     is a mixer, is likely to result in a broken graph. */
-    
-    
-    /*  To support the instantiation of arbitrary AVAudioNode subclasses, instances are created
-     externally to the engine, but are not usable until they are attached to the engine via
-     the attachNode method. */
-    
     
     // Attach all available not just active ones
     
-    for (int i = 0; i < [_playerNodeList count]; i++)
-    {
+    for (int i = 0; i < [_playerNodeList count]; i++) {
         id pn = [self playerForNodeAtIndex:i];
         if (pn) {
             [self.audioEngine attachNode:pn];
             NSLog(@"audioPlayerNode ATTACH");
         }
-        
     }
 
 }
 
+/*  The engine will construct a singleton main mixer and connect it to the outputNode on demand,
+ when this property is first accessed. You can then connect additional nodes to the mixer.
+ 
+ By default, the mixer's output format (sample rate and channel count) will track the format
+ of the output node. You may however make the connection explicitly with a different format. */
+
+
 - (void)makeEngineConnections {
-    /*  The engine will construct a singleton main mixer and connect it to the outputNode on demand,
-     when this property is first accessed. You can then connect additional nodes to the mixer.
-     
-     By default, the mixer's output format (sample rate and channel count) will track the format
-     of the output node. You may however make the connection explicitly with a different format. */
     
     // get the engine's optional singleton main mixer node
     AVAudioMixerNode *mainMixer = [self.audioEngine mainMixerNode];
     
-    // establish a connection between nodes
-    
-    /*  Nodes have input and output buses (AVAudioNodeBus). Use connect:to:fromBus:toBus:format: to
-     establish connections betweeen nodes. Connections are always one-to-one, never one-to-many or
-     many-to-one.
-     
-     Note that any pre-existing connection(s) involving the source's output bus or the
-     destination's input bus will be broken.
-     
-     @method connect:to:fromBus:toBus:format:
-     @param node1 the source node
-     @param node2 the destination node
-     @param bus1 the output bus on the source node
-     @param bus2 the input bus on the destination node
-     @param format if non-null, the format of the source node's output bus is set to this
-     format. In all cases, the format of the destination node's input bus is set to
-     match that of the source node's output bus. */
-    
     // ITERATE through player list looking for players
     
     NSUInteger nNodes = [self.playerNodeList count];
+    
     for (int index = 0; index < nNodes; index++) {
 
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
@@ -713,14 +695,28 @@
             } else {
 //                NSLog(@"%s ",__func__);
                 NSLog(@"NO audioBuffer player at index %d perhaps try using audioFile for format ",index);
-
             }
         }
     }
     
     self.needMakeConnections = NO;
-
 }
+
+/*  Nodes have input and output buses (AVAudioNodeBus). Use connect:to:fromBus:toBus:format: to
+ establish connections betweeen nodes. Connections are always one-to-one, never one-to-many or
+ many-to-one.
+ 
+ Note that any pre-existing connection(s) involving the source's output bus or the
+ destination's input bus will be broken.
+ 
+ @method connect:to:fromBus:toBus:format:
+ @param node1 the source node
+ @param node2 the destination node
+ @param bus1 the output bus on the source node
+ @param bus2 the input bus on the destination node
+ @param format if non-null, the format of the source node's output bus is set to this
+ format. In all cases, the format of the destination node's input bus is set to
+ match that of the source node's output bus. */
 
 
 #pragma mark - engine actions
@@ -734,7 +730,6 @@
 -(void)playAlll {
     [self playAlll:NO];  // no, not recording
 }
-
 
 /*
  recording - whether recording mix
@@ -883,19 +878,20 @@
 }
 
 
+
+// TODO: deprecate
 - (void)playMicRecordedFile
 {
-    
 }
 
 -(void)setMicPlayerFramePosition:(AVAudioFramePosition)micPlayerFramePosition
 {
 }
 
-
--(void)changeProgressOfSeekingAudioFile:(CGFloat)progress {
-    
+-(void)changeProgressOfSeekingAudioFile:(CGFloat)progress
+{
 }
+
 
 
 -(void)playAlllStartSeconds:(NSTimeInterval)secondsIn  {
@@ -1257,30 +1253,42 @@
 
 
 -(BOOL)stopAllActivePlayerNodes {
-//    NSLog(@"%s", __func__);
+    //    NSLog(@"%s", __func__);
     
-    if ([self.activePlayerNodes count] > 0) {
+    if (_isRecordingOnly) {
         
-        for (JWPlayerNode* pn in self.activePlayerNodes)
-        {
-            [pn stop];
-            NSLog(@"audioPlayerNode STOP");
-        }
-        
-        if (_scrubberTrackIds[@"mixer"]) {
-            // remove VAB TAP on mixer
-            AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
-            [mainMixer removeTapOnBus:0];
-            NSLog(@"REMOVED AudioVidual Tap");
-        }
-        
-        [self refresh];
-        
+        _isRecordingOnly = NO;
+        dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INTERACTIVE,0),^{
+            [self stopRecordOnlyWithPlayerRecorderAtNodeIndex:0];
+            [self refresh];
+        });
+
         return YES;
-        
     } else {
-        NSLog(@"No Active player nodes to stop.");
-        return NO;
+        
+        if ([self.activePlayerNodes count] > 0) {
+            
+            for (JWPlayerNode* pn in self.activePlayerNodes)
+            {
+                [pn stop];
+                NSLog(@"audioPlayerNode STOP");
+            }
+            
+            if (_scrubberTrackIds[@"mixer"]) {
+                // remove VAB TAP on mixer
+                AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
+                [mainMixer removeTapOnBus:0];
+                NSLog(@"REMOVED AudioVidual Tap");
+            }
+            
+            [self refresh];
+            
+            return YES;
+            
+        } else {
+            NSLog(@"No Active player nodes to stop.");
+            return NO;
+        }
     }
 }
 
@@ -1368,6 +1376,7 @@
     NSUInteger nNodes = [self.playerNodeList count];
     for (index = 0; index < nNodes; index++) {
         if (JWMixerNodeTypePlayerRecorder == [self typeForNodeAtIndex:index] ) {
+            
             //TODO: add test for Filr URL (some audio player recorders have audio)
             if ([self playerNodeFileURLAtIndex:index] == nil) {
                 // found
@@ -1397,6 +1406,85 @@
     }
     return result;
 }
+
+
+
+// NO Playback simply start recording
+
+- (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
+
+    NSURL* result;
+    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    result = rc.micOutputFileURL;
+    return result;
+}
+
+- (NSURL*)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
+    
+    NSURL* result;
+    
+    _isRecordingOnly = YES;
+    
+    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+
+    rc.metering = NO;
+    [rc record];
+
+    result = rc.micOutputFileURL;
+
+    return result;
+}
+
+
+- (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex {
+
+    NSTimeInterval result = 0;
+    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    result = [rc currentTime];
+    return result;
+}
+
+- (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
+    
+    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    
+    [rc stopRecording];
+    
+    // READ File into buffer
+    NSError* error = nil;
+    AVAudioFile *micOutputFile =
+    [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
+    AVAudioPCMBuffer *micOutputBuffer =
+    [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
+                                  frameCapacity:(UInt32)micOutputFile.length];
+    NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
+             @"error reading into new buffer, %@",[error localizedDescription]);
+    
+    // USER AUDIO obtained read into a buffer teedUP and ready to play
+    NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
+    playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
+    playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
+    playerNodeInfo [@"audiofile"] = micOutputFile;
+    
+    self.needMakeConnections = YES;  // need to make engine connections as this has now become a player
+    
+    [_activeRecorderIndex removeIndex:prIndex];
+
+//            if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
+//                [_engineDelegate userAudioObtained];
+
+    
+    dispatch_sync(dispatch_get_main_queue(), ^() {
+        
+        if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
+            [_engineDelegate userAudioObtained];
+        
+        if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
+            [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+    });
+    
+}
+
 
 
 /*
@@ -1997,44 +2085,9 @@
 //    return result;
 //}
 // other
+
 -(void)setProgressSeekingAudioFile:(CGFloat)progressSeekingAudioFile {
     _progressSeekingAudioFile = progressSeekingAudioFile;
-}
-
-
-#pragma mark - file methods
-
--(NSString*)documentsDirectoryPath {
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    return [searchPaths objectAtIndex:0];
-}
-
--(void)savePlayerNodeList{
-    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"playernodes.dat"];
-    // Remove non serilizableobjects
-    for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
-        [playerNodeInfo removeObjectForKey:@"player"];
-        [playerNodeInfo removeObjectForKey:@"recorderController"];
-        [playerNodeInfo removeObjectForKey:@"audiofile"];
-        [playerNodeInfo removeObjectForKey:@"audiobuffer"];
-        [playerNodeInfo removeObjectForKey:@"fileURL"];
-    }
-    [_playerNodeList writeToURL:[NSURL fileURLWithPath:fpath] atomically:YES];
-    
-    NSLog(@"\n%s\nplayernodes.dat\n%@",__func__,[_playerNodeList description]);
-}
-
--(void)readPlayerNodeList{
-    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"playernodes.dat"];
-    NSArray *playerNodeListFromFile = [[NSArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-    //    _playerNodeList = [[NSMutableArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-    if (playerNodeListFromFile) {
-        self.playerNodeList = [@[] mutableCopy];
-        for (NSDictionary* playerNodeInfo in playerNodeListFromFile) {
-            [_playerNodeList addObject:[playerNodeInfo mutableCopy]];
-        }
-    }
-    NSLog(@"\n%s\nplayernodes.dat\n%@",__func__,[_playerNodeList description]);
 }
 
 
@@ -2045,4 +2098,42 @@
 //
 //
 //===========================================================================
+
+
+
+//#pragma mark - file methods
+//
+//-(NSString*)documentsDirectoryPath {
+//    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+//    return [searchPaths objectAtIndex:0];
+//}
+//
+//-(void)savePlayerNodeList{
+//    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"playernodes.dat"];
+//    // Remove non serilizableobjects
+//    for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
+//        [playerNodeInfo removeObjectForKey:@"player"];
+//        [playerNodeInfo removeObjectForKey:@"recorderController"];
+//        [playerNodeInfo removeObjectForKey:@"audiofile"];
+//        [playerNodeInfo removeObjectForKey:@"audiobuffer"];
+//        [playerNodeInfo removeObjectForKey:@"fileURL"];
+//    }
+//    [_playerNodeList writeToURL:[NSURL fileURLWithPath:fpath] atomically:YES];
+//    
+//    NSLog(@"\n%s\nplayernodes.dat\n%@",__func__,[_playerNodeList description]);
+//}
+//
+//-(void)readPlayerNodeList{
+//    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"playernodes.dat"];
+//    NSArray *playerNodeListFromFile = [[NSArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
+//    //    _playerNodeList = [[NSMutableArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
+//    if (playerNodeListFromFile) {
+//        self.playerNodeList = [@[] mutableCopy];
+//        for (NSDictionary* playerNodeInfo in playerNodeListFromFile) {
+//            [_playerNodeList addObject:[playerNodeInfo mutableCopy]];
+//        }
+//    }
+//    NSLog(@"\n%s\nplayernodes.dat\n%@",__func__,[_playerNodeList description]);
+//}
+
 

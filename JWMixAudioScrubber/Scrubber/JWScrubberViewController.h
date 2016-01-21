@@ -39,6 +39,9 @@
 @property (nonatomic) UIColor *headerColor2;
 @property (nonatomic) BOOL pulseBackLight;
 @property (nonatomic) NSString *playerProgressFormatString;
+@property (nonatomic) CGFloat scrubberLength;
+@property (nonatomic) UIView *clipEnd;
+
 
 - (void)selectTrack:(NSUInteger)track;
 - (void)deSelectTrack;
@@ -77,6 +80,8 @@
 
 - (void)trackScrubberToProgress:(CGFloat)progress;
 - (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated;
+
+- (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated;
 
 - (void)setProgress:(CGFloat)progress;
 - (void)transitionToPlay;

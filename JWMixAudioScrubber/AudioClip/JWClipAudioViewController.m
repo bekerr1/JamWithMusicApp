@@ -343,6 +343,9 @@ UIGestureRecognizerDelegate
     }
     counter++;
 
+}
+
+/*
     return;
 
     // The rest below is just fluff to change color foreffects
@@ -371,8 +374,8 @@ UIGestureRecognizerDelegate
             [self effectsBackgroundLight];
     }
     toggleCounter++;
-    
 }
+ */
 
 
 // give all the info needed to this method observeValueForKeyPath AVPlayerStatusReadyToPlay
@@ -424,9 +427,10 @@ UIGestureRecognizerDelegate
     _clipProgressBar.progress = 0.0f;
     [_audioClipper seekToTime:(float)sender.value];
     
+}
+/*
     return;  // <== returns
-
-    
+ 
     // REST IS EFFECTS
     static int toggle = 1;  //
     CGFloat maxToggles = 5;
@@ -445,9 +449,8 @@ UIGestureRecognizerDelegate
             //        self.jamButton.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha];
         });
     }
-    
 }
-
+*/
 
 - (IBAction)secondLeftHit:(UIButton *)sender {
     [self.currentTrackStartTime setValue:[self.currentTrackStartTime value] - 1];
