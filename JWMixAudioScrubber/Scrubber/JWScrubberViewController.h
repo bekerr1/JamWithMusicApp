@@ -87,6 +87,7 @@
 - (void)transitionToPlay;
 - (void)transitionToStopPlaying;
 - (void)transitionToRecording;
+- (void)transitionToRecordingSingleRecorder:(BOOL)singleRecorder;
 - (void)transitionToPlayTillEnd;
 
 -(void)pulseRecording:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
@@ -110,22 +111,22 @@
 -(void)modifyTrack:(NSUInteger)track pan:(CGFloat)panValue;
 -(void)modifyTrack:(NSUInteger)track volume:(CGFloat)volumeValue;
 
--(void)modifyTrack:(NSUInteger)track allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSUInteger)track withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha  allTracksHeight:(CGFloat)allTracksHeight;
-
--(void)modifyTrack:(NSUInteger)track
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight;
-
--(void)modifyTrack:(NSUInteger)track
-            colors:(NSDictionary*)trackColors
-             alpha:(CGFloat)alpha
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSUInteger)track allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSUInteger)track withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha  allTracksHeight:(CGFloat)allTracksHeight;
+//
+//-(void)modifyTrack:(NSUInteger)track
+//            layout:(VABLayoutOptions)layoutOptions
+//              kind:(VABKindOptions)kindOptions
+//   allTracksHeight:(CGFloat)allTracksHeight;
+//
+//-(void)modifyTrack:(NSUInteger)track
+//            colors:(NSDictionary*)trackColors
+//             alpha:(CGFloat)alpha
+//            layout:(VABLayoutOptions)layoutOptions
+//              kind:(VABKindOptions)kindOptions
+//   allTracksHeight:(CGFloat)allTracksHeight;
 
 - (void)scaleBuffers;  // not working
 
@@ -140,22 +141,17 @@
 -(void)positionInTrackChanged:(int64_t)framePosition;
 -(void)positionInTrackChangedProgress:(CGFloat)progress;
 -(void)positionInTrackChangedPosition:(CGFloat)positionSeconds;
-
 -(void)trackSelected:(NSUInteger)track;
 -(void)trackNotSelected;
 -(void)longPressOnTrack:(NSUInteger)track;
 -(void)playHeadTapped;
-
 -(CGSize)viewSize;
 -(BOOL)isPlaying;
-
 -(NSDictionary*)trackColorsForTrack:(NSUInteger)track;
-
 // EDIT Delegate methods
 -(NSDictionary*)trackInfoForTrack:(NSUInteger)track;
 -(id)fileReferenceObjectForTrack:(NSUInteger)track;
 -(NSTimeInterval)lengthInSecondsForTrack:(NSUInteger)track;
-
 -(void)editCompleted:(NSUInteger)track;
 -(void)editChange:(NSUInteger)track;
 -(void)editCompletedForTrack:(NSUInteger)track withTrackInfo:(id)fileReference;

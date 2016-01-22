@@ -15,6 +15,7 @@
 #import "JWSourceAudioListsViewController.h"
 #import "JWClipAudioViewController.h"
 #import "JWCurrentWorkItem.h"
+#import "UIColor+JW.h"
 
 @interface MasterViewController () <JWDetailDelegate,
 JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFieldDelegate>
@@ -51,6 +52,10 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     _scrubberWhiteImage = [UIImage imageNamed:@"scrubberIconWhite"];
     _scrubberGreenImage = [UIImage imageNamed:@"scrubberIconGreen"];
 
+    UIView *backgroundView = [UIView new];
+    backgroundView.backgroundColor = [UIColor blackColor];
+    self.tableView.backgroundView = backgroundView;
+    
     _isAddingNewObject = NO;
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
@@ -66,9 +71,11 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     if (_homeControllerSections == nil) {
         _homeControllerSections = [self newHomeMenuLists];
     }
+    
 
     _isAutoSelecting = NO;
     _insertsSingleRecorderNode = YES;
+    [self.tableView reloadData];
 
 }
 
@@ -1334,6 +1341,105 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     return 0;
 }
 
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    
+    NSString *result;
+    if (section < [_homeControllerSections count]) {
+        NSUInteger count = 0;
+        id trackObjects = _homeControllerSections[section][@"trackobjectset"];
+        if (trackObjects) {
+            count = [trackObjects count];
+        }
+        
+        id titleValue = _homeControllerSections[section][@"title"];
+        if (titleValue) {
+            if (section == [self indexOfSectionOfType:JWHomeSectionTypeOther] ||
+                section == [self indexOfSectionOfType:JWHomeSectionTypeYoutube]
+                ) {
+                result = titleValue;
+            } else {
+                result = [NSString stringWithFormat:@"%@ %@",titleValue,[NSString stringWithFormat:@"%lu items",(unsigned long)count]];
+            }
+        }
+    }
+    
+    return result;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
+    if (view == nil)
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+    view.contentView.backgroundColor = [UIColor jwBlackThemeColor];
+    view.textLabel.textColor = [UIColor jwSectionTextColor];
+    return view;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
+    
+    CGFloat result = 60;
+    NSUInteger section = indexPath.section;
+    NSUInteger count = 0;
+    // Compute base rows for section
+    if (section < [_homeControllerSections count]) {
+        JWHomeSectionType sectionType = [self typeForSection:section];
+        if (sectionType == JWHomeSectionTypeAudioFiles) {
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeYoutube) {
+            count ++;
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeOther) {
+            count ++;
+        }
+    }
+    
+    if (indexPath.row < count) {
+        // baserow
+        result = 52;
+    } else {
+        result = 78;
+    }
+    
+    return result;
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(nonnull UITableViewCell *)cell forRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
+    
+    NSUInteger section = indexPath.section;
+    NSUInteger count = 0;
+    // Compute base rows for section
+    if (section < [_homeControllerSections count]) {
+        JWHomeSectionType sectionType = [self typeForSection:section];
+        if (sectionType == JWHomeSectionTypeAudioFiles) {
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeYoutube) {
+            count ++;
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeOther) {
+            count ++;
+        }
+    }
+
+    UIView *backgroundView = [UIView new];
+    UIView *sbackgroundView = [UIView new];
+
+    if (indexPath.row < count) {
+        backgroundView.backgroundColor = [UIColor iosMercuryColor];
+        sbackgroundView.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.5];
+    } else {
+        backgroundView.backgroundColor = [UIColor blackColor];
+        sbackgroundView.backgroundColor = [UIColor orangeColor];
+
+    }
+    
+    cell.backgroundView = backgroundView;
+    cell.selectedBackgroundView= sbackgroundView;
+    
+    
+//    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+}
+
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     UITableViewCell *cell ;
@@ -1609,30 +1715,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     }
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
 
-    NSString *result;
-    if (section < [_homeControllerSections count]) {
-        NSUInteger count = 0;
-        id trackObjects = _homeControllerSections[section][@"trackobjectset"];
-        if (trackObjects) {
-            count = [trackObjects count];
-        }
-        
-        id titleValue = _homeControllerSections[section][@"title"];
-        if (titleValue) {
-            if (section == [self indexOfSectionOfType:JWHomeSectionTypeOther] ||
-                section == [self indexOfSectionOfType:JWHomeSectionTypeYoutube]
-                ) {
-                result = titleValue;
-            } else {
-                result = [NSString stringWithFormat:@"%@ %@",titleValue,[NSString stringWithFormat:@"%lu items",(unsigned long)count]];
-            }
-        }
-    }
-    
-    return result;
-}
 
 // Override to support rearranging the table view.
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {

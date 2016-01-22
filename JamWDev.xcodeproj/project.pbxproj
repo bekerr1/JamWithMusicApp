@@ -78,6 +78,8 @@
 		55CD12871C42AD71001662CF /* JWSourceAudioListsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12861C42AD71001662CF /* JWSourceAudioListsViewController.m */; };
 		55CD128C1C461D14001662CF /* JWScrubberTackModify.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD128B1C461D14001662CF /* JWScrubberTackModify.m */; };
 		55CD12DD1C4A588A001662CF /* JWHeaderFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 55CD12DC1C4A588A001662CF /* JWHeaderFooterView.m */; };
+		55F41C1F1C51D9D0002F3893 /* UIColor+JW.m in Sources */ = {isa = PBXBuildFile; fileRef = 55F41C1E1C51D9D0002F3893 /* UIColor+JW.m */; };
+		55F41C221C51EBD2002F3893 /* JWOtherTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55F41C211C51EBD2002F3893 /* JWOtherTableViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -244,6 +246,10 @@
 		55CD128B1C461D14001662CF /* JWScrubberTackModify.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWScrubberTackModify.m; path = Scrubber/JWScrubberTackModify.m; sourceTree = "<group>"; };
 		55CD12DB1C4A588A001662CF /* JWHeaderFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWHeaderFooterView.h; sourceTree = "<group>"; };
 		55CD12DC1C4A588A001662CF /* JWHeaderFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWHeaderFooterView.m; sourceTree = "<group>"; };
+		55F41C1D1C51D9D0002F3893 /* UIColor+JW.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIColor+JW.h"; path = "Common/UIColor+JW.h"; sourceTree = "<group>"; };
+		55F41C1E1C51D9D0002F3893 /* UIColor+JW.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIColor+JW.m"; path = "Common/UIColor+JW.m"; sourceTree = "<group>"; };
+		55F41C201C51EBD2002F3893 /* JWOtherTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWOtherTableViewController.h; path = Misc/JWOtherTableViewController.h; sourceTree = "<group>"; };
+		55F41C211C51EBD2002F3893 /* JWOtherTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWOtherTableViewController.m; path = Misc/JWOtherTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -459,6 +465,8 @@
 				5525FEC91C3728ED0081FB23 /* JWPlayerFileInfo.m */,
 				5525FECA1C3728ED0081FB23 /* JWUITransportButton.h */,
 				5525FECB1C3728ED0081FB23 /* JWUITransportButton.m */,
+				55F41C1D1C51D9D0002F3893 /* UIColor+JW.h */,
+				55F41C1E1C51D9D0002F3893 /* UIColor+JW.m */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -524,6 +532,8 @@
 				55CD12531C3F6D5E001662CF /* JWFilesTableViewController.h */,
 				55CD12541C3F6D5E001662CF /* JWFilesTableViewController.m */,
 				55CD12D81C49F0A4001662CF /* deprecated */,
+				55F41C201C51EBD2002F3893 /* JWOtherTableViewController.h */,
+				55F41C211C51EBD2002F3893 /* JWOtherTableViewController.m */,
 			);
 			name = Misc;
 			sourceTree = "<group>";
@@ -731,6 +741,7 @@
 				55CD127B1C3F6EBD001662CF /* JWCurrentWorkItem.m in Sources */,
 				5525FECD1C3728ED0081FB23 /* JWUITransportButton.m in Sources */,
 				55CD12871C42AD71001662CF /* JWSourceAudioListsViewController.m in Sources */,
+				55F41C221C51EBD2002F3893 /* JWOtherTableViewController.m in Sources */,
 				5525FF071C37298B0081FB23 /* JWSliderTableViewCell.m in Sources */,
 				55CD12781C3F6D84001662CF /* JWClipAudioViewController.m in Sources */,
 				55CD126E1C3F6D71001662CF /* JWYoutubeMP3ConvertController.m in Sources */,
@@ -758,6 +769,7 @@
 				5525FEF21C37295C0081FB23 /* JWScrubberViewController.m in Sources */,
 				55CD126A1C3F6D71001662CF /* JWFileDowloadController.m in Sources */,
 				5525FE951C3727430081FB23 /* DetailViewController.m in Sources */,
+				55F41C1F1C51D9D0002F3893 /* UIColor+JW.m in Sources */,
 				5525FF041C37298B0081FB23 /* JWMixEditTableViewController.m in Sources */,
 				55CD12DD1C4A588A001662CF /* JWHeaderFooterView.m in Sources */,
 			);

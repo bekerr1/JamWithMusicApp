@@ -28,23 +28,21 @@
 
 @property (strong, nonatomic) NSMutableArray *playerNodeList;
 @property (nonatomic) NSArray *activePlayerNodes;
-//TODO: added this
 @property (nonatomic) NSArray *activeRecorderNodes;
-@property (nonatomic) NSArray *playerNodes;
-@property (nonatomic,readonly) NSURL* mixOutputFileURL;
 
 @property (nonatomic,weak) id <JWMTAudioEngineDelgegate> engineDelegate;
 
--(instancetype)initWithPrimaryFileURL:(NSURL*)primaryFileURL fadeInURL:(NSURL*)fadeInFileURL delegate:(id <JWMTAudioEngineDelgegate>) engineDelegate;
+-(instancetype)initWithPrimaryFileURL:(NSURL*)primaryFileURL fadeInURL:(NSURL*)fadeInFileURL
+                             delegate:(id <JWMTAudioEngineDelgegate>) engineDelegate;
+
+@property (nonatomic) NSArray *playerNodes;
+@property (nonatomic,readonly) NSURL* mixOutputFileURL;
+@property (nonatomic,readwrite) float mixerVolume;
 
 -(void)initializeAudio;
 -(void)initializeAudioConfig;
-
--(void)stopPlayersForReset;
-
 -(void)setupAVEngine;
-
-@property (nonatomic,readwrite) float mixerVolume;
+-(void)stopPlayersForReset;
 
 -(void) setPlayerNodeFileURL:(NSURL*)fileURL atIndex:(NSUInteger)index;
 -(NSURL*) playerNodeFileURLAtIndex:(NSUInteger)index;
@@ -56,35 +54,40 @@
 -(void)setTrimmedAudioURL:(NSURL *)trimmedFileURL andFiveSecondURL:(NSURL* )fiveSecondURL;
 
 // commands
+
+-(void)prepareToPlayMix;
+-(void)refresh; // makeconnections if needed
+-(void)pausePlayingAll;
+-(void)playAlll;
+-(BOOL)playAllActivePlayerNodes;
+-(BOOL)pauseAllActivePlayerNodes;
+-(BOOL)stopAllActivePlayerNodes;
+-(void)playMix;
+-(void)playAllAndRecordIt;
+-(void)pauseAlll;
+-(void)resumeAlll;
+-(void)revertToMixing;
+-(void)reMix;
+-(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn;
 -(void)prepareToRecord;
+-(BOOL)prepareToRecordFirstAvailable;
+
 -(void)prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:(NSUInteger)index;
 -(void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (NSURL*)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
 
+
+// getter
 - (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-
--(void)prepareToPlayMix;
--(void)refresh; // makeconnections if needed
--(void)pausePlayingAll;
--(void)playAlll;
-//TODO: added this
--(BOOL)playAllActivePlayerNodes;
--(BOOL)pauseAllActivePlayerNodes;
--(BOOL)stopAllActivePlayerNodes;
-
--(void)playMix;
--(void)playAllAndRecordIt;
-//-(void)stopAll;
--(void)pauseAlll;
--(void)resumeAlll;
--(void)revertToMixing;
--(void)reMix;
-//TODO: changed this
--(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn;
-//-(void)playAlllStartSeconds:(NSTimeInterval)secondsIn;
-
+-(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index;
+-(AVAudioPCMBuffer*)audioBufferForPlayerNodeAtIndex:(NSUInteger)index;
+-(CGFloat)progressOfAudioFileForPlayerAtIndex:(NSUInteger)index;
+-(CGFloat)durationInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
+-(CGFloat)remainingDurationInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
+-(CGFloat)currentPositionInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
+-(NSString*)processingFormatStrForPlayerAtIndex:(NSUInteger)index;
 
 // scrubber support
 -(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller
@@ -95,34 +98,15 @@
               withTrackId:(NSString*)trackId
         forPlayerRecorder:(NSString*)player;
 
-
--(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index;
--(AVAudioPCMBuffer*)audioBufferForPlayerNodeAtIndex:(NSUInteger)index;
-
--(CGFloat)progressOfSeekingAudioFile;
--(CGFloat)durationInSecondsOfSeekingAudioFile;
--(CGFloat)remainingDurationInSecondsOfSeekingAudioFile;
--(CGFloat)currentPositionInSecondsOfSeekingAudioFile;
--(NSString*)processingFormatStr;
-
--(CGFloat)progressOfAudioFileForPlayerAtIndex:(NSUInteger)index;
--(CGFloat)durationInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
--(CGFloat)remainingDurationInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
--(CGFloat)currentPositionInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
--(NSString*)processingFormatStrForPlayerAtIndex:(NSUInteger)index;
-
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress;
 -(void)stopPlayingTrack1;
 -(void)pausePlayingTrack1;
-
-// Scrubber stuff
 @property (nonatomic) AVAudioFramePosition micPlayerFramePostion;
 @property (nonatomic,assign) CGFloat progressSeekingAudioFile;
 @property (nonatomic) CGFloat currentPositionInAudio;
-// end scrubber stuff
-// older model
 @property (nonatomic) JWPlayerNode* playerNode1;
 @property (nonatomic) JWPlayerNode* playerNode2;
+
 @end
 
 
@@ -140,6 +124,15 @@
 -(void) playingCompleted;
 -(void) playMixCompleted;
 @end
+
+
+//-(CGFloat)progressOfSeekingAudioFile;
+//-(CGFloat)durationInSecondsOfSeekingAudioFile;
+//-(CGFloat)remainingDurationInSecondsOfSeekingAudioFile;
+//-(CGFloat)currentPositionInSecondsOfSeekingAudioFile;
+//-(NSString*)processingFormatStr;
+//
+
 
 
 

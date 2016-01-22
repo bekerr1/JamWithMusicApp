@@ -15,6 +15,7 @@
 #import "JWEffectPresetTableViewCell.h"
 // Player node types
 #import "JWMixNodes.h"
+#import "UIColor+JW.h"
 
 
 @interface JWMixEditTableViewController ()
@@ -45,6 +46,10 @@
 
     _mixerSection = 0;
     _scrubberSection = 0;
+
+    UIView *backgroundView = [UIView new];
+    backgroundView.backgroundColor = [UIColor blackColor];
+    self.tableView.backgroundView = backgroundView;
 
     self.tableView.decelerationRate = UIScrollViewDecelerationRateFast;
     self.tableView.bounces = NO;
@@ -276,6 +281,15 @@
         //            nBaseRowsForNode = fileURL ? 3 : 1;  // two for player, one for recorder, 1 - ignore the player until URL
     }
     return nBaseRowsForNode;
+}
+
+
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(nonnull UITableViewCell *)cell forRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
+
+    UIView *backgroundView = [UIView new];
+    backgroundView.backgroundColor = [UIColor blackColor];
+    cell.backgroundView = backgroundView;
 }
 
 
@@ -806,6 +820,16 @@
     }
     
     return result;
+}
+
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
+    if (view == nil)
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+    view.contentView.backgroundColor = [UIColor jwBlackThemeColor];
+    view.textLabel.textColor = [UIColor jwSectionTextColor];
+    return view;
 }
 
 

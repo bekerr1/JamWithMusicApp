@@ -13,6 +13,7 @@
 #import "JWPlayerControlsViewController.h"
 #import "JWMixEditTableViewController.h"
 #import "JWMixNodes.h"
+#import "UIColor+JW.h"
 
 @interface JWAudioPlayerController () <
 JWScrubberControllerDelegate,
@@ -25,15 +26,6 @@ JWMixEditDelegate
     BOOL _listenToPositionChanges;
     BOOL _wasPlaying;
     BOOL _isRecording;
-
-    UIColor *iosColor2;
-    UIColor *iosColor1;
-    UIColor *iosColor3;
-    UIColor *iosColor4;
-    UIColor *iosColor5;
-    UIColor *iosColor6;
-    UIColor *iosColor7;
-    UIColor *iosColor8;
 }
 @property (nonatomic) JWScrubberController *sc;
 @property (nonatomic) JWPlayerControlsViewController* pcvc;
@@ -55,7 +47,6 @@ JWMixEditDelegate
 
 -(instancetype)init {
     if (self = [super init]) {
-        [self iosColors];
     }
     return self;
 }
@@ -84,7 +75,6 @@ JWMixEditDelegate
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me {
     
-    [self iosColors];
     _listenToPositionChanges = NO;
     id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
     _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
@@ -164,17 +154,6 @@ JWMixEditDelegate
     NSLog(@"%s",__func__);
     if (_wasPlaying)
         [_sc resumePlaying];
-}
-
--(void)iosColors {
-    iosColor1 = [UIColor colorWithRed:128/255.0 green:128/255.0 blue:0/255.0 alpha:1.0]; // asparagus
-    iosColor2 = [UIColor colorWithRed:0/255.0 green:64/255.0 blue:128/255.0 alpha:1.0]; // ocean
-    iosColor3 = [UIColor colorWithRed:0/255.0 green:128/255.0 blue:255/255.0 alpha:1.0]; // aqua
-    iosColor4 = [UIColor colorWithRed:102/255.0 green:204/255.0 blue:255/255.0 alpha:1.0]; // sky
-    iosColor5 = [UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0]; // aluminum
-    iosColor6 = [UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1.0]; // mercury
-    iosColor7 = [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1.0]; // tungsten
-    iosColor8 = [UIColor colorWithRed:102/255.0 green:102/255.0 blue:102/255.0 alpha:1.0]; // steel
 }
 
 #pragma mark -
@@ -400,7 +379,7 @@ JWMixEditDelegate
 
 
 //DEFAULT COLORS FOR SCRUBBER
--(NSDictionary*)defaultWhiteColors {
+-(NSDictionary*)defaultWhiteColorsMoreAlpha {
     return @{
              JWColorScrubberTopPeak : [[UIColor whiteColor] colorWithAlphaComponent:0.6],
              JWColorScrubberTopAvg : [UIColor colorWithWhite:0.9 alpha:0.5] ,
@@ -408,6 +387,17 @@ JWMixEditDelegate
              JWColorScrubberBottomPeak : [[UIColor whiteColor] colorWithAlphaComponent:0.6],
              JWColorScrubberTopPeakNoAvg : [[UIColor whiteColor] colorWithAlphaComponent:0.8],
              JWColorScrubberBottomPeakNoAvg : [[UIColor whiteColor] colorWithAlphaComponent:0.8],
+             };
+}
+-(NSDictionary*)defaultWhiteColors {
+    return @{
+             JWColorScrubberTopPeak : [[UIColor whiteColor] colorWithAlphaComponent:0.8],
+             JWColorScrubberTopAvg : [UIColor colorWithWhite:0.9 alpha:0.7] ,
+             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.9 alpha:0.7],
+             JWColorScrubberBottomPeak : [[UIColor whiteColor] colorWithAlphaComponent:0.8],
+             
+             JWColorScrubberTopPeakNoAvg : [[UIColor whiteColor] colorWithAlphaComponent:0.8],
+             JWColorScrubberBottomPeakNoAvg : [[UIColor whiteColor] colorWithAlphaComponent:0.],
              };
 }
 
@@ -419,17 +409,17 @@ JWMixEditDelegate
     
     if ([playerNodeList count] > 0) {
         id item = playerNodeList[0];
-        
         if (item) {
             JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
-            
-            if (nodeType == JWMixerNodeTypePlayerRecorder)
-                result = YES;
+            if (nodeType == JWMixerNodeTypePlayerRecorder) {
+                id fileURL = item[@"fileURLString"];
+                if (fileURL == nil)
+                    result = YES;
+            }
         }
     }
     return result;
 }
-
 
 
 #pragma mark - BUTTON PRESSED PROTOCOL
@@ -454,29 +444,16 @@ JWMixEditDelegate
     }
 }
 
-//    if (_state != JWPlayerStateRecFromPos) {
-//        self.state = JWPlayerStateSetToPos;
-//    } else {
-//        //Ask the user if they want to keep the audio or re-record
-//        self.state = JWPlayerStateSetToBeg;
-////        if (_isRecording) {
-////            _isRecording = NO;
-////            self.state = JWPlayerStatePlayFromBeg;
-////            [self configureScrubbers:NO];
-////        }
-//    }
-
 -(void)record
 {
     self.state = JWPlayerStateRecFromPos;
 }
 
-//TODO: added this
+
 -(BOOL) canRecordAudio {
     
     return [[_audioEngine activeRecorderNodes] count] > 0 ? YES : NO;
 }
-
 
 -(void)setState:(PlayerControllerState)state {
     
@@ -516,20 +493,18 @@ JWMixEditDelegate
             break;
             
         case JWPlayerStateRecFromPos:
+        
+        {
+            BOOL singleRecorder = [self recordingWithoutPlayers];
             
-            if ([self recordingWithoutPlayers]) {
+            [_audioEngine prepareToRecord];
 
-                _isRecording = YES;
-                
-                NSURL *fileURL = [_audioEngine recordOnlyWithPlayerRecorderAtNodeIndex:0];
-
-                [_sc recordAt:[self trackIdForPlayerNodeAtIndex:0] usingFileURL:fileURL];
-                
-            } else {
-                
-                [_audioEngine prepareToRecord];
+            if (singleRecorder)
+                [_sc recordAt:[self trackIdForPlayerNodeAtIndex:0]];
+            else
                 [_sc playRecord:nil];
-            }
+        }
+            break;
 
         default:
             break;
@@ -538,10 +513,51 @@ JWMixEditDelegate
     [_pcvc setState:_state withRecording:[self canRecordAudio]];
 }
 
+//            _isRecording = YES;
+//            [_audioEngine prepareToRecord];
+//            NSURL *fileURL = [_audioEngine recordOnlyWithPlayerRecorderAtNodeIndex:0];
+//            [_sc recordAt:[self trackIdForPlayerNodeAtIndex:0] usingFileURL:fileURL];
 
--(NSUInteger)numberOfTracks
-{
+
+-(NSUInteger)numberOfTracks {
     return _sc.numberOfTracks;
+}
+
+
+#pragma mark helper
+
+-(id)playerNodeItemForTrackId:(NSString*)sid {
+    id result;
+    NSInteger index = [self playerNodeIndexForTrackId:sid];
+    if (index != NSNotFound)
+        result = [self.audioEngine playerNodeList][index];
+    return result;
+}
+
+-(NSInteger)playerNodeIndexForTrackId:(NSString*)sid {
+    NSInteger result = NSNotFound;
+    NSUInteger index = 0;
+    for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
+        NSString *trackId = item[@"trackid"];
+        if ([sid isEqualToString:trackId]) {
+            result = index;
+            break;
+        }
+        index++;
+    }
+    
+    return result;
+}
+
+-(id)trackIdForPlayerNodeAtIndex:(NSUInteger)index {
+    id result;
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    if (index < [playerNodeList count]) {
+        id trackIdValue = playerNodeList[index][@"trackid"];
+        if (trackIdValue)
+            result = trackIdValue;
+    }
+    return result;
 }
 
 
@@ -564,9 +580,10 @@ JWMixEditDelegate
     if (referenceFileItem)
         fileReference = referenceFileItem;
     
-    SampleSize ssz =  SampleSize18;
+    SampleSize ssz =  SampleSize14;
     VABKindOptions kind =  VABOptionCenter;
-    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
+    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples;
+//    VABLayoutOptions layout = VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine;
     
     SamplingOptions so = SamplingOptionDualChannel;
     if (_sc.pulseBackLight)
@@ -582,13 +599,12 @@ JWMixEditDelegate
                            type:kind
                          layout:layout
                          colors:@{
-                                  JWColorScrubberTopPeak : [ iosColor4 colorWithAlphaComponent:0.5],
-//                                  JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-//                                  JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-                                  JWColorScrubberBottomPeak : [ iosColor3 colorWithAlphaComponent:0.5],
+                                  JWColorScrubberTopPeak : [ [UIColor iosSkyColor] colorWithAlphaComponent:1.0],
+                                  JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.9],
+                                  JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.9],
+                                  JWColorScrubberBottomPeak : [ [UIColor iosAquaColor] colorWithAlphaComponent:1.0],
                                   }
-     
-                  referenceFile:fileReference
+                       referenceFile:fileReference
                       startTime:delay
                    onCompletion:nil];
     
@@ -596,10 +612,6 @@ JWMixEditDelegate
     
 }
 
-//        iosColor5 = [UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0]; // aluminum
-//        iosColor6 = [UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1.0]; // mercury
-//        iosColor7 = [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1.0]; // tungsten
-//        iosColor8 = [UIColor colorWithRed:102/255.0 green:102/255.0 blue:102/255.0 alpha:1.0]; // steel
 
 -(void)scrubberConfigurePlayerRecorder:(id)playerNode atIndex:(NSUInteger)index withFileURL:(NSURL*)fileURL playerOnly:(BOOL)playerOnly {
     
@@ -628,7 +640,13 @@ JWMixEditDelegate
                             options:SamplingOptionDualChannel
                                type:VABOptionNone
                              layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples | VABLayoutOptionShowCenterLine
-                             colors:nil
+                             colors:@{
+                                      JWColorScrubberTopPeak : [[UIColor iosMercuryColor] colorWithAlphaComponent:0.6],
+                                      JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.8],
+                                      JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.8],
+                                      JWColorScrubberBottomPeak : [[UIColor iosAluminumColor] colorWithAlphaComponent:0.9],
+                                      }
+
                       referenceFile:fileReference
                           startTime:delay
                        onCompletion:nil];
@@ -649,13 +667,12 @@ JWMixEditDelegate
                                    options:SamplingOptionDualChannel
                                       type:VABOptionCenter
                                     layout:VABLayoutOptionOverlayAverages | VABLayoutOptionShowAverageSamples
-                                    colors:
-         @{
-           JWColorScrubberTopPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
-           JWColorScrubberTopAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-           JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-           JWColorScrubberBottomPeak : [[UIColor redColor] colorWithAlphaComponent:0.3],
-           }
+                                    colors:@{
+                                             JWColorScrubberTopPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.8],
+                                             JWColorScrubberTopAvg : [[UIColor iosSilverColor] colorWithAlphaComponent:0.8],
+                                             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+                                             JWColorScrubberBottomPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.6],
+                                             }
                               onCompletion:nil];
         
         
@@ -777,11 +794,6 @@ JWMixEditDelegate
 //    configureColors
 //    configureScrubberColors - needs to be called or crash
 
-//        iosColor5 = [UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0]; // aluminum
-//        iosColor6 = [UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1.0]; // mercury
-//        iosColor7 = [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1.0]; // tungsten
-//        iosColor8 = [UIColor colorWithRed:102/255.0 green:102/255.0 blue:102/255.0 alpha:1.0]; // steel
-
 -(void)configureScrubberColors {
     
     if (_colorizedTracks == NO) {  // set the base to whites
@@ -792,7 +804,7 @@ JWMixEditDelegate
          @{
            JWColorBackgroundHueColor : [UIColor blackColor],
           JWColorBackgroundHeaderGradientColor2 : [UIColor blackColor],
-          JWColorBackgroundHeaderGradientColor1 : iosColor8
+          JWColorBackgroundHeaderGradientColor1 : [UIColor iosSteelColor]
             }
          ];
         
@@ -823,13 +835,16 @@ JWMixEditDelegate
         } else {
             [_sc configureScrubberColors:
              
-             @{ JWColorBackgroundHueColor : iosColor2
+             @{ JWColorBackgroundHueColor : [UIColor iosOceanColor]
                 }
              
              ];  // default blue ocean
         }
     }
 }
+
+
+
 
 
 #pragma mark scrubber commands
@@ -879,21 +894,25 @@ JWMixEditDelegate
 -(CGFloat)progressOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
     return [_audioEngine progressOfAudioFileForPlayerAtIndex:0];
 }
+
 -(CGFloat)durationInSecondsOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
     return [_audioEngine durationInSecondsOfAudioFileForPlayerAtIndex:0];
 }
+
 -(CGFloat)remainingDurationInSecondsOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
     return [_audioEngine remainingDurationInSecondsOfAudioFileForPlayerAtIndex:0];
 }
+
 -(CGFloat)currentPositionInSecondsOfAudioFile:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
     
     CGFloat result = 0.0;
-    
-    if (_isRecording) {
+    if (sid == nil) {
+        // primary player
+        result = [_audioEngine currentPositionInSecondsOfAudioFileForPlayerAtIndex:0];
+    } else {
+        // isRecording
         NSUInteger index = [self playerNodeIndexForTrackId:sid];
         result = [_audioEngine recordingTimeRecorderAtNodeIndex:index];
-    } else {
-        result = [_audioEngine currentPositionInSecondsOfAudioFileForPlayerAtIndex:0];
     }
     
     return result;
@@ -970,7 +989,6 @@ JWMixEditDelegate
         NSLog(@"%s no reference No change %@",__func__,sid);
     }
 }
-
 
 -(void)editingMadeChange:(JWScrubberController*)controller forScrubberId:(NSString*)sid {
     
@@ -1117,45 +1135,7 @@ JWMixEditDelegate
     return doUpdate;
 }
 
-
-#pragma mark helper
-
--(id)playerNodeItemForTrackId:(NSString*)sid {
-    id result;
-    NSInteger index = [self playerNodeIndexForTrackId:sid];
-    if (index != NSNotFound)
-        result = [self.audioEngine playerNodeList][index];
-    return result;
-}
-
--(NSInteger)playerNodeIndexForTrackId:(NSString*)sid {
-    NSInteger result = NSNotFound;
-    NSUInteger index = 0;
-    for (NSMutableDictionary *item in [self.audioEngine playerNodeList]) {
-        NSString *trackId = item[@"trackid"];
-        if ([sid isEqualToString:trackId]) {
-            result = index;
-            break;
-        }
-        index++;
-    }
-    
-    return result;
-}
-
--(id)trackIdForPlayerNodeAtIndex:(NSUInteger)index {
-    id result;
-    NSArray *playerNodeList = [self.audioEngine playerNodeList];
-    if (index < [playerNodeList count]) {
-        id trackIdValue = playerNodeList[index][@"trackid"];
-        if (trackIdValue)
-            result = trackIdValue;
-    }
-    return result;
-}
-
-
-#pragma mark scrubber track interaction
+#pragma mark track interaction
 
 -(void)scrubber:(JWScrubberController *)controller selectedTrack:(NSString *)sid {
     NSLog(@"%s %@", __func__,sid);
@@ -1205,33 +1185,49 @@ JWMixEditDelegate
 
 -(void)completedPlayingAtPlayerIndex:(NSUInteger)index {
     
-    if (index == 0)
+    if (index == 0) {
+        // Primary Player
         self.state = JWPlayerStatePlayFromBeg;
-    
-    [_delegate playTillEnd];
-    [_sc playedTillEnd:nil];
+        [_delegate playTillEnd];
+        [_sc playedTillEnd:nil];
+        
+    } else {
+        // Other Players blink the track
+        id trackId = [self trackIdForPlayerNodeAtIndex:index];
+        if (trackId) {
+            [_sc modifyTrack:trackId alpha:0.5];
+            double delayInSecs = 0.25;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [_sc modifyTrack:trackId alpha:1.0];
+            });
+        }
+    }
 }
 
 -(void)userAudioObtained {
-    
-    if (_isRecording) {
-        _isRecording = NO;
-        self.state = JWPlayerStatePlayFromBeg;
-        [self configureScrubbers:NO];
-        
-    } else {
-        [self configureScrubbers:NO];
-        [_delegate playTillEnd];
-        [_sc playedTillEnd:nil];
-    }
-
+    [_delegate playTillEnd];
+    [_sc playedTillEnd:nil];
+    [self configureScrubbers:NO];
 }
 
--(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
+
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
     // Pass it up the chain
     if ([_delegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
         [_delegate userAudioObtainedAtIndex:index recordingId:rid];
 }
+
+
+//if (_isRecording) {
+//    _isRecording = NO;
+//            self.state = JWPlayerStatePlayFromBeg;
+//            [self configureScrubbers:NO];
+//} else {
+//    [self configureScrubbers:NO];
+//    [_delegate playTillEnd];
+//    [_sc playedTillEnd:nil];
+//}
+
 
 #pragma mark - MIXEDIT DELEGATE
 

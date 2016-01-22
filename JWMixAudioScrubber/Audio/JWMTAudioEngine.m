@@ -341,7 +341,7 @@
 
 #pragma mark public setters getters
 
-- (void) setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
+- (void)setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
     _engineDelegate = engineDelegate;
     self.delegate = _engineDelegate;
 }
@@ -451,23 +451,6 @@
     [super startEngine];
 }
 
-
-//-(void)stopAll {
-//    for (JWPlayerNode* pn in self.activePlayerNodes)
-//    {
-//        [pn stop];
-//        NSLog(@"%s audioPlayerNode STOP",__func__);
-//    }
-//    
-//    if (_scrubberTrackIds[@"mixer"]) {
-//        // remove VAB TAP on mixer
-//        AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
-//        [mainMixer removeTapOnBus:0];
-//        NSLog(@"REMOVED AudioVidual Tap");
-//    }
-//    [self refresh];
-//}
-
 - (void)pausePlayingAll {
     for (JWPlayerNode* pn in self.activePlayerNodes)
     {
@@ -509,6 +492,23 @@
     [self.playerNode1 pause];
 }
 
+//-(void)stopAll {
+//    for (JWPlayerNode* pn in self.activePlayerNodes)
+//    {
+//        [pn stop];
+//        NSLog(@"%s audioPlayerNode STOP",__func__);
+//    }
+//
+//    if (_scrubberTrackIds[@"mixer"]) {
+//        // remove VAB TAP on mixer
+//        AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
+//        [mainMixer removeTapOnBus:0];
+//        NSLog(@"REMOVED AudioVidual Tap");
+//    }
+//    [self refresh];
+//}
+
+
 #pragma mark - player nodes
 
 /*
@@ -526,13 +526,17 @@
     NSUInteger index = 0;
     
     for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
+        
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        
         if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+        
             JWPlayerNode *pn = [JWPlayerNode new];
             pn.volume = 0.4f;
             //[mPlayerNodes addObject:pn];
             playerNodeInfo[@"player"] = pn;  
             if (nodeType == JWMixerNodeTypePlayerRecorder) {
+                
                 id recorder = playerNodeInfo[@"recorderController"];
                 if (recorder == nil) {
                     JWAudioRecorderController *rc = [[JWAudioRecorderController alloc] initWithMetering:YES];
@@ -718,8 +722,21 @@
  format. In all cases, the format of the destination node's input bus is set to
  match that of the source node's output bus. */
 
+#pragma mark -
+// TODO: deprecate
+- (void)playMicRecordedFile { }
+-(void)setMicPlayerFramePosition:(AVAudioFramePosition)micPlayerFramePosition { }
+-(void)changeProgressOfSeekingAudioFile:(CGFloat)progress { }
+// TODO: deprecate to here
 
-#pragma mark - engine actions
+
+
+//=======================
+//  P L A Y I N G
+//=======================
+#pragma mark - PLAYING
+
+#pragma mark convenience methods
 
 /*
  playAlll
@@ -731,174 +748,11 @@
     [self playAlll:NO];  // no, not recording
 }
 
-/*
- recording - whether recording mix
- */
--(void)playAlll:(BOOL)recording {
-   
-    NSLog(@"%s %@",__func__,[_playerNodeList description]);
-    
-    NSUInteger index = 0;
-    for (NSDictionary *playerNodeInfo in _playerNodeList) {
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
-        
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
-            
-            AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
-            if (audioBuffer == nil)
-            {
-                continue; // not interested
-            }
-            // OTHERWISE we are ready to go with a buffer which is what we are scheduling
-            // including obtaining delay time information
-            
-            // PLAYNODE Config
-            BOOL loops = NO;
-            NSTimeInterval secondsDelay = 0;
-            AVAudioTime *delayAudioTime = nil;
-            float volume = 0.25;
-            id obj = nil;
-            if (recording  && index == 0) {
-                // override loops on recording and track 0
-                loops = NO;
-            } else {
-                obj = playerNodeInfo[@"loops"];
-                if (obj)
-                    loops = [obj boolValue];
-            }
-            obj = playerNodeInfo[@"volumevalue"];
-            if (obj)
-                volume = [obj floatValue];
-            obj = playerNodeInfo[@"delay"];
-            if (obj) {
-                secondsDelay = [obj doubleValue];
-                // Create AVAudioTime to pass to atTime
-                AVAudioFormat *format = [audioBuffer format];
-                delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * format.sampleRate) atRate:format.sampleRate];
-            }
-            
-            NSLog(@"%s loops %@ secondsDelay %.3f",__func__,@(loops),secondsDelay);
-            
-           // RECONCILE Audiofile and Audio Buffer
-
-            AVAudioFile *audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
-
-            JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
-            [_activePlayersIndex addIndex:index];
-            
-//            JWPlayerNode* playerNode =  (JWPlayerNode*)_playerNodes[playerNodeIndex];
-//            [_activePlayersIndex addIndex:playerNodeIndex];
-//            playerNodeIndex++;
-            
-            playerNode.audioFile = audioFile;
-            
-            //playerNode.volume = volume;  //volume already set on player by user
-
-            
-            // Build the completion handler
-            
-            void (^playerCompletion)(void) = ^{
-                
-                NSLog(@"Audio Completed for playerAtIndex %ld",index);
-                if (recording  && index == 0) {
-                    AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
-                    [mainMixer removeTapOnBus:0];
-                    
-                    // Notify delegate
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(mixRecordingCompleted)])
-                            [_engineDelegate mixRecordingCompleted];
-                    });
-                    
-                } else {
-                    // Try not to notify both
-                    // Notify delegate
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-                            [_engineDelegate completedPlayingAtPlayerIndex:index];
-                        
-                    });
-                }
-            };
-        
-        
-            NSUInteger option = 0;
-
-            if (option == 0) {
-                // schedule the file
-                // doesnt loop
-                
-                [playerNode scheduleFile:audioFile atTime:delayAudioTime  completionHandler:playerCompletion];
-                
-            } else if (option == 1) {
-                
-                // SCHEDULE THE BUFFER
-                
-                AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
-                
-                [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletion];
-            }
-        }
-        
-        index++;
-        
-    }
-    
-    // do not add mixer vab if recording
-    
-    if (recording == NO  &&  _scrubberTrackIds[@"mixer"]) {
-        
-        // install TAP on mixer to provide visualAudio
-        AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
-        
-        NSLog(@"%s Installed visual Audio mixer tap",__func__);
-        [mainMixer installTapOnBus:0 bufferSize:1024 format:[mainMixer outputFormatForBus:0]
-                             block:^(AVAudioPCMBuffer* buffer, AVAudioTime* when) {
-                                 // Write buffer to final recording
-                                 // Get it out of here
-                                 if (_suspendPlayAlll == NO) {
-                                     dispatch_async(_bufferReceivedQueue, ^{
-                                         dispatch_sync(dispatch_get_main_queue(), ^() {
-                                             [_scrubberBufferController bufferReceivedForTrackId:_scrubberTrackIds[@"mixer"] buffer:buffer atReadPosition:(AVAudioFramePosition)[when sampleTime]];
-                                         });
-                                     }); //_bufferReceivedQueue
-                                 }
-                             }];
-        
-    }
-    
-    self.mixerVolume = 1.0;
-
-    for (JWPlayerNode* pn in self.activePlayerNodes)
-    {
-        [pn play];
-        NSLog(@"%s audioPlayerNode PLAY",__func__);
-    }
-    
-}
-
-
-
-// TODO: deprecate
-- (void)playMicRecordedFile
-{
-}
-
--(void)setMicPlayerFramePosition:(AVAudioFramePosition)micPlayerFramePosition
-{
-}
-
--(void)changeProgressOfSeekingAudioFile:(CGFloat)progress
-{
-}
-
-
-
 -(void)playAlllStartSeconds:(NSTimeInterval)secondsIn  {
-
+    
     //[self playAlllWithOptions:0 insetSeconds:secondsIn recording:NO];
 }
-//TODO: added this
+
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn  {
     
     [self scheduleAllWithOptions:0 insetSeconds:secondsIn recording:NO];
@@ -909,10 +763,20 @@
     [self scheduleAllWithOptions:0 insetSeconds:secondsIn recording:NO];
 }
 
-/*
- playAlllWithOptions
 
- - insetSeconds  start playing nSeconds In 
+//===========================================================================
+//  NODE ITERATION AND PLAYER SCHEDULE scheduleAllWithOptions
+//===========================================================================
+
+/*
+ uses scheduleAllPlayerNode
+ 
+ Play all audio player nodes from beginning and record
+ 
+ 
+ playAlllWithOptions
+ 
+ - insetSeconds  start playing nSeconds In
  
  all players will read audiofiles nSeconds in from beginning
  nodes with delays will begin reading computed seconds in or have its delay shortened
@@ -920,297 +784,274 @@
  recording = YES not supported
  
  */
-//TODO: changed this
 
 //    NSLog(@"%s %.3f secondsin  %@",__func__,secondsIn,[_playerNodeList description]);
 //    NSLog(@"%s %.3f secondsin  node count %ld",__func__,secondsIn,[_playerNodeList count]);
 
+
+-(void)scheduleAllPlayerNode:(id)playerNodeInfo audioFile:(AVAudioFile *)audioFile index:(NSUInteger)index
+                insetSeconds:(NSTimeInterval)secondsIn
+                   recording:(BOOL)recording {
+    
+    AVAudioFormat *processingFormat = [audioFile processingFormat];
+    
+    // PLAYNODE Config
+    BOOL loops = NO;
+    NSTimeInterval secondsDelay = 0;
+    AVAudioTime *delayAudioTime = nil;
+    JWPlayerFileInfo *fileReference = nil;
+    float volume = 0.25;
+    
+    id obj = nil;
+    if (recording  && index == 0) {
+        // override loops on recording and track 0
+        loops = NO;
+    } else {
+        obj = playerNodeInfo[@"loops"];
+        if (obj)
+            loops = [obj boolValue];
+    }
+    obj = playerNodeInfo[@"volumevalue"];
+    if (obj)
+        volume = [obj floatValue];
+    obj = playerNodeInfo[@"delay"];
+    if (obj) {
+        secondsDelay = [obj doubleValue];
+        delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * processingFormat.sampleRate)
+                                                  atRate:processingFormat.sampleRate];
+    }
+    
+    obj = playerNodeInfo[@"referencefile"];
+    if (obj) {
+        NSTimeInterval durationSeconds = audioFile.length / processingFormat.sampleRate;
+        
+        //how far in you want to start playing
+        id startInsetValue = obj[@"startinset"];
+        float startInset = startInsetValue ? [startInsetValue floatValue] : 0.0;
+        
+        //how far in you want the track to stop playing
+        id endInsetValue = obj[@"endinset"];
+        float endInset = endInsetValue ? [endInsetValue floatValue] : 0.0;
+        
+        fileReference =
+        [[JWPlayerFileInfo alloc] initWithCurrentPosition:secondsIn duration:durationSeconds
+                                            startPosition:secondsDelay
+                                               startInset:startInset endInset:endInset];
+    }
+    
+    BOOL hasAudioToPlay = YES;
+    
+    // DETERMINE READ POSITION AND DELAY
+    AVAudioFramePosition readPosition = 0;
+    
+    if (secondsDelay > secondsIn) {
+        // reduce delay
+        delayAudioTime = [AVAudioTime timeWithSampleTime:((secondsDelay - secondsIn) * processingFormat.sampleRate)
+                                                  atRate:processingFormat.sampleRate];
+    } else {
+        
+        if (fileReference) {
+            if (fileReference.readPositionInReferencedTrack < 0.0) {
+                NSLog(@"%s fileReference read position negative",__func__);
+                hasAudioToPlay = NO;
+            } else {
+
+                readPosition = fileReference.readPositionInReferencedTrack *  processingFormat.sampleRate;
+                
+                NSLog(@"%s fileReference dur %.2fs remaining %.2fs read %lld ",__func__,
+                      fileReference.duration,
+                      fileReference.remainingInTrack,
+                      readPosition);
+            }
+            
+        } else {
+            
+            // delay Zero, and readIn required, delay < secondsIn , in progress
+            // delay 5  seconds in 8 read 3 seconds in
+
+            readPosition = (secondsIn - secondsDelay) * processingFormat.sampleRate;
+        }
+    }
+    
+    //            NSLog(@"%s loops %@ secondsDelay %.3f secondsin %.3f read %lld ",__func__,@(loops),secondsDelay,secondsIn,readPosition);
+    
+    if (hasAudioToPlay) {
+        // GET The player for this audio
+        JWPlayerNode* playerNode =  playerNodeInfo[@"player"];
+        [_activePlayersIndex addIndex:index];
+        
+        playerNode.audioFile = audioFile;
+        
+        // Final Player completion
+        void (^playerCompletion)(void) = ^{
+            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+            dispatch_sync(dispatch_get_main_queue(), ^() {
+                if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+                    [_engineDelegate completedPlayingAtPlayerIndex:index];
+            });
+        };
+        
+        // Option one Buffer read
+        // Play buffer One read at position if necessary
+        AVAudioFramePosition fileLength = audioFile.length;
+        AVAudioFrameCount remainingFrameCount = 0;
+        
+        if (fileReference)
+            remainingFrameCount =  fileReference.remainingInTrack * processingFormat.sampleRate;
+        else
+            remainingFrameCount =  (AVAudioFrameCount)(fileLength - readPosition);
+        
+        AVAudioFrameCount bufferFrameCapacity = remainingFrameCount;
+        
+        
+        // CREATE and READ buffer
+        AVAudioPCMBuffer *readBuffer =
+        [[AVAudioPCMBuffer alloc] initWithPCMFormat: audioFile.processingFormat frameCapacity: bufferFrameCapacity];
+        
+        // READ from the File
+        NSError *error = nil;
+        audioFile.framePosition = readPosition;
+        
+        if ([audioFile readIntoBuffer: readBuffer error: &error]) {
+            
+            NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
+                  fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
+            
+            
+            // SCHEDULE THE BUFFER
+
+            [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
+                               options:AVAudioPlayerNodeBufferInterrupts
+                     completionHandler:playerCompletion
+             ];
+            
+        } else {
+            NSLog(@"failed to read audio file: %@", [error description]);
+        }
+    }
+}
+
+/*
+ Iteration method scheduleAll
+ */
+
 -(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn recording:(BOOL)recording {
 
     NSLog(@"scheduleAllWithOptions %.3f secondsin, %ld nodes",secondsIn,[_playerNodeList count]);
-
     NSUInteger index = 0;
+    
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
             
             AVAudioFile *audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
-            
             if (audioFile == nil) {
                 if (nodeType == JWMixerNodeTypePlayerRecorder)
                     [_activeRecorderIndex addIndex:index];
                 
                 continue; // not interested
             }
-
-            AVAudioFormat *processingFormat = [audioFile processingFormat];
             
             // OTHERWISE we are ready to go with a buffer which is what we are scheduling
             // including obtaining delay time information
-            
-            // PLAYNODE Config
-            BOOL loops = NO;
-            NSTimeInterval secondsDelay = 0;
-            AVAudioTime *delayAudioTime = nil;
-            JWPlayerFileInfo *fileReference = nil;
-            float volume = 0.25;
-            
-            id obj = nil;
-            if (recording  && index == 0) {
-                // override loops on recording and track 0
-                loops = NO;
-            } else {
-                obj = playerNodeInfo[@"loops"];
-                if (obj)
-                    loops = [obj boolValue];
-            }
-            
-            obj = playerNodeInfo[@"volumevalue"];
-            if (obj)
-                volume = [obj floatValue];
-            
-            obj = playerNodeInfo[@"delay"];
-            if (obj) {
-                secondsDelay = [obj doubleValue];
-                // Create AVAudioTime to pass to atTime
-                delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * processingFormat.sampleRate)
-                                                          atRate:processingFormat.sampleRate];
-            }
 
-            obj = playerNodeInfo[@"referencefile"];
-            if (obj) {
-                NSTimeInterval durationSeconds = audioFile.length / processingFormat.sampleRate;
-                
-                //how far in you want to start playing
-                id startInsetValue = obj[@"startinset"];
-                float startInset = startInsetValue ? [startInsetValue floatValue] : 0.0;
-                
-                //how far in you want the track to stop playing
-                id endInsetValue = obj[@"endinset"];
-                float endInset = endInsetValue ? [endInsetValue floatValue] : 0.0;
-                
-                fileReference =
-                [[JWPlayerFileInfo alloc] initWithCurrentPosition:secondsIn
-                                                         duration:durationSeconds
-                                                    startPosition:secondsDelay
-                                                       startInset:startInset
-                                                         endInset:endInset];
-            }
-            
-            BOOL hasAudioToPlay = YES;
-            
-            // DETERMINE READ POSITION
-            AVAudioFramePosition readPosition = 0;
-            
-            if (secondsDelay > secondsIn) {
-                // reduce delay
-                delayAudioTime = [AVAudioTime timeWithSampleTime:((secondsDelay - secondsIn) * processingFormat.sampleRate)
-                                                          atRate:processingFormat.sampleRate];
-            } else {
-                
-                if (fileReference) {
-                    
-                    if (fileReference.readPositionInReferencedTrack < 0.0) {
-                        NSLog(@"%s fileReference read position negative",__func__);
-                        hasAudioToPlay = NO;
-                    } else {
-                        readPosition = fileReference.readPositionInReferencedTrack *  processingFormat.sampleRate;
-                        
-                        NSLog(@"%s fileReference dur %.2fs remaining %.2fs read %lld ",__func__,
-                              fileReference.duration,
-                              fileReference.remainingInTrack,
-                              readPosition);
-                    }
-                    
-                } else {
-                    
-                    // delay Zero, and readIn required, delay < secondsIn , in progress
-                    readPosition = (secondsIn - secondsDelay) * processingFormat.sampleRate;
-                    
-                    // delay 5  seconds in 8 read 3 seconds in
-                }
-            }
-            
-            
-//            NSLog(@"%s loops %@ secondsDelay %.3f secondsin %.3f read %lld ",__func__,@(loops),secondsDelay,secondsIn,readPosition);
-            
-            if (hasAudioToPlay) {
-                // GET The player for this audio
-//                JWPlayerNode* playerNode =  (JWPlayerNode*)_playerNodes[playerNodeIndex];
-//                [_activePlayersIndex addIndex:playerNodeIndex];
-//                playerNodeIndex++;
-                
-                
-                JWPlayerNode* playerNode =  playerNodeInfo[@"player"];
-                [_activePlayersIndex addIndex:index];
-                
-                playerNode.audioFile = audioFile;
-                
-                // Final Player completion
-                void (^finalPlayerCompletion)(void) = ^{
-                    NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
-                    // Notify delegate
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-                            [_engineDelegate completedPlayingAtPlayerIndex:index];
-                    });
-                };
-                
-                //playerNode.volume = volume;  //volume already set on player by user
-                
-                // SCHEDULE THE BUFFER
-                
-                int option = 1;
-                
-                // Option one Buffer read
-                if (option==1) {
-                    // Play buffer One read at position if necessary
-                    AVAudioFramePosition fileLength = audioFile.length;
-                    AVAudioFrameCount remainingFrameCount = 0;
-                    if (fileReference) {
-                        remainingFrameCount =  fileReference.remainingInTrack * processingFormat.sampleRate;
-                    } else {
-                        remainingFrameCount =  (AVAudioFrameCount)(fileLength - readPosition);
-                    }
-                    AVAudioFrameCount bufferFrameCapacity = remainingFrameCount;
-                    
-                    // CREATE and READ buffer
-                    AVAudioPCMBuffer *readBuffer =
-                    [[AVAudioPCMBuffer alloc] initWithPCMFormat: audioFile.processingFormat frameCapacity: bufferFrameCapacity];
-                    
-                    // READ from the File
-                    NSError *error = nil;
-                    audioFile.framePosition = readPosition;
-                    
-                    if ([audioFile readIntoBuffer: readBuffer error: &error]) {
-                        
-                        NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
-                              fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
-                        
-                        [playerNode scheduleBuffer:readBuffer
-                                            atTime:delayAudioTime
-                                           options:AVAudioPlayerNodeBufferInterrupts
-                                 completionHandler:finalPlayerCompletion
-                         ];
-                        
-                    } else {
-                        NSLog(@"failed to read audio file: %@", [error description]);
-                    }
-                }
-                
-                // Option Buffer by buffer
-                else if (option==2) {
-                    
-                    // Play buffer by buffer starting at read pos  read a portion and play the rest
-                    const AVAudioFrameCount kBufferFrameCapacity = 8 * 1024L;  // 8k .1857 seconds at 44100
-                    AVAudioPCMBuffer *readBuffer =
-                    [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat frameCapacity: kBufferFrameCapacity];
-                    
-                    audioFile.framePosition = readPosition;
-                    
-                    //    NSLog(@"FileLength: %lld  %.3f seconds ",
-                    //          (long long)fileLength, fileLength / seekingAudioFile.fileFormat.sampleRate);
-                    
-                    NSError *error = nil;
-                    
-                    if ([audioFile readIntoBuffer: readBuffer error: &error]) {
-                        [playerNode scheduleBuffer:readBuffer
-                                            atTime:delayAudioTime
-                                           options:AVAudioPlayerNodeBufferInterrupts
-                                 completionHandler:^{
-                                     NSError *error;
-                                     AVAudioPCMBuffer *buffer =
-                                     [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat
-                                                                   frameCapacity:(AVAudioFrameCount)audioFile.length];
-                                     
-                                     if ([audioFile readIntoBuffer: buffer error: &error]) {
-                                         [playerNode scheduleBuffer:buffer
-                                                             atTime:nil
-                                                            options:AVAudioPlayerNodeBufferInterrupts
-                                                  completionHandler:finalPlayerCompletion
-                                          ];
-                                         
-                                     } else {
-                                         NSLog(@"failed to read audio file: %@", error);
-                                     }
-                                 }];
-                        
-                    } else {
-                        NSLog(@"failed to read audio file: %@", [error description]);
-                    }
-                }
-                
-                // Option Schedule segment
-                else if (option==3) {
-                    
-                    // Simply schedule some sound to play while seeking
-                    // Need a way to continue playing to end
-                    AVAudioFramePosition fileLength = audioFile.length;
-                    AVAudioFrameCount framesToread = 22050; // half second at 44100
-                    if ((readPosition + framesToread) > fileLength) {
-                        framesToread = (AVAudioFrameCount) (fileLength - readPosition);
-                    }
-                    
-                    // TODO: needs to read the rest
-                    [playerNode scheduleSegment:playerNode.audioFile
-                                  startingFrame:readPosition
-                                     frameCount:framesToread
-                                         atTime:delayAudioTime
-                              completionHandler:^{
-                                  NSLog(@"seeking played segment");
-                                  // Now play here until end
-                                  
-                              }];
-
-                }
-                
-                // NO OPtion normal play all
-                else {
-                    
-                    AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
-                    if (audioBuffer == nil)
-                    {
-                        continue; // not interested
-                    }
-                    
-                    AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
-                    
-                    [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:finalPlayerCompletion];
-                }
-            }
+            [self scheduleAllPlayerNode:playerNodeInfo audioFile:audioFile index:index insetSeconds:secondsIn recording:recording];
         }
         
         index++;
-        
     }
     
     // do not add mixer vab if recording
     
     if (recording == NO  &&  _scrubberTrackIds[@"mixer"]) {
-        
         // install TAP on mixer to provide visualAudio
-        AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
         
-        NSLog(@"%s Installed visual Audio mixer tap",__func__);
-        [mainMixer installTapOnBus:0 bufferSize:1024 format:[mainMixer outputFormatForBus:0]
-                             block:^(AVAudioPCMBuffer* buffer, AVAudioTime* when) {
-                                 // Write buffer to final recording
-                                 // Get it out of here
-                                 if (_suspendPlayAlll == NO) {
-                                     dispatch_async(_bufferReceivedQueue, ^{
-                                         dispatch_sync(dispatch_get_main_queue(), ^() {
-                                             [_scrubberBufferController bufferReceivedForTrackId:_scrubberTrackIds[@"mixer"] buffer:buffer atReadPosition:(AVAudioFramePosition)[when sampleTime]];
-                                         });
-                                     }); //_bufferReceivedQueue
-                                 }
-                             }];
-        
+        [self tapTheMixerForScrubberOnly];
     }
     
-    
 }
+
+
+//// Option Buffer by buffer
+//else if (option==2) {
+//
+//    // Play buffer by buffer starting at read pos  read a portion and play the rest
+//    const AVAudioFrameCount kBufferFrameCapacity = 8 * 1024L;  // 8k .1857 seconds at 44100
+//    AVAudioPCMBuffer *readBuffer =
+//    [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat frameCapacity: kBufferFrameCapacity];
+//
+//    audioFile.framePosition = readPosition;
+//
+//    //    NSLog(@"FileLength: %lld  %.3f seconds ",
+//    //          (long long)fileLength, fileLength / seekingAudioFile.fileFormat.sampleRate);
+//
+//    NSError *error = nil;
+//
+//    if ([audioFile readIntoBuffer: readBuffer error: &error]) {
+//        [playerNode scheduleBuffer:readBuffer
+//                            atTime:delayAudioTime
+//                           options:AVAudioPlayerNodeBufferInterrupts
+//                 completionHandler:^{
+//                     NSError *error;
+//                     AVAudioPCMBuffer *buffer =
+//                     [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat
+//                                                   frameCapacity:(AVAudioFrameCount)audioFile.length];
+//
+//                     if ([audioFile readIntoBuffer: buffer error: &error]) {
+//                         [playerNode scheduleBuffer:buffer
+//                                             atTime:nil
+//                                            options:AVAudioPlayerNodeBufferInterrupts
+//                                  completionHandler:finalPlayerCompletion
+//                          ];
+//
+//                     } else {
+//                         NSLog(@"failed to read audio file: %@", error);
+//                     }
+//                 }];
+//
+//    } else {
+//        NSLog(@"failed to read audio file: %@", [error description]);
+//    }
+//}
+//// Option Schedule segment
+//else if (option==3) {
+//
+//    // Simply schedule some sound to play while seeking
+//    // Need a way to continue playing to end
+//    AVAudioFramePosition fileLength = audioFile.length;
+//    AVAudioFrameCount framesToread = 22050; // half second at 44100
+//    if ((readPosition + framesToread) > fileLength) {
+//        framesToread = (AVAudioFrameCount) (fileLength - readPosition);
+//    }
+//
+//    // TODO: needs to read the rest
+//    [playerNode scheduleSegment:playerNode.audioFile
+//                  startingFrame:readPosition
+//                     frameCount:framesToread
+//                         atTime:delayAudioTime
+//              completionHandler:^{
+//                  NSLog(@"seeking played segment");
+//                  // Now play here until end
+//
+//              }];
+//}
+//
+//// NO OPtion normal play all
+//else {
+//    AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
+//    if (audioBuffer == nil)
+//    {
+//        //continue; // not interested
+//        return;
+//    }
+//    AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
+//    [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:finalPlayerCompletion];
+//}
+
+
+#pragma mark - engine commands
 
 //TODO: added this
 -(BOOL)playAllActivePlayerNodes {
@@ -1293,8 +1134,6 @@
 }
 
 
-#pragma mark -
-
 /*
  playAllAndRecordIt - will install recordng tap on MIXER
  
@@ -1363,50 +1202,242 @@
     
 }
 
+
+#pragma mark -
+
+//===========================================================================
+//  NODE ITERATION AND PLAYER SCHEDULE playAlll
+//===========================================================================
+
 /*
- prepareToRecord
+ uses playAlllScheduleBufferForPlayerNode
+ 
  
  */
 
--(void)prepareToRecord {
+-(void)playAlllScheduleBufferForPlayerNode:(id)playerNodeInfo
+                               audioBuffer:(AVAudioPCMBuffer *)audioBuffer
+                                   atIndex:(NSUInteger)index recording:(BOOL)recording
+{
+    // PLAYNODE Config
+    BOOL loops = NO;
+    NSTimeInterval secondsDelay = 0;
+    AVAudioTime *delayAudioTime = nil;
+    float volume = 0.25;
+    id obj = nil;
+    if (recording  && index == 0) {
+        // override loops on recording and track 0
+        loops = NO;
+    } else {
+        obj = playerNodeInfo[@"loops"];
+        if (obj)
+            loops = [obj boolValue];
+    }
+    obj = playerNodeInfo[@"volumevalue"];
+    if (obj)
+        volume = [obj floatValue];
+    obj = playerNodeInfo[@"delay"];
+    if (obj) {
+        secondsDelay = [obj doubleValue];
+        // Create AVAudioTime to pass to atTime
+        AVAudioFormat *format = [audioBuffer format];
+        delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * format.sampleRate) atRate:format.sampleRate];
+    }
     
-    // first recorder playernode now
+    NSLog(@"%s loops %@ secondsDelay %.3f",__func__,@(loops),secondsDelay);
+    
+    // RECONCILE Audiofile and Audio Buffer
+    
+    AVAudioFile *audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
+    
+    JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
+    [_activePlayersIndex addIndex:index];
+    playerNode.audioFile = audioFile;
+    
+    // Build the completion handler
+    
+    void (^playerCompletion)(void) = ^{
+        NSLog(@"Audio Completed for playerAtIndex %ld",index);
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+                [_engineDelegate completedPlayingAtPlayerIndex:index];
+            
+        });
+    };
+    
+    void (^playerCompletionMixRecording)(void) = ^{
+        NSLog(@"Audio Completed for playerAtIndex %ld",index);
+        AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
+        [mainMixer removeTapOnBus:0];
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(mixRecordingCompleted)])
+                [_engineDelegate mixRecordingCompleted];
+        });
+    };
 
+    
+    // SCHEDULE THE BUFFER OR FILE
+    
+    NSUInteger option = 0;
+    if (option == 0) {
+        // schedule the file
+        // doesnt loop
+        if (recording  && index == 0)
+            [playerNode scheduleFile:audioFile atTime:delayAudioTime  completionHandler:playerCompletionMixRecording];
+        else
+            [playerNode scheduleFile:audioFile atTime:delayAudioTime  completionHandler:playerCompletion];
+        
+    } else if (option == 1) {
+        
+        // SCHEDULE THE BUFFER
+        
+        AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
+        if (recording  && index == 0)
+            [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletionMixRecording];
+        else
+            [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletion];
+    }
+}
+
+/*
+ Iteration method playAlll
+ */
+
+-(void)playAlll:(BOOL)recording {
+    
+    // recording - whether recording mix
+    
+    NSUInteger index = 0;
+    
+    for (NSDictionary *playerNodeInfo in _playerNodeList) {
+        
+        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+            
+            AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
+            if (audioBuffer == nil)
+                continue; // not interested
+            
+            // OTHERWISE we are ready to go with a buffer which is what we are scheduling
+            // including obtaining delay time information
+            
+            [self playAlllScheduleBufferForPlayerNode:playerNodeInfo audioBuffer:audioBuffer atIndex:index recording:recording];
+        }
+        
+        index++;
+    }
+    
+    // do not add mixer vab if recording
+    
+    if (recording == NO  &&  _scrubberTrackIds[@"mixer"]) {
+        
+        // install TAP on mixer to provide visualAudio
+        [self tapTheMixerForScrubberOnly];
+    }
+    
+    self.mixerVolume = 1.0;
+    
+    for (JWPlayerNode* pn in self.activePlayerNodes)
+    {
+        [pn play];
+        NSLog(@"%s audioPlayerNode PLAY",__func__);
+    }
+}
+
+
+
+
+
+
+
+//=======================
+//  R E C O R D I N G
+//=======================
+#pragma mark - RECORDING
+
+// helper
+-(NSUInteger)numberOfPlayerNodes {
+    
+    NSUInteger result = 0;
+    NSInteger index = 0;
+    NSUInteger nNodes = [self.playerNodeList count];
+    for (index = 0; index < nNodes; index++) {
+        if (JWMixerNodeTypePlayer == [self typeForNodeAtIndex:index] ){
+            result++;
+            break;
+        }
+    }
+    
+    return result;
+}
+
+// helper
+-(NSInteger)firstAvailableRecorderIndex {
+    
+    NSUInteger result = NSNotFound;
     NSInteger index = 0;
     NSUInteger nNodes = [self.playerNodeList count];
     for (index = 0; index < nNodes; index++) {
         if (JWMixerNodeTypePlayerRecorder == [self typeForNodeAtIndex:index] ) {
-            
-            //TODO: add test for Filr URL (some audio player recorders have audio)
             if ([self playerNodeFileURLAtIndex:index] == nil) {
-                // found
+                result = index; // found
                 break;
             }
         }
     }
-    //[self prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:index];
-    [self recordWithPlayerRecorderAtNodeIndex:index];
+    
+    return result;
 }
 
-
--(JWAudioRecorderController*)recorderForPlayerNodeAtIndex:(NSUInteger)pindex {
-
-    JWAudioRecorderController* result;
-    if (pindex < [self.playerNodeList count]) {
-        NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:pindex];
-        
-        // PLAYER RECORDER
-        if (nodeType == JWMixerNodeTypePlayerRecorder) {
-            id rc = playerNodeInfo[@"recorderController"];
-            if (rc) {
-                result = (JWAudioRecorderController*)rc;
-            }
-        }
+-(BOOL)prepareToRecordFirstAvailable {
+    
+    BOOL result = NO;
+    NSInteger index = [self firstAvailableRecorderIndex];
+    if (index != NSNotFound) {
+        [self recordWithPlayerRecorderAtNodeIndex:index];
+        result = YES;
     }
     return result;
 }
 
+-(void)prepareToRecord {
+    
+    if ([self numberOfPlayerNodes] == 0 && [self.playerNodeList count] == 1){
+        
+        NSInteger index = [self firstAvailableRecorderIndex];
+        if (index != NSNotFound)
+            [self recordOnlyWithPlayerRecorderAtNodeIndex:index];
+        
+    } else {
+        
+        // first recorder playernode now
+        
+        if ([self prepareToRecordFirstAvailable]) {
+            NSLog(@"%s RECORDING AT FIRST AVAILABLE RECORDER",__func__);
+        } else {
+            NSLog(@"%s NO AVAILABLE RECORDERS",__func__);
+        }
+    }
+}
+
+-(JWAudioRecorderController*)recorderForPlayerNodeAtIndex:(NSUInteger)pindex {
+
+    JWAudioRecorderController* result;
+    
+    if (pindex < [self.playerNodeList count]) {
+        NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
+        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:pindex];
+        
+        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+            id rc = playerNodeInfo[@"recorderController"];
+            if (rc)
+                result = (JWAudioRecorderController*)rc;
+        }
+    }
+    
+    return result;
+}
 
 
 // NO Playback simply start recording
@@ -1424,17 +1455,13 @@
     NSURL* result;
     
     _isRecordingOnly = YES;
-    
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
-
     rc.metering = NO;
     [rc record];
-
     result = rc.micOutputFileURL;
 
     return result;
 }
-
 
 - (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex {
 
@@ -1446,11 +1473,13 @@
 
 - (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
     
+    NSLog(@"%s %ld",__func__,prIndex);
+    
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     
     [rc stopRecording];
     
-    // READ File into buffer
+    // READ Recorded File into buffer
     NSError* error = nil;
     AVAudioFile *micOutputFile =
     [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
@@ -1470,29 +1499,43 @@
     
     [_activeRecorderIndex removeIndex:prIndex];
 
-//            if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
-//                [_engineDelegate userAudioObtained];
-
-    
     dispatch_sync(dispatch_get_main_queue(), ^() {
-        
-        if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
-            [_engineDelegate userAudioObtained];
-        
         if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
             [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+        if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
+            [_engineDelegate userAudioObtained];
+        if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+            [_engineDelegate completedPlayingAtPlayerIndex:0];  // Notify end, and to rewind
     });
     
 }
 
 
 
+//===========================================================================
+//  NODE ITERATION AND PLAYER SCHEDULE playAllRecordingFromBeginnigAtIndex
+//===========================================================================
+
+/*
+ uses playAllRecordingScheduleBufferForPlayerNode
+
+ Play all audio player nodes from beginning and record
+ 
+ // play all with fade in from primary
+ //TODO: get this to work
+ //In order to play all and record with a fade, i need to get the current position the
+ //audio is at and i need to check if any crops have been done.  This is so if they are recording
+ //from the middle of audio it can start there, or if they are recording from the beggining
+ //of a clipped track, i can use seconds before the clips to fade in.
+
+ */
+
 /*
  prepareToRecordFromBeginningAtPlayerRecorderNodeIndex
- 
  record from beginning with fade in
- 
  */
+
+// convenience
 
 -(void)prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:(NSUInteger)index {
     
@@ -1500,194 +1543,184 @@
     [self playAllRecordingFromBeginnigAtIndex:index fadeIn:YES];
 }
 
-// play all with fade in from primary
-//TODO: get this to work
-//In order to play all and record with a fade, i need to get the current position the
-//audio is at and i need to check if any crops have been done.  This is so if they are recording
-//from the middle of audio it can start there, or if they are recording from the beggining
-//of a clipped track, i can use seconds before the clips to fade in.
+-(void)playAllRecordingScheduleBufferForPlayerNode:(id)playerNodeInfo audioBuffer:(AVAudioPCMBuffer *)audioBuffer
+                                           atIndex:(NSUInteger)index
+                                   atRecorderIndex:(NSUInteger)prIndex
+                                              fade:(BOOL)fade
+{
+    // PLAYNODE Config
+    BOOL loops = NO;
+    NSTimeInterval secondsDelay = 0;
+    AVAudioTime *delayAudioTime = nil;
+    float volume = 0.25;
+    id obj = nil;
+    if (index == 0) {
+        // override loops on recording and track 0
+        loops = NO;
+    } else {
+        obj = playerNodeInfo[@"loops"];
+        if (obj)
+            loops = [obj boolValue];
+    }
+    obj = playerNodeInfo[@"volumevalue"];
+    if (obj)
+        volume = [obj floatValue];
+    obj = playerNodeInfo[@"delay"];
+    if (obj) {
+        secondsDelay = [obj doubleValue];
+        // Create AVAudioTime to pass to atTime
+        AVAudioFormat *format = [audioBuffer format];
+        delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * format.sampleRate) atRate:format.sampleRate];
+    }
+    
+    NSLog(@"%s loops %@ secondsDelay %.3f",__func__,@(loops),secondsDelay);
+    
+    // RECONCILE Audiofile and Audio Buffer
+    
+    JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
+    [_activePlayersIndex addIndex:index];
+    
+    playerNode.audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
+    
+    
+    JWAudioRecorderController *rc = [self recorderForPlayerNodeAtIndex:prIndex];
+    
+    // Build the completion handlers
+    
+    void (^playerCompletion)(void) = ^{
+        NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+                [_engineDelegate completedPlayingAtPlayerIndex:index];
+        });
+    };
+    
+    void (^playerCompletionFiveSecond)(void) = ^{
+        // Turn ON microphone
+        [rc record];
+        NSLog(@"Five Second Audio Completed");
+        // Notify delegate
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
+                [_engineDelegate fiveSecondBufferCompletion];
+        });
+    };
+
+    void (^playerCompletionRecording)(void) = ^{
+        NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+        // Turn OFF microphone
+        [rc stopRecording];
+        // READ File into buffer
+        NSError* error = nil;
+        AVAudioFile *micOutputFile =
+        [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
+        AVAudioPCMBuffer *micOutputBuffer =
+        [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
+                                      frameCapacity:(UInt32)micOutputFile.length];
+        NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
+                 @"error reading into new buffer, %@",[error localizedDescription]);
+        
+        // USER AUDIO obtained read into a buffer teedUP and ready to play
+        NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
+        playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
+        playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
+        playerNodeInfo [@"audiofile"] = micOutputFile;
+
+        [_activeRecorderIndex removeIndex:prIndex];
+
+        self.needMakeConnections = YES;  // need to make engine connections as this has now become a player
+        
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
+                [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+            if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
+                [_engineDelegate userAudioObtained];
+        });
+    };
+    
+    
+    if (fade && index == 0) {
+        
+        NSLog(@"%s _fiveSecondBuffer %u audioBuffer %u",__func__,_fiveSecondBuffer.frameLength,audioBuffer.frameLength );
+        // use the volume, ignore delay and loops for the fade scheduling and loop options
+        
+        self.mixerVolume = 0.0;
+        
+        //only schedule if framelength of five second buffer is > 0.0
+        if (_fiveSecondBuffer.frameLength > 0.0) {
+            
+            // SCHEDULE THE BUFFER
+            // Schedule fade in buffer playing buffer immediatelyfollowing
+            
+            [playerNode scheduleBuffer:_fiveSecondBuffer atTime:nil options:0 completionHandler:playerCompletionFiveSecond];
+            
+        } else {
+            // Turn ON microphone
+            [rc record];
+        }
+        
+        // SCHEDULE THE BUFFER
+        // Schedule full playing buffer
+        
+        [playerNode scheduleBuffer:audioBuffer atTime:nil options:0 completionHandler:playerCompletionRecording];
+        
+        // SCHEDULED back to back buffers FADE and PLAY
+    }
+    
+    // normal play all
+    
+    else {
+        
+        BOOL isRecording = NO;
+        if (fade == NO && index == 0) {
+            // Turn ON microphone
+            [rc record];
+            
+            isRecording = YES;
+        }
+        
+        // use all the volume, delay and loops options
+        
+        AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
+
+        // SCHEDULE THE BUFFER
+
+        if (isRecording)
+            [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletionRecording];
+        else
+            [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletion];
+
+    }
+    
+}
+
+/*
+ Iteration method playAllRecordingFromBeginnig
+ */
 
 -(void)playAllRecordingFromBeginnigAtIndex:(NSUInteger)prIndex fadeIn:(BOOL)fade{
     
     NSUInteger index = 0;  // index to playerNodeList
-    JWAudioRecorderController *rc = [self recorderForPlayerNodeAtIndex:prIndex];
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
         if (index == prIndex)
-        {
             continue;  // skip the one recording
-        }
 
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
-        if (nodeType == JWMixerNodeTypePlayer ||
-            nodeType == JWMixerNodeTypePlayerRecorder ||
-            nodeType == JWMixerNodeTypeMixerPlayer) {
+        
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
             if (audioBuffer == nil)
-            {
                 continue; // not interested
-            }
+
             // OTHERWISE we are ready to go with a buffer which is what we are scheduling
             // including obtaining delay time information
             
-            // PLAYNODE Config
-            BOOL loops = NO;
-            NSTimeInterval secondsDelay = 0;
-            AVAudioTime *delayAudioTime = nil;
-            float volume = 0.25;
-            id obj = nil;
-            if (index == 0) {
-                // override loops on recording and track 0
-                loops = NO;
-            } else {
-                obj = playerNodeInfo[@"loops"];
-                if (obj) {
-                    loops = [obj boolValue];
-                }
-            }
-            obj = playerNodeInfo[@"volumevalue"];
-            if (obj) {
-                volume = [obj floatValue];
-            }
-            obj = playerNodeInfo[@"delay"];
-            if (obj) {
-                secondsDelay = [obj doubleValue];
-                // Create AVAudioTime to pass to atTime
-                AVAudioFormat *format = [audioBuffer format];
-                delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * format.sampleRate) atRate:format.sampleRate];
-            }
-            
-            NSLog(@"%s loops %@ secondsDelay %.3f",__func__,@(loops),secondsDelay);
-
-            // RECONCILE Audiofile and Audio Buffer
-
-            JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
-            [_activePlayersIndex addIndex:index];
-
-            playerNode.audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
-
-            
-            // SCHEDULE THE BUFFER
-            
-            if (fade && index == 0) {
-                
-                NSLog(@"%s _fiveSecondBuffer %u audioBuffer %u",__func__,_fiveSecondBuffer.frameLength,audioBuffer.frameLength );
-                // use the volume, ignore delay and loops for the fade scheduling and loop options
-                
-                self.mixerVolume = 0.0;
-                
-                //only schedule if framelength of five second buffer is > 0.0
-                if (_fiveSecondBuffer.frameLength > 0.0) {
-                    
-                    // Schedule fade in buffer playing buffer immediatelyfollowing
-                    [playerNode scheduleBuffer:_fiveSecondBuffer atTime:nil options:0 completionHandler:^() {
-                        // Turn ON microphone
-                        [rc record];
-                        
-                        NSLog(@"Five Second Audio Completed");
-                        // Notify delegate
-                        dispatch_sync(dispatch_get_main_queue(), ^() {
-                            if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
-                                [_engineDelegate fiveSecondBufferCompletion];
-                        });
-                    }];
-
-                }
-                
-                // Schedule full playing buffer
-                
-                [playerNode scheduleBuffer:audioBuffer atTime:nil options:0 completionHandler:^() {
-
-                    NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
-                    // Turn OFF microphone
-                    [rc stopRecording];
-                    
-                    // READ File into buffer
-                    NSError* error = nil;
-                    AVAudioFile *micOutputFile =
-                    [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
-                    AVAudioPCMBuffer *micOutputBuffer =
-                    [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
-                                                  frameCapacity:(UInt32)micOutputFile.length];
-                    NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
-                             @"error reading into new buffer, %@",[error localizedDescription]);
-                    
-                    // USER AUDIO obtained read into a buffer teedUP and ready to play
-                    NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
-                    playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
-                    playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
-                    playerNodeInfo [@"audiofile"] = micOutputFile;
-                    self.needMakeConnections = YES;  // need to make engine connections as this has now become a player
-
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
-                            [_engineDelegate userAudioObtained];
-                        // MAY Confuse to act on both completions
-//                        if ([_clipEngineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-//                            [_clipEngineDelegate completedPlayingAtPlayerIndex:index];
-                    });
-                }];
-                
-                // SCHEDULED back to back buffers FADE and PLAY
-            }
-            
-            // normal play all
-            
-            else {
-
-                BOOL isRecording = NO;
-                if (fade == NO && index == 0) {
-                    // Turn ON microphone
-                    [rc record];
-                    isRecording = YES;
-                }
-
-                // use all the volume, delay and loops options
-
-                AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
-                
-                [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:^() {
-
-                    NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
-                    if (isRecording) {
-                        // Turn OFF microphone
-                        [rc stopRecording];
-                        
-                        // READ File into buffer
-                        NSError* error = nil;
-                        AVAudioFile *micOutputFile =
-                        [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
-                        AVAudioPCMBuffer *micOutputBuffer =
-                        [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
-                                                      frameCapacity:(UInt32)micOutputFile.length];
-                        NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
-                                 @"error reading into new buffer, %@", [error localizedDescription]);
-                        
-                        // USER AUDIO obtained read into a buffer teedUP and ready to play
-                        NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
-                        playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
-                        playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
-                        playerNodeInfo [@"audiofile"] = micOutputFile;
-                        self.needMakeConnections = YES;
-                        
-                        dispatch_sync(dispatch_get_main_queue(), ^() {
-                            if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
-                                [_engineDelegate userAudioObtained];
-                        });
-                        
-                    } else {
-                        
-                        // Notify delegate
-                        dispatch_sync(dispatch_get_main_queue(), ^() {
-                            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-                                [_engineDelegate completedPlayingAtPlayerIndex:index];
-                        });
-                    }
-                }];
-            }
-            
+            [self playAllRecordingScheduleBufferForPlayerNode:playerNodeInfo audioBuffer:audioBuffer
+                                                      atIndex:index atRecorderIndex:prIndex
+                                                         fade:fade];
             
         } // player playerrecorder
         
@@ -1711,123 +1744,146 @@
 }
 
 
+
+//===========================================================================
+//  NODE ITERATION AND PLAYER SCHEDULE recordWithPlayerRecorderAtNodeIndex
+//===========================================================================
+
 /*
- recordAtPlayerRecorderNodeIndex
+ uses recordWithScheduleBufferForPlayerNode
+ 
  
  similar to playALL but skips the JWMixerNodeTypePlayerRecorder that is recording
  from beginnig
+ 
+*/
+-(void)recordWithScheduleBufferForPlayerNode:(id)playerNodeInfo audioBuffer:(AVAudioPCMBuffer *)audioBuffer
+                                     atIndex:(NSUInteger)index
+                             atRecorderIndex:(NSUInteger)prIndex
+{
+    // PLAYNODE Config
+    BOOL loops = NO;
+    NSTimeInterval secondsDelay = 0;
+    AVAudioTime *delayAudioTime = nil;
+    float volume = 0.25;
+    
+    id obj = nil;
+    obj = playerNodeInfo[@"loops"];
+    if (obj) {
+        loops = [obj boolValue];
+    }
+    obj = playerNodeInfo[@"volumevalue"];
+    if (obj) {
+        volume = [obj floatValue];
+    }
+    obj = playerNodeInfo[@"delay"];
+    if (obj) {
+        secondsDelay = [obj doubleValue];
+        // Create AVAudioTime to pass to atTime
+        AVAudioFormat *format = [audioBuffer format];
+        delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * format.sampleRate) atRate:format.sampleRate];
+    }
+    
+    NSLog(@"%s loops %@ secondsDelay %.3f",__func__,@(loops),secondsDelay);
+    
+    // RECONCILE Audiofile
+    
+    JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
+    [_activePlayersIndex addIndex:index];
+    
+    playerNode.audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
+    
+    AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
+
+    
+    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    
+    // Build the completion handlers
+    void (^playerCompletion)(void) = ^{
+        NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+                [_engineDelegate completedPlayingAtPlayerIndex:index];
+        });
+    };
+
+    void (^playerCompletionRecording)(void) = ^{
+        NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+        
+        [rc stopRecording];
+        
+        // READ File into buffer
+        NSError* error = nil;
+        AVAudioFile *micOutputFile =
+        [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
+        AVAudioPCMBuffer *micOutputBuffer =
+        [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
+                                      frameCapacity:(UInt32)micOutputFile.length];
+        NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
+                 @"error reading into new buffer, %@", [error localizedDescription]);
+        
+        // USER AUDIO obtained read into a buffer teedUP and ready to play
+        NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
+        playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
+        playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
+        playerNodeInfo [@"audiofile"] = micOutputFile;
+        
+        [_activeRecorderIndex removeIndex:prIndex];
+        
+        self.needMakeConnections = YES;
+        
+        dispatch_sync(dispatch_get_main_queue(), ^() {
+            if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
+                [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+            if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
+                [_engineDelegate userAudioObtained];
+        });
+    };
+    
+    // SCHEDULE THE BUFFER
+
+    if (index == 0) // primary player
+        [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletionRecording];
+    else
+        [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:playerCompletion];
+
+}
+
+/*
+ Iteration method recordWithPlayerRecorder
  */
 
 - (void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
     
-    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     NSUInteger index = 0;
+    
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
         if (index == prIndex)
-        {
             continue;  // skip the one recording
-        }
         
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+        
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder ) {
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
             if (audioBuffer == nil)
-            {
                 continue; // not interested
-            }
+
             // OTHERWISE we are ready to go with a buffer which is what we are scheduling
             // including obtaining delay time information
             
-            // PLAYNODE Config
-            BOOL loops = NO;
-            NSTimeInterval secondsDelay = 0;
-            AVAudioTime *delayAudioTime = nil;
-            float volume = 0.25;
-            
-            id obj = nil;
-            obj = playerNodeInfo[@"loops"];
-            if (obj) {
-                loops = [obj boolValue];
-            }
-            obj = playerNodeInfo[@"volumevalue"];
-            if (obj) {
-                volume = [obj floatValue];
-            }
-            obj = playerNodeInfo[@"delay"];
-            if (obj) {
-                secondsDelay = [obj doubleValue];
-                // Create AVAudioTime to pass to atTime
-                AVAudioFormat *format = [audioBuffer format];
-                delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * format.sampleRate) atRate:format.sampleRate];
-            }
-            
-            NSLog(@"%s loops %@ secondsDelay %.3f",__func__,@(loops),secondsDelay);
-            
-            // RECONCILE Audiofile and Audio Buffer
-
-            JWPlayerNode* playerNode = [self playerForNodeAtIndex:index];
-            [_activePlayersIndex addIndex:index];
-            
-            playerNode.audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
-
-
-            // SCHEDULE THE BUFFER
-
-            AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
-            
-            [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:^() {
-
-                NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
-                if (index == 0) { // primary player
-                    [rc stopRecording];
-                    
-                    // READ File into buffer
-                    NSError* error = nil;
-                    AVAudioFile *micOutputFile =
-                    [[AVAudioFile alloc] initForReading:[rc micOutputFileURL] error:&error];
-                    AVAudioPCMBuffer *micOutputBuffer =
-                    [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
-                                                  frameCapacity:(UInt32)micOutputFile.length];
-                    NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
-                             @"error reading into new buffer, %@", [error localizedDescription]);
-                    
-                    // USER AUDIO obtained read into a buffer teedUP and ready to play
-                    NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
-                    playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
-                    playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
-                    playerNodeInfo [@"audiofile"] = micOutputFile;
-                    
-                    [_activeRecorderIndex removeIndex:prIndex];
-                    
-                    self.needMakeConnections = YES;
-                    
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
-                            [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
-
-                        if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
-                            [_engineDelegate userAudioObtained];
-                    });
-                    
-                } else {
-                    // Notify delegate
-                    dispatch_sync(dispatch_get_main_queue(), ^() {
-                        if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-                            [_engineDelegate completedPlayingAtPlayerIndex:index];
-                    });
-                }
-            }];
+            [self recordWithScheduleBufferForPlayerNode:playerNodeInfo audioBuffer:audioBuffer atIndex:index atRecorderIndex:prIndex];
         }
         
         index++;
     }
     
     // do not add mixer vab if recording
-    
     // RECORD AND PLAY
     
+    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+
     [rc record];
     
     for (JWPlayerNode* pn in self.activePlayerNodes)
@@ -1836,6 +1892,29 @@
         NSLog(@"%s audioPlayerNode PLAY",__func__);
     }
     
+}
+
+
+#pragma mark -
+
+-(void)tapTheMixerForScrubberOnly {
+    
+    // install TAP on mixer to provide visualAudio
+    AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
+    
+    NSLog(@"%s Installed visual Audio mixer tap",__func__);
+    [mainMixer installTapOnBus:0 bufferSize:1024 format:[mainMixer outputFormatForBus:0]
+                         block:^(AVAudioPCMBuffer* buffer, AVAudioTime* when) {
+                             // Write buffer to final recording
+                             // Get it out of here
+                             if (_suspendPlayAlll == NO) {
+                                 dispatch_async(_bufferReceivedQueue, ^{
+                                     dispatch_sync(dispatch_get_main_queue(), ^() {
+                                         [_scrubberBufferController bufferReceivedForTrackId:_scrubberTrackIds[@"mixer"] buffer:buffer atReadPosition:(AVAudioFramePosition)[when sampleTime]];
+                                     });
+                                 }); //_bufferReceivedQueue
+                             }
+                         }];
 }
 
 
@@ -1856,7 +1935,9 @@
  */
 
 -(void)prepareToPlayMix {
+    
 //    [self makeEngineConnections];
+    
     for (JWPlayerNode* pn in self.activePlayerNodes)
     {
         [pn stop];
@@ -1986,32 +2067,6 @@
 // sampleTime / sampleRate
 // progress of playback
 
-//-(void)changeProgressOfSeekingAudioFile:(CGFloat)progress {
-//    //    AVAudioFramePosition fileLength = seekingAudioFile.length;
-//    //    AVAudioFramePosition readPosition = progress * fileLength;
-//    //    if (_micPlayer.playing) {
-//    //        [self playSeekingAudioFileAtFramPosition:readPosition];
-//}
-
-
--(CGFloat)progressOfSeekingAudioFile {
-    return [self.playerNode1 progressOfAudioFile];
-}
--(CGFloat)durationInSecondsOfSeekingAudioFile {
-    return [self.playerNode1 durationInSecondsOfAudioFile];
-}
--(CGFloat)remainingDurationInSecondsOfSeekingAudioFile {
-    return [self.playerNode1 remainingDurationInSecondsOfAudioFile];
-}
--(CGFloat)currentPositionInSecondsOfSeekingAudioFile {
-    return [self.playerNode1 currentPositionInSecondsOfAudioFile];
-}
--(NSString*)processingFormatStr{
-    return nil;
-    //    return [self.playerNode1 processingFormatStr];
-}
-
-
 -(CGFloat)progressOfAudioFileForPlayerAtIndex:(NSUInteger)index {
     
     //JWPlayerNode *pn = [self playerForNodeAtIndex:index];
@@ -2036,29 +2091,6 @@
     return nil;
 }
 
--(CGFloat)progressOfAudioFileForPlayerNamed:(NSString*)name {
-    JWPlayerNode *pn = [self playerForNodeNamed:name];
-    return [pn progressOfAudioFile];
-}
--(CGFloat)durationInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
-    JWPlayerNode *pn = [self playerForNodeNamed:name];
-    return [pn durationInSecondsOfAudioFile];
-}
--(CGFloat)remainingDurationInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
-    JWPlayerNode *pn = [self playerForNodeNamed:name];
-    return [pn remainingDurationInSecondsOfAudioFile];
-}
--(CGFloat)currentPositionInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
-    JWPlayerNode *pn = [self playerForNodeNamed:name];
-    return [pn currentPositionInSecondsOfAudioFile];
-}
--(NSString*)processingFormatStrForPlayerNamed:(NSString*)name {
-//    JWPlayerNode *pn = [self playerForNodeNamed:name];
-    //    return [pn processingFormatStr];
-    return nil;
-}
-
-
 #pragma mark - Scrubber support
 
 // This allows the scrubber to move the playhead on the player
@@ -2067,7 +2099,20 @@
     return [[_playerNode1 lastRenderTime] sampleTime];
 }
 
-#pragma mark - support the scrubber older model
+-(void)setProgressSeekingAudioFile:(CGFloat)progressSeekingAudioFile {
+    _progressSeekingAudioFile = progressSeekingAudioFile;
+}
+
+
+@end
+
+
+//===========================================================================
+//
+//
+//===========================================================================
+
+//#pragma mark - support the scrubber older model
 // OLD modelgeneric
 //-(NSString*)processingFormatStrOfAudioFile:(AVAudioFile*)audioFile {
 //    NSString *result = nil;
@@ -2086,20 +2131,55 @@
 //}
 // other
 
--(void)setProgressSeekingAudioFile:(CGFloat)progressSeekingAudioFile {
-    _progressSeekingAudioFile = progressSeekingAudioFile;
-}
+
+//-(void)changeProgressOfSeekingAudioFile:(CGFloat)progress {
+//    //    AVAudioFramePosition fileLength = seekingAudioFile.length;
+//    //    AVAudioFramePosition readPosition = progress * fileLength;
+//    //    if (_micPlayer.playing) {
+//    //        [self playSeekingAudioFileAtFramPosition:readPosition];
+//}
 
 
-@end
-
-
-//===========================================================================
+//-(CGFloat)progressOfSeekingAudioFile {
+//    return [self.playerNode1 progressOfAudioFile];
+//}
+//-(CGFloat)durationInSecondsOfSeekingAudioFile {
+//    return [self.playerNode1 durationInSecondsOfAudioFile];
+//}
+//-(CGFloat)remainingDurationInSecondsOfSeekingAudioFile {
+//    return [self.playerNode1 remainingDurationInSecondsOfAudioFile];
+//}
+//-(CGFloat)currentPositionInSecondsOfSeekingAudioFile {
+//    return [self.playerNode1 currentPositionInSecondsOfAudioFile];
+//}
+//-(NSString*)processingFormatStr{
+//    return nil;
+//    //    return [self.playerNode1 processingFormatStr];
+//}
 //
+
 //
-//===========================================================================
-
-
+//-(CGFloat)progressOfAudioFileForPlayerNamed:(NSString*)name {
+//    JWPlayerNode *pn = [self playerForNodeNamed:name];
+//    return [pn progressOfAudioFile];
+//}
+//-(CGFloat)durationInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
+//    JWPlayerNode *pn = [self playerForNodeNamed:name];
+//    return [pn durationInSecondsOfAudioFile];
+//}
+//-(CGFloat)remainingDurationInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
+//    JWPlayerNode *pn = [self playerForNodeNamed:name];
+//    return [pn remainingDurationInSecondsOfAudioFile];
+//}
+//-(CGFloat)currentPositionInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
+//    JWPlayerNode *pn = [self playerForNodeNamed:name];
+//    return [pn currentPositionInSecondsOfAudioFile];
+//}
+//-(NSString*)processingFormatStrForPlayerNamed:(NSString*)name {
+////    JWPlayerNode *pn = [self playerForNodeNamed:name];
+//    //    return [pn processingFormatStr];
+//    return nil;
+//}
 
 //#pragma mark - file methods
 //

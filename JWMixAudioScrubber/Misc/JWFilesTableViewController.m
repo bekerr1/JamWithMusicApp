@@ -28,8 +28,11 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    UIView *backgroundView = [UIView new];
+    backgroundView.backgroundColor = [UIColor blackColor];
+    self.tableView.backgroundView = backgroundView;
     [self initAVAudioSession];
-     self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
 -(void)viewWillAppear:(BOOL)animated {

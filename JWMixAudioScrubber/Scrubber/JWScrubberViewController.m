@@ -23,7 +23,6 @@ const NSString *JWColorScrubberTopAvg = @"TopAvg";
 const NSString *JWColorScrubberBottomAvg = @"BottomAvg";
 const NSString *JWColorScrubberTopPeakNoAvg = @"TopPeakNoAvg";
 const NSString *JWColorScrubberBottomPeakNoAvg = @"BottomPeakNoAvg";
-
 const NSString *JWColorBackgroundHueColor = @"HueColor";
 const NSString *JWColorBackgroundHueGradientColor1 = @"HueGradientColor1";
 const NSString *JWColorBackgroundHueGradientColor2 = @"HueGradientColor2";
@@ -98,10 +97,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    //_playerProgressFormatString = @"%.0f";
-    _playerProgressFormatString = @"%00.2f";
+    _playerProgressFormatString = @"%.0f";
+    //_playerProgressFormatString = @"%00.2f";
 
-    _uiPointsPerSecondLength = 102.0; // 80 width per second
+    _uiPointsPerSecondLength = 84.0; // 80 width per second
+//    _uiPointsPerSecondLength = 102.0; // 80 width per second
 //    _uiPointsPerSecondLength = 320.0; // 80 width per second
 
     _vTrackLength = 0.0;
@@ -614,7 +614,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat pos = 0.00; //offset.x + self.scrollView.contentInset.left;
     self.playHeadValueStr = @"";
     CGFloat endPosition = [self largestTrackEndPosition];
-    self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+    self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
     [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
 }
 
@@ -622,7 +622,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat endPosition = [self largestTrackEndPosition];
     CGFloat pos = endPosition;
     self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,pos/_uiPointsPerSecondLength];
-    self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+    self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
     [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
 }
 
@@ -637,7 +637,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         CGFloat endPosition = [self largestTrackEndPosition];
         if (pos < endPosition) {
             self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,pos/_uiPointsPerSecondLength];
-            self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+            self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
             [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
         }
     }
@@ -658,9 +658,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //        if  (cp < 1.00)
 //            self.playHeadValueStr = @"";
 //        else
-        self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
-        self.remainingValueStr = [NSString stringWithFormat:@"-%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+//        self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
+        self.playHeadValueStr = [NSString stringWithFormat:@"%.2f",cp];
+
+        self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
         [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+        self.scrubberProgressView.progress = pos/endPosition;
     }
 }
 
@@ -2260,113 +2263,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 
-#pragma mark - modify track trackdetect
-
--(void)modifyTrack:(NSUInteger)track withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-            view.alpha = alpha;
-        }
-    }
-}
-
--(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    NSLog(@"%s track %ld",__func__,track);
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-                        recording:[(JWVisualAudioBufferView*)view recording]];
-            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-            [view setNeedsDisplay];
-        }
-    }
-    [self.scrollView setNeedsLayout];
-}
-
--(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    NSLog(@"%s track %ld",__func__,track);
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-                        recording:[(JWVisualAudioBufferView*)view recording]];
-            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-            view.alpha = alpha;
-            [view setNeedsDisplay];
-        }
-    }
-    [self.scrollView setNeedsLayout];
-}
--(void)modifyTrack:(NSUInteger)track layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
-            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
-            [view setNeedsDisplay];
-        }
-    }
-}
-
--(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
-            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
-            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-                        recording:[(JWVisualAudioBufferView*)view recording]];
-            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-            [view setNeedsDisplay];
-        }
-    }
-}
-
--(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
-             alpha:(CGFloat)alpha
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
-            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
-            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-                        recording:[(JWVisualAudioBufferView*)view recording]];
-            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-            view.alpha = alpha;
-            [view setNeedsDisplay];
-        }
-    }
-}
-
--(void)modifyTrack:(NSUInteger)track allTracksHeight:(CGFloat)allTracksHeight {
-    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-    for (UIView *view in self.scrollView.subviews) {
-        if ([view isKindOfClass:[JWVisualAudioBufferView class]]) {
-            if (CGRectIntersectsRect(view.frame, trackFr)) {
-//                [(JWVisualAudioBufferView *)view setColorForTopNoAvg:[UIColor greenColor]];
-                [view setNeedsDisplay];
-            }
-        }
-    }
-}
-
 
 #pragma mark -
 
@@ -2488,6 +2384,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 -(void)transitionToRecording {
+    [self transitionToRecordingSingleRecorder:NO];
+}
+
+-(void)transitionToRecordingSingleRecorder:(BOOL)singleRecorder {
     if (_usePulse)
         _pulseBlocked = NO;
     
@@ -2495,12 +2395,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [CATransaction setAnimationDuration:1.2];
     [CATransaction commit];
     self.scrollView.userInteractionEnabled = NO;
-    self.recordingProgressView.hidden = NO;
+    if (singleRecorder == NO)
+        self.recordingProgressView.hidden = NO;
+
     self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.09];
     UIColor *playPinColor= [[UIColor whiteColor] colorWithAlphaComponent:0.80];
     UIView *playHeadPin = [_playHeadWindow subviews][0];
     playHeadPin.backgroundColor = playPinColor;
 }
+
 
 -(void)transitionToPlayTillEnd {
 
@@ -2855,6 +2758,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [self.scrollView setNeedsLayout];
 }
 
+
+#pragma mark - Select Deselect Track
 
 -(void)deSelectTrack {
     if (_selectedTrack > 0 ) {
@@ -3240,4 +3145,114 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //else {
 //    //        _scrubberEffectsLayer.color1 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.5];
 //    //        _scrubberEffectsLayer.color2 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.2];
+
+
+
+//#pragma mark - modify track trackdetect
+//
+//-(void)modifyTrack:(NSUInteger)track withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
+//            view.alpha = alpha;
+//        }
+//    }
+//}
+//
+//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors
+//allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    NSLog(@"%s track %ld",__func__,track);
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
+//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
+//                        recording:[(JWVisualAudioBufferView*)view recording]];
+//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
+//            [view setNeedsDisplay];
+//        }
+//    }
+//    [self.scrollView setNeedsLayout];
+//}
+//
+//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha
+//allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    NSLog(@"%s track %ld",__func__,track);
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
+//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
+//                        recording:[(JWVisualAudioBufferView*)view recording]];
+//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
+//            view.alpha = alpha;
+//            [view setNeedsDisplay];
+//        }
+//    }
+//    [self.scrollView setNeedsLayout];
+//}
+//-(void)modifyTrack:(NSUInteger)track layout:(VABLayoutOptions)layoutOptions
+//kind:(VABKindOptions)kindOptions
+//allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
+//            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
+//            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
+//            [view setNeedsDisplay];
+//        }
+//    }
+//}
+//
+//-(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
+//layout:(VABLayoutOptions)layoutOptions
+//kind:(VABKindOptions)kindOptions
+//allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
+//            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
+//            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
+//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
+//                        recording:[(JWVisualAudioBufferView*)view recording]];
+//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
+//            [view setNeedsDisplay];
+//        }
+//    }
+//}
+//
+//-(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
+//alpha:(CGFloat)alpha
+//layout:(VABLayoutOptions)layoutOptions
+//kind:(VABKindOptions)kindOptions
+//allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
+//            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
+//            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
+//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
+//                        recording:[(JWVisualAudioBufferView*)view recording]];
+//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
+//            view.alpha = alpha;
+//            [view setNeedsDisplay];
+//        }
+//    }
+//}
+//
+//-(void)modifyTrack:(NSUInteger)track allTracksHeight:(CGFloat)allTracksHeight {
+//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
+//    for (UIView *view in self.scrollView.subviews) {
+//        if ([view isKindOfClass:[JWVisualAudioBufferView class]]) {
+//            if (CGRectIntersectsRect(view.frame, trackFr)) {
+//                //                [(JWVisualAudioBufferView *)view setColorForTopNoAvg:[UIColor greenColor]];
+//                [view setNeedsDisplay];
+//            }
+//        }
+//    }
+//}
+
 

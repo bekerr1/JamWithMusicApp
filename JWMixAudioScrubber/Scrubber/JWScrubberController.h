@@ -7,11 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
-@import AVFoundation;
-@import UIKit;
 #import "JWScrubber.h"
 #import "JWEffectsModifyingProtocol.h"
-
+@import AVFoundation;
+@import UIKit;
 
 typedef void (^JWScrubberControllerCompletionHandler)(void);
 
@@ -35,12 +34,17 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @class JWScrubberViewController;
 @protocol JWScrubberControllerDelegate;
 
-
 //  CLASS DEFINITION
 
 @interface JWScrubberController : NSObject <JWScrubberBufferControllerDelegate,JWEffectsModifyingProtocol>
 
+
+-(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController;
+
+-(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue;
+
 @property (weak,nonatomic) id <JWScrubberControllerDelegate> delegate;
+
 @property (nonatomic) NSUInteger numberOfTracks;
 @property (nonatomic) CGSize scrubberControllerSize;
 @property (nonatomic) NSArray *trackLocations;
@@ -51,27 +55,14 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 @property (nonatomic) BOOL darkBackground;
 @property (nonatomic) BOOL pulseBackLight;
 @property (nonatomic) NSString *selectedTrack;
-@property (nonatomic,readonly) BOOL isPlaying;
 @property (nonatomic) float backlightValue;
-
--(void)resumePlaying;
-
-- (void)deSelectTrack;
-- (void)selectTrack:(NSString*)tid;
+@property (nonatomic,readonly) BOOL isPlaying;
 @property (nonatomic) NSString *selectedTrackId;
 
-- (id <JWEffectsModifyingProtocol>) trackNodeControllerForTrackId:(NSString*)tid;
-
--(void)configureScrubberColors:(NSDictionary*)scrubberColors;
-
--(void)adjustBackLightValue:(float)value;  // always white black
-
--(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController;
-
--(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue;
-
 // PLAY
-// one method with Colors the other without
+
+-(NSString*)prepareScrubberFileURL:(NSURL*)fileURL
+                      onCompletion:(JWScrubberControllerCompletionHandler)completion;
 
 -(NSString*)prepareScrubberFileURL:(NSURL*)fileURL
                     withSampleSize:(SampleSize)ssz
@@ -98,7 +89,6 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
                          startTime:(float)startTime
                       onCompletion:(JWScrubberControllerCompletionHandler)completion;
 
-
 // Recorder and Taps
 // use listener methods to activate the JWScrubberBufferControllerDelegate
 // this is for recording where the caller registers
@@ -121,61 +111,45 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
                              onCompletion:(JWScrubberControllerCompletionHandler)completion;
 
 
--(void)configureColors:(NSDictionary*)trackColors;
--(void)configureColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
--(void)configureTrackColors:(NSDictionary*)trackColors;
--(void)configureTrackColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
-
-//-(void)setSampleSize:(SampleSize)sampleSize forTrackWithId:(NSString*)stid;
-//-(SampleSize)sampleSizeForTrackWithId:(NSString*)stid;
-//-(void)setSamplingOptions:(SamplingOptions)options forTrack:(NSString*)stid;
-//-(SamplingOptions)SamplingOptionsForTrack:(NSString*)stid;
-
-// suppprts autoplay
 -(void)play:(NSString*)sid;
 -(void)playRecord:(NSString*)sid;
-
--(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL;
-
+-(void)recordAt:(NSString*)sid;
+//-(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL;
 -(void)stopPlaying:(NSString*)sid;
 -(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind;
-
+-(void)resumePlaying;
+-(void)selectTrack:(NSString*)tid;
+-(void)deSelectTrack;
 -(void)playedTillEnd:(NSString*)sid;
-
--(void)seekToPosition:(NSString*)sid;
--(void)seekToPosition:(NSString*)sid animated:(BOOL)animated;
 -(void)rewind:(NSString*)sid;
 -(void)rewind:(NSString*)sid animated:(BOOL)animated;
 -(void)reset;
 -(void)refresh;
-
 -(void)editTrackBeginInset:(NSString*)trackId;
 -(void)editTrackStartPosition:(NSString*)trackId;
 -(void)editTrackEndInset:(NSString*)trackId;
 -(void)saveEditingTrack:(NSString*)trackId;
 -(void)stopEditingTrackCancel:(NSString*)trackId;
 -(void)stopEditingTrackSave:(NSString*)trackId;
+-(void)seekToPosition:(NSString*)sid;
+-(void)seekToPosition:(NSString*)sid animated:(BOOL)animated;
+
+-(void)configureColors:(NSDictionary*)trackColors;
+-(void)configureColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
+-(void)configureTrackColors:(NSDictionary*)trackColors;
+-(void)configureTrackColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
+-(void)configureScrubberColors:(NSDictionary*)scrubberColors;
+
+-(void)adjustBackLightValue:(float)value;  // always white black
+
+// getter
+-(id <JWEffectsModifyingProtocol>) trackNodeControllerForTrackId:(NSString*)tid;
 
 -(void)modifyTrack:(NSString*)trackId alpha:(CGFloat)alpha;
 -(void)modifyTrack:(NSString*)trackId colors:(NSDictionary*)trackColors;
 -(void)modifyTrack:(NSString*)trackId colors:(NSDictionary*)trackColors alpha:(CGFloat)alpha;
 -(void)modifyTrack:(NSString*)trackId pan:(CGFloat)panValue;
 -(void)modifyTrack:(NSString*)trackId volume:(CGFloat)volumeValue;
--(void)modifyTrack:(NSString*)trackId allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSString*)trackId withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
--(void)modifyTrack:(NSString*)trackId
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight;
-
--(void)modifyTrack:(NSString*)trackId
-            colors:(NSDictionary*)trackColors
-             alpha:(CGFloat)alpha
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight;
 
 @end
 
@@ -236,6 +210,23 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 //typedef void (^AVAudioNodeCompletionHandler)(void);
 //onCompletion:(void (^)(NSMutableArray* channelData,NSString *searchStr))completion;
 //typedef void (^JWFileDowloadCompletionHandler)(void);
+
+
+//-(void)modifyTrack:(NSString*)trackId allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSString*)trackId withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
+//-(void)modifyTrack:(NSString*)trackId
+//            layout:(VABLayoutOptions)layoutOptions
+//              kind:(VABKindOptions)kindOptions
+//   allTracksHeight:(CGFloat)allTracksHeight;
+//
+//-(void)modifyTrack:(NSString*)trackId
+//            colors:(NSDictionary*)trackColors
+//             alpha:(CGFloat)alpha
+//            layout:(VABLayoutOptions)layoutOptions
+//              kind:(VABKindOptions)kindOptions
+//   allTracksHeight:(CGFloat)allTracksHeight;
 
 
 

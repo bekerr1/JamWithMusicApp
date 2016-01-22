@@ -9,7 +9,8 @@
 #import "JWTrackSetsViewController.h"
 #import "DetailViewController.h"
 #import "JWFileController.h"
-#import "JWTableHeaderView.h"
+//#import "JWTableHeaderView.h"
+#import "UIColor+JW.h"
 
 @interface JWTrackSetsViewController () <JWDetailDelegate>
 @property NSIndexPath *selectedIndexPath;
@@ -23,6 +24,11 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+//    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+    UIView *backgroundView = [UIView new];
+    backgroundView.backgroundColor = [UIColor blackColor];
+    self.tableView.backgroundView = backgroundView;
 
 //    self.navigationItem.leftBarButtonItem = self.editButtonItem;
 //    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
@@ -367,40 +373,35 @@
 //}
 
 - (CGFloat )tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 10;
+    return 8;
 }
 
 - (CGFloat )tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 40;
+    return 28;
+}
+
+- (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
+    
+    return [_delegate trackSets:self titleForSection:section];
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section  {
     
     UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWFooterView"];
-    if (view == nil) {
+    if (view == nil)
         view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWFooterView"];
-//        view.backgroundColor = [UIColor blueColor];
-        view.contentView.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.15];
-    }
+    view.contentView.backgroundColor = [UIColor blackColor];
+    view.textLabel.textColor = [UIColor iosMercuryColor];
     return view;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
-    
-    
-//    JWTableHeaderView *view = [JWTableHeaderView new];
     UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
-    
-    if (view == nil) {
+    if (view == nil)
         view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
-
-    }
-
-    view.contentView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
-    view.textLabel.textColor = [UIColor whiteColor];
-    view.textLabel.text = [_delegate trackSets:self titleForSection:section];
-    
-//    view.detailTextLabel.text = [_delegate trackSets:self titleDetailForSection:section];
+    view.contentView.backgroundColor = [UIColor jwBlackThemeColor];
+    view.textLabel.textColor = [UIColor jwSectionTextColor];
+    view.textLabel.font = [UIFont systemFontOfSize:14];
 
     return view;
 }

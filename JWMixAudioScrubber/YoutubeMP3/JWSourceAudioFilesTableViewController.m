@@ -16,6 +16,8 @@
 #import "JWDBKeys.h"
 #import "JWClipAudioViewController.h"
 #import "JWFileController.h"
+#import "UIColor+JW.h"
+
 @import AVKit;
 @import AVFoundation;
 
@@ -51,14 +53,18 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     self.clearsSelectionOnViewWillAppear = NO;
     self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
-    if (_imageRetrievalQueue == nil) {
+    UIView *backgroundView = [UIView new];
+    backgroundView.backgroundColor = [UIColor blackColor];
+    self.tableView.backgroundView = backgroundView;
+    
+    if (_imageRetrievalQueue == nil)
         _imageRetrievalQueue =
         dispatch_queue_create("imageProcessingSourceAudio",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_UTILITY, 0));
-    }
-    if (_allFiles) {
+
+    if (_allFiles)
         _allFilesSections = @[@[],@[]];  // 2 empties
-    }
+
     self.refreshControl.tintColor = [UIColor colorWithWhite:0.95 alpha:1.0];
     [self.refreshControl beginRefreshing];
     [self initAVAudioSession];
@@ -104,24 +110,26 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 - (void)loadData {
     
-    dispatch_async (dispatch_get_global_queue( QOS_CLASS_UTILITY,0),^{
+    dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INITIATED,0),^{
         
         [[JWFileController sharedInstance] readFsData];
         [self loadModel];
         dispatch_async (dispatch_get_main_queue(),^{
             [self.tableView reloadData];
-        });
-
-        double delayInSecs = 0.10;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self.refreshControl endRefreshing];
-            [self.tableView beginUpdates];
-            [self.tableView reloadRowsAtIndexPaths:[self.tableView indexPathsForVisibleRows]
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
-            [self.tableView endUpdates];
         });
     });
 }
+
+//        double delayInSecs = 0.10;
+//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//            [self.refreshControl endRefreshing];
+//            [self.tableView beginUpdates];
+//            [self.tableView reloadRowsAtIndexPaths:[self.tableView indexPathsForVisibleRows]
+//                                  withRowAnimation:UITableViewRowAnimationAutomatic];
+//            [self.tableView endUpdates];
+//        });
+
 
 // wip
 //    if (_allFiles) {
@@ -397,9 +405,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 #pragma mark - Table view delegate
 
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 20;
-}
+//- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+//    return 20;
+//}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath{
     
@@ -521,6 +529,26 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     }
     
     return titleStr;
+}
+
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section  {
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
+    if (view == nil)
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+    view.contentView.backgroundColor = [UIColor jwBlackThemeColor];
+    view.textLabel.textColor = [UIColor jwSectionTextColor];
+    return view;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
+    UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
+    if (view == nil)
+        view = [[UITableViewHeaderFooterView alloc] initWithReuseIdentifier:@"JWHeaderViewX"];
+    view.contentView.backgroundColor = [UIColor jwBlackThemeColor];
+    view.textLabel.textColor = [UIColor jwSectionTextColor];
+    view.textLabel.font = [UIFont systemFontOfSize:14];
+    return view;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

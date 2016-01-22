@@ -11,6 +11,7 @@
 #import "JWBufferSampler.h"
 #import "JWPlayerFileInfo.h"
 #import "JWScrubberTackModify.h"
+#import "UIColor+JW.h"
 
 const int scMaxTracks = 10;
 
@@ -32,7 +33,6 @@ const int scMaxTracks = 10;
 @property (nonatomic) JWPlayerFileInfo *restoreReferenceFileObject;
 @property (nonatomic,strong)  NSTimer *playerTimer;
 @property (nonatomic,strong)  NSTimer *recordingTimer;
-
 @property (nonatomic,strong)  NSString *playerTrackId;
 @property (nonatomic,strong)  NSMutableDictionary *trackColorsByTrackId;
 @property (nonatomic,strong)  NSDictionary *trackColorsAllTracks;
@@ -58,7 +58,6 @@ const int scMaxTracks = 10;
     return [self initWithScrubber:scrubberViewController andBackLightValue:_backlightValue];
 }
 
-
 -(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue {
 
     if (self = [super init]) {
@@ -75,115 +74,31 @@ const int scMaxTracks = 10;
         _pulseSamples = [@[] mutableCopy];
         _pulseSamplesDurations = [@[] mutableCopy];
         _playerProgressFormatString = @"%.0f";
-        _playerProgressFormatString = @"%00.2f";
+//        _playerProgressFormatString = @"%00.2f";
     }
     return self;
 }
 
 -(void)initBufferQueues {
-    if (_bufferReceivedQueue == nil) {
-        //_bufferReceivedQueue =
+    if (_bufferReceivedQueue == nil)
         _bufferReceivedQueue =
         dispatch_queue_create("bufferReceived",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, -1));
-    }
-    if (_bufferSampledQueue == nil) {
+    if (_bufferSampledQueue == nil)
         _bufferSampledQueue =
         dispatch_queue_create("bufferProcessing",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT,QOS_CLASS_USER_INTERACTIVE, -1));
-    }
     
-    if (_bufferReceivedPerformanceQueue == nil) {
+    if (_bufferReceivedPerformanceQueue == nil)
         _bufferReceivedPerformanceQueue =
         dispatch_queue_create("bufferReceivedP",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, -1));
-    }
-    if (_bufferSampledPerformanceQueue == nil) {
+    if (_bufferSampledPerformanceQueue == nil)
         _bufferSampledPerformanceQueue =
         dispatch_queue_create("bufferProcessingP",
                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INTERACTIVE, -1));
-    }
 }
 
-
-#pragma mark - Effects modifying
-
--(float)floatValue1 {
-    NSLog(@"%s get backlight %.2f",__func__,self.backlightValue);
-    return self.backlightValue;
-}
--(float)floatValue2 {
-    NSLog(@"%s not used, ignored",__func__);
-    return 0.0;
-}
--(float)floatValue3 {
-    NSLog(@"%s not used, ignored",__func__);
-    return 0.0;
-}
--(float)floatValue4 {
-    NSLog(@"%s not used, ignored",__func__);
-    return 0.0;
-}
--(BOOL)boolValue1 {
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(BOOL)adjustFloatValue1:(float)value{
-//    NSLog(@"%s adjusting backlightValue %.2f to %.2f",__func__,self.backlightValue,value);
-    self.backlightValue = value;
-    [_scrubber adjustWhiteBacklightValue:_backlightValue];
-    return YES;
-}
--(BOOL)adjustFloatValue2:(float)value{
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(BOOL)adjustFloatValue3:(float)value{
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(BOOL)adjustFloatValue4:(float)value{
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(BOOL)adjustBoolValue1:(BOOL)value {
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(NSTimeInterval)timeInterval1 {
-    NSLog(@"%s not used, ignored",__func__);
-    return 0.0;
-}
--(BOOL)adjustTimeInterval1:(NSTimeInterval)value {
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(NSArray*)optionPresets {
-    NSLog(@"%s not used, ignored",__func__);
-    return nil;
-}
--(BOOL)adjustOptionPreset:(NSUInteger)value {
-    NSLog(@"%s not used, ignored",__func__);
-    return NO;
-}
--(void)adjustFloatValue1WithSlider:(id)sender {
-    [self adjustFloatValue1:[(UISlider*)sender value]];
-}
--(void)adjustFloatValue2WithSlider:(id)sender {
-    [self adjustFloatValue2:[(UISlider*)sender value]];
-}
--(void)adjustBoolValue1WithSwitch:(id)sender {
-    [self adjustBoolValue1:[(UISwitch*)sender isOn]];
-}
--(void)adjustFloatValue3WithSlider:(id)sender {
-    [self adjustFloatValue3:[(UISlider*)sender value]];
-}
--(void)adjustFloatValue4WithSlider:(id)sender {
-    [self adjustFloatValue4:[(UISlider*)sender value]];
-}
--(void)adjustTimeInterval1WithSlider:(id)sender {
-    [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
-}
 
 #pragma mark -
 
@@ -235,8 +150,17 @@ const int scMaxTracks = 10;
 }
 
 -(void)playRecord:(NSString*)sid {
+    
     [self play:sid];
+    
     [_scrubber transitionToRecording];
+}
+
+-(void)recordAt:(NSString*)sid  {
+    
+    NSURL *fileURL = [_delegate recordingFileURL:self];
+    
+    [self recordAt:sid usingFileURL:fileURL];
 }
 
 -(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL {
@@ -245,23 +169,18 @@ const int scMaxTracks = 10;
         [_playerTimer invalidate];
     
     [_scrubber prepareToPlay:1 atPosition:0.0];
-    [_scrubber transitionToRecording];
-//    [_scrubber transitionToPlay];
+    [_scrubber transitionToRecordingSingleRecorder:YES];
+
     _playerTrackId = sid;
-    
     self.recordingURL = fileURL;
-    
+    _recordingLength = 0.0; //secs
     _recordingLastReadPosition = 0;
     
     [self audioFileAnalyzerForRecorderFile:fileURL forTrackId:sid];
     
     self.recordingStartTime = [NSDate date];
-    
-    _recordingLength = 0.0; //secs
-    
     [self startPlayTimer];
 }
-
 
 
 -(void)stopPlaying:(NSString*)sid {
@@ -362,8 +281,7 @@ const int scMaxTracks = 10;
     }
 }
 
--(void)adjustBackLightValue:(float)value
-{
+-(void)adjustBackLightValue:(float)value {
     self.backlightValue = value;
     [_scrubber adjustWhiteBacklightValue:_backlightValue];
 }
@@ -448,22 +366,24 @@ const int scMaxTracks = 10;
     _scrubber.numberOfTracks = _numberOfTracks;
 }
 
--(void)setTrackLocations:(NSArray *)trackLocations
-{
+-(void)setTrackLocations:(NSArray *)trackLocations {
     _scrubber.locations = trackLocations;
 }
 
+// setter/getter
 -(void)setSampleSize:(SampleSize)sampleSize forTrackWithId:(NSString*)stid{
     _tracks[stid][@"samplesize"]= @(sampleSize);
 }
+
 -(SampleSize)sampleSizeForTrackWithId:(NSString*)stid {
     return [(NSNumber*)_tracks[stid][@"samplesize"] unsignedIntegerValue];
 }
 
-
+// setter/getter
 -(void)setSamplingOptions:(SamplingOptions)options forTrack:(NSString*)stid{
     _tracks[stid][@"options"]= @(options);
 }
+
 -(SamplingOptions)configOptionsForTrack:(NSString*)stid {
     id options = _tracks[stid][@"options"];
     if (options)
@@ -471,9 +391,11 @@ const int scMaxTracks = 10;
     return 0; // not found
 }
 
+// setter/getter
 -(void)setKindOptions:(VABKindOptions)options forTrack:(NSString*)stid{
     _tracks[stid][@"kind"]= @(options);
 }
+
 -(VABKindOptions)kindOptionsForTrack:(NSString*)stid {
     id options = _tracks[stid][@"kind"];
     if (options)
@@ -481,6 +403,7 @@ const int scMaxTracks = 10;
     return 0; // not found
 }
 
+// setter/getter
 -(void)setLayoutOptions:(VABLayoutOptions)options forTrack:(NSString*)stid{
     _tracks[stid][@"layout"]= @(options);
 }
@@ -550,19 +473,10 @@ const int scMaxTracks = 10;
 
 -(NSDictionary*)scrubberColorsDefaultConfig1 {
     
-    UIColor *iosColor1 = [UIColor colorWithRed:128/255.0 green:128/255.0 blue:0/255.0 alpha:1.0]; // asparagus
-    UIColor *iosColor2 = [UIColor colorWithRed:0/255.0 green:64/255.0 blue:128/255.0 alpha:1.0]; // ocean
-    UIColor *iosColor3 = [UIColor colorWithRed:0/255.0 green:128/255.0 blue:255/255.0 alpha:1.0]; // aqua
-    UIColor *iosColor4 = [UIColor colorWithRed:102/255.0 green:204/255.0 blue:255/255.0 alpha:1.0]; // sky
-
-    if (iosColor1) {}
-    if (iosColor2) {}
-    if (iosColor3) {}
-    if (iosColor4) {}
 
     NSDictionary *scrubberColors =
     @{
-      JWColorBackgroundHueColor : iosColor2,
+      JWColorBackgroundHueColor : [UIColor iosOceanColor],
       JWColorBackgroundHeaderGradientColor1 : [UIColor blackColor],
       JWColorBackgroundHeaderGradientColor2 : [UIColor blackColor],
       JWColorBackgroundTrackGradientColor1 : [UIColor blackColor],
@@ -1091,7 +1005,7 @@ EDITING PROTOCOL PUBLIC API
 #pragma mark edit delegate
 
 -(NSString*)trackIdForTrack:(NSUInteger)track {
-    NSLog(@"%s %ld",__func__,track);
+//    NSLog(@"%s %ld",__func__,track);
     NSString *result;
     for (id item in [_tracks allKeys]) {
         id trackNumberValue = _tracks[item][@"tracknum"];
@@ -1254,58 +1168,10 @@ EDITING PROTOCOL PUBLIC API
     [_scrubber modifyTrack:track volume:volumeValue];
 }
 
-#pragma mark - modify using track detect
-
--(void)modifyTrack:(NSString*)trackId allTracksHeight:(CGFloat)allTracksHeight {
-    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-    [_scrubber modifyTrack:track allTracksHeight:allTracksHeight];
-}
--(void)modifyTrack:(NSString*)trackId withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
-    NSUInteger track = 1;
-    if (trackId)
-        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-    [_scrubber modifyTrack:track withAlpha:alpha allTracksHeight:allTracksHeight];
-}
--(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight {
-    NSUInteger track = 1;
-    if (trackId)
-        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-    NSLog(@"%s %ld",__func__,track);
-    [_scrubber modifyTrack:track withColors:trackColors allTracksHeight:allTracksHeight];
-}
--(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
-    NSUInteger track = 1;
-    if (trackId)
-        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-    [_scrubber modifyTrack:track withColors:trackColors alpha:alpha allTracksHeight:allTracksHeight];
-    NSLog(@"%s %ld",__func__,track);
-}
--(void)modifyTrack:(NSString*)trackId
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-    [_scrubber modifyTrack:track layout:layoutOptions kind:kindOptions allTracksHeight:allTracksHeight];
-    [self setLayoutOptions:layoutOptions forTrack:trackId];
-    [self setKindOptions:kindOptions forTrack:trackId];
-}
-
--(void)modifyTrack:(NSString*)trackId
-            colors:(NSDictionary*)trackColors
-             alpha:(CGFloat)alpha
-            layout:(VABLayoutOptions)layoutOptions
-              kind:(VABKindOptions)kindOptions
-   allTracksHeight:(CGFloat)allTracksHeight
-{
-    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-    [_scrubber modifyTrack:track colors:trackColors alpha:alpha layout:layoutOptions kind:kindOptions allTracksHeight:allTracksHeight];
-    [self setLayoutOptions:layoutOptions forTrack:trackId];
-    [self setKindOptions:kindOptions forTrack:trackId];
-}
-
 
 #pragma mark -
+
+// prepareScrubberFileURL
 
 /*
   There two types of prepare , prepareScrubberFileURL and prepareScrubberListenerSource
@@ -1321,11 +1187,6 @@ EDITING PROTOCOL PUBLIC API
   this is for recording where the caller registers
  
 */
-
-
-// prepareScrubberFileURL
-
-
 
 -(NSString*)prepareScrubberFileURL:(NSURL*)fileURL
                       onCompletion:(JWScrubberControllerCompletionHandler)completion
@@ -1431,7 +1292,7 @@ EDITING PROTOCOL PUBLIC API
 //                _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.0f",0.0];
                 if ([_delegate respondsToSelector:@selector( durationInSecondsOfAudioFile:forScrubberId:)]) {
                     _scrubber.remainingValueStr =
-                    [NSString stringWithFormat:@"-%.0f",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
+                    [NSString stringWithFormat:@"%.0f",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
                     _scrubber.durationValueStr =
                     [NSString stringWithFormat:@"%.0f seconds",[_delegate durationInSecondsOfAudioFile:self forScrubberId:sid]];
                 }
@@ -1553,7 +1414,7 @@ EDITING PROTOCOL PUBLIC API
         }
 
         if ([_delegate respondsToSelector:@selector( remainingDurationInSecondsOfAudioFile:forScrubberId:)]) {
-            NSString *value = [NSString stringWithFormat:@"-%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
+            NSString *value = [NSString stringWithFormat:@"%.0f",[_delegate remainingDurationInSecondsOfAudioFile:self forScrubberId:sid]];
             dispatch_async(dispatch_get_main_queue(), ^{
                 _scrubber.remainingValueStr = value;
             });
@@ -1743,7 +1604,6 @@ EDITING PROTOCOL PUBLIC API
             NSArray *pulsData = _pulseSamples[indexOfBuffer];
             float pulseDataAvg = ([pulsData[1] floatValue] + [pulsData[3] floatValue])/2;
             //                float progressValue = [pulsData[0] floatValue] * buffersDuration;  // as a fraction of duration
-            
             float progressValue = [pulsData[0] floatValue];  // as a fraction of duration
             float startSampleValue = pulseDataAvg; // the first sample value
             float endSampleValue = [pulsData[1] floatValue]; // the first sample value
@@ -1761,13 +1621,11 @@ EDITING PROTOCOL PUBLIC API
             if (remainder > 0.15 ) {
                 startSampleValue = endSampleValue; // the first sample value
                 endSampleValue = [pulsData[3] floatValue]; // the second sample value
-                
 #ifdef TRACEPULSE
                 NSLog(@"%s ndx %ld dur %.2f cpos %.3f pavg %.2f prValue %.3f endsmplvl %.3f",__func__,
                       indexOfBuffer,buffersDuration,currentPosSeconds,
                       pulseDataAvg,progressValue,endSampleValue);
 #endif
-
                 double delayInSecs = progressValue;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     // pulse anim 2 -  first point to second point
@@ -1780,10 +1638,8 @@ EDITING PROTOCOL PUBLIC API
             }
             
         } else if (pulseType == 4) {
-            
             float pulseDataAvg = ([pulsData[1] floatValue] + [pulsData[3] floatValue])/2;
             float progressValue = [pulsData[0] floatValue];  // as a fraction of duration
-
             float startSampleValue;
             float endSampleValue;
             
@@ -2420,17 +2276,19 @@ EDITING PROTOCOL PUBLIC API
     frameCount = 0;
     audioFile.framePosition = startReadPosition;
     
+    const AVAudioFrameCount kBufferMaxFrame = 20 * 1024L; // 18
+
     while (frameCount < framesToReadCount) {
         
         AVAudioFrameCount framesRemaining = framesToReadCount - frameCount;
         if (framesRemaining > 0) {
             // proceed with
-            AVAudioFrameCount framesToRead = (framesRemaining < kBufferMaxFrameCapacity) ? framesRemaining : kBufferMaxFrameCapacity;
+            AVAudioFrameCount framesToRead = (framesRemaining < kBufferMaxFrame) ? framesRemaining : kBufferMaxFrame;
             readBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat frameCapacity:framesToRead];
 #ifdef TRACEANALYZE
             NSLog(@"%s framesRemaining: %u, %.3f secs. framesToRead %u, %.3f secs. Max %u",__func__,
                   framesRemaining, framesRemaining / processingFormat.sampleRate,
-                  framesToRead, framesToRead / processingFormat.sampleRate,kBufferMaxFrameCapacity);
+                  framesToRead, framesToRead / processingFormat.sampleRate,kBufferMaxFrame);
 #endif
             
             error = nil;
@@ -2468,6 +2326,10 @@ EDITING PROTOCOL PUBLIC API
 
 }
 
+
+//===========================================
+//
+//===========================================
 
 // opens file and reads from _recordingLastReadPosition
 
@@ -2556,6 +2418,87 @@ EDITING PROTOCOL PUBLIC API
 }
 
 
+#pragma mark - Effects modifying
+
+-(float)floatValue1 {
+//    NSLog(@"%s get backlight %.2f",__func__,self.backlightValue);
+    return self.backlightValue;
+}
+-(float)floatValue2 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+-(float)floatValue3 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+-(float)floatValue4 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+-(BOOL)boolValue1 {
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(BOOL)adjustFloatValue1:(float)value{
+    //    NSLog(@"%s adjusting backlightValue %.2f to %.2f",__func__,self.backlightValue,value);
+    self.backlightValue = value;
+    [_scrubber adjustWhiteBacklightValue:_backlightValue];
+    return YES;
+}
+-(BOOL)adjustFloatValue2:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(BOOL)adjustFloatValue3:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(BOOL)adjustFloatValue4:(float)value{
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(BOOL)adjustBoolValue1:(BOOL)value {
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(NSTimeInterval)timeInterval1 {
+    NSLog(@"%s not used, ignored",__func__);
+    return 0.0;
+}
+-(BOOL)adjustTimeInterval1:(NSTimeInterval)value {
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(NSArray*)optionPresets {
+    NSLog(@"%s not used, ignored",__func__);
+    return nil;
+}
+-(BOOL)adjustOptionPreset:(NSUInteger)value {
+    NSLog(@"%s not used, ignored",__func__);
+    return NO;
+}
+-(void)adjustFloatValue1WithSlider:(id)sender {
+    [self adjustFloatValue1:[(UISlider*)sender value]];
+}
+-(void)adjustFloatValue2WithSlider:(id)sender {
+    [self adjustFloatValue2:[(UISlider*)sender value]];
+}
+-(void)adjustBoolValue1WithSwitch:(id)sender {
+    [self adjustBoolValue1:[(UISwitch*)sender isOn]];
+}
+-(void)adjustFloatValue3WithSlider:(id)sender {
+    [self adjustFloatValue3:[(UISlider*)sender value]];
+}
+-(void)adjustFloatValue4WithSlider:(id)sender {
+    [self adjustFloatValue4:[(UISlider*)sender value]];
+}
+-(void)adjustTimeInterval1WithSlider:(id)sender {
+    [self adjustTimeInterval1:(NSTimeInterval)[(UISlider*)sender value]];
+}
+
+
+
 @end
 
 
@@ -2582,3 +2525,53 @@ EDITING PROTOCOL PUBLIC API
 
 
 
+#pragma mark - modify using track detect
+
+//-(void)modifyTrack:(NSString*)trackId allTracksHeight:(CGFloat)allTracksHeight {
+//    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
+//    [_scrubber modifyTrack:track allTracksHeight:allTracksHeight];
+//}
+//-(void)modifyTrack:(NSString*)trackId withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
+//    NSUInteger track = 1;
+//    if (trackId)
+//        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
+//    [_scrubber modifyTrack:track withAlpha:alpha allTracksHeight:allTracksHeight];
+//}
+//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight {
+//    NSUInteger track = 1;
+//    if (trackId)
+//        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
+//    NSLog(@"%s %ld",__func__,track);
+//    [_scrubber modifyTrack:track withColors:trackColors allTracksHeight:allTracksHeight];
+//}
+//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
+//    NSUInteger track = 1;
+//    if (trackId)
+//        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
+//    [_scrubber modifyTrack:track withColors:trackColors alpha:alpha allTracksHeight:allTracksHeight];
+//    NSLog(@"%s %ld",__func__,track);
+//}
+//-(void)modifyTrack:(NSString*)trackId
+//            layout:(VABLayoutOptions)layoutOptions
+//              kind:(VABKindOptions)kindOptions
+//   allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
+//    [_scrubber modifyTrack:track layout:layoutOptions kind:kindOptions allTracksHeight:allTracksHeight];
+//    [self setLayoutOptions:layoutOptions forTrack:trackId];
+//    [self setKindOptions:kindOptions forTrack:trackId];
+//}
+//
+//-(void)modifyTrack:(NSString*)trackId
+//            colors:(NSDictionary*)trackColors
+//             alpha:(CGFloat)alpha
+//            layout:(VABLayoutOptions)layoutOptions
+//              kind:(VABKindOptions)kindOptions
+//   allTracksHeight:(CGFloat)allTracksHeight
+//{
+//    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
+//    [_scrubber modifyTrack:track colors:trackColors alpha:alpha layout:layoutOptions kind:kindOptions allTracksHeight:allTracksHeight];
+//    [self setLayoutOptions:layoutOptions forTrack:trackId];
+//    [self setKindOptions:kindOptions forTrack:trackId];
+//}
+//

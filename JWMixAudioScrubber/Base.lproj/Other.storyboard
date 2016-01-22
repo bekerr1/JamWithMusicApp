@@ -17,14 +17,14 @@
                         <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <containerView opaque="NO" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bMM-o1-Nbz">
-                                <rect key="frame" x="20" y="6" width="560" height="473"/>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bMM-o1-Nbz">
+                                <rect key="frame" x="20" y="6" width="560" height="522"/>
                                 <connections>
                                     <segue destination="wPq-Bc-O14" kind="embed" id="zR4-Hb-6Yr"/>
                                 </connections>
                             </containerView>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                         <gestureRecognizers/>
                         <constraints>
                             <constraint firstItem="4ug-Mw-9AY" firstAttribute="top" secondItem="bMM-o1-Nbz" secondAttribute="bottom" constant="8" id="Rfu-wc-BRp"/>
@@ -47,7 +47,7 @@
         <!--Other-->
         <scene sceneID="kP3-d5-ohp">
             <objects>
-                <tableViewController storyboardIdentifier="JWOtherMenu" title="Other" id="s95-An-upd" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="JWOtherMenu" title="Other" id="s95-An-upd" customClass="JWOtherTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="default" rowHeight="44" sectionHeaderHeight="18" sectionFooterHeight="18" id="J2s-pz-mYf">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -207,7 +207,7 @@
                         <viewControllerLayoutGuide type="bottom" id="dJc-I5-NlM"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="FuF-sF-atX">
-                        <rect key="frame" x="0.0" y="0.0" width="560" height="473"/>
+                        <rect key="frame" x="0.0" y="0.0" width="560" height="522"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <webView contentMode="scaleToFill" scalesPageToFit="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fzE-nq-wJL">
@@ -218,19 +218,19 @@
                                 </constraints>
                             </webView>
                             <visualEffectView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WLY-5h-VG7">
-                                <rect key="frame" x="0.0" y="0.0" width="560" height="473"/>
+                                <rect key="frame" x="0.0" y="0.0" width="560" height="522"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="9h5-4h-KtK">
-                                    <rect key="frame" x="0.0" y="0.0" width="560" height="473"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="560" height="522"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 </view>
                                 <blurEffect style="extraLight"/>
                             </visualEffectView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="JKs-r8-YkF">
-                                <rect key="frame" x="270" y="226" width="20" height="20"/>
+                                <rect key="frame" x="270" y="251" width="20" height="20"/>
                                 <color key="color" red="0.20000000300000001" green="0.20000000300000001" blue="0.20000000300000001" alpha="1" colorSpace="calibratedRGB"/>
                             </activityIndicatorView>
                         </subviews>
-                        <color key="backgroundColor" red="0.51425097230000005" green="1" blue="0.80722855520000003" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="WLY-5h-VG7" firstAttribute="width" secondItem="FuF-sF-atX" secondAttribute="width" id="2Rw-FV-qkW"/>
                             <constraint firstAttribute="centerY" secondItem="JKs-r8-YkF" secondAttribute="centerY" id="89l-4a-mfA"/>
@@ -286,7 +286,7 @@
             <objects>
                 <tableViewController title="MP3 Files" id="so6-fD-w5u" customClass="JWSourceAudioFilesTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="52" sectionHeaderHeight="28" sectionFooterHeight="28" id="kgl-nc-2CS">
-                        <rect key="frame" x="0.0" y="0.0" width="560" height="473"/>
+                        <rect key="frame" x="0.0" y="0.0" width="560" height="522"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
