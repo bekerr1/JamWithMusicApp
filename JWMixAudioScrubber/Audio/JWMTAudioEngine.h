@@ -74,10 +74,9 @@
 
 -(void)prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:(NSUInteger)index;
 -(void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (NSURL*)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+- (void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
-
 
 // getter
 - (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;

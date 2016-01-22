@@ -46,16 +46,17 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     self.refreshControl  = [UIRefreshControl new];
-    
+
     [self.refreshControl addTarget:self action:@selector(refreshFromControl:) forControlEvents:UIControlEventValueChanged];
     self.clearsSelectionOnViewWillAppear = NO;
     self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    
+
     UIView *backgroundView = [UIView new];
     backgroundView.backgroundColor = [UIColor blackColor];
     self.tableView.backgroundView = backgroundView;
+    self.tableView.backgroundView.layer.zPosition -= 1; // go behind refresh
     
     if (_imageRetrievalQueue == nil)
         _imageRetrievalQueue =
@@ -65,7 +66,7 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
     if (_allFiles)
         _allFilesSections = @[@[],@[]];  // 2 empties
 
-    self.refreshControl.tintColor = [UIColor colorWithWhite:0.95 alpha:1.0];
+    self.refreshControl.tintColor = [UIColor iosSilverColor];
     [self.refreshControl beginRefreshing];
     [self initAVAudioSession];
     [self loadData];
@@ -608,14 +609,71 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
     self.selectedDetailIndexPath = indexPath;
-    [self namePrompt];
+    [self detailOptions];
+}
+
+#pragma mark - Detail
+
+-(void)detailOptions {
+    
+    NSString *title;
+    NSMutableString *message = [NSMutableString new];
+    
+    NSURL *fileURL;
+    if (_allFiles)
+        fileURL = _allFilesSections[_selectedDetailIndexPath.section][_selectedDetailIndexPath.row][@"furl"];
+    else
+        fileURL = [self fileURLForCacheItem:_userOrderList[_selectedDetailIndexPath.row]];
+    
+    if (_previewMode) {
+        title = @"Mode: Preview";
+        [message appendString:@"Select row to listen to audio"];
+    } else {
+        title = @"Mode: Select";
+        [message appendString:@"Select row to proceed with audio file"];
+    }
+    
+//    [message appendString:@"\n\n"];
+//    [message appendString:[fileURL pathExtension]];
+//    [message appendString:@"\n"];
+//    [message appendString:[[fileURL lastPathComponent] stringByDeletingPathExtension]];
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[fileURL path]]) {
+        [message appendString:@"\nFile Exists"];
+    } else {
+        [message appendString:@"\nFile does not exist."];
+    }
+    
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleActionSheet];
+
+    UIAlertAction* cancelAction =
+    [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action) {
+    }];
+
+    UIAlertAction* useAction =
+    [UIAlertAction actionWithTitle:@"Use in New Track" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+    }];
+    
+    UIAlertAction* listenAction =
+    [UIAlertAction actionWithTitle:@"Listen" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+    }];
+    
+    UIAlertAction* moreInfo =
+    [UIAlertAction actionWithTitle:@"More Information" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        [self namePrompt];
+    }];
+
+    [actionController addAction:moreInfo];
+    [actionController addAction:listenAction];
+    [actionController addAction:useAction];
+    [actionController addAction:cancelAction];
+
+    [self presentViewController:actionController animated:YES completion:nil];
 }
 
 
 
-
-
-#pragma mark - Detail
 
 -(void)namePrompt {
 

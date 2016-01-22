@@ -184,12 +184,143 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    
     self.selectedDetailIndexPath = indexPath;
-    [self namePrompt];
+    [self detailOptions];
 }
 
+
+
+-(NSUInteger)countEmptyRecorderNodesForJamTrackWithKey:(NSString*)key {
+    
+    NSUInteger result = 0;
+    NSDictionary *object = [self jamTrackObjectAtIndexPath:_selectedDetailIndexPath];
+    
+    id trackNodes = object[@"trackobjectset"];
+    for (id trackNode in trackNodes) {
+        
+        id typeValue = trackNode[@"type"];
+        if (typeValue) {
+            JWMixerNodeTypes nodeType = [typeValue unsignedIntegerValue];
+            if (nodeType == JWMixerNodeTypePlayerRecorder) {
+                id fileURL = trackNode[@"fileURL"];
+                if (fileURL == nil) {
+                    result++;
+                }
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+-(void)detailOptions {
+    
+    NSString *title;
+    NSMutableString *message = [NSMutableString new];
+    NSMutableDictionary *object = [self jamTrackObjectAtIndexPath:_selectedDetailIndexPath];
+    if (object)
+        title = [self preferredTitleForObject:object];
+
+    NSString * jamTrackKey = object[@"key"];
+    NSUInteger countEmpties = [self countEmptyRecorderNodesForJamTrackWithKey:jamTrackKey];
+    if ([jamTrackKey length] > 10)
+        jamTrackKey = [jamTrackKey substringToIndex:10];
+    [message appendString:jamTrackKey];
+    if (countEmpties > 0) {
+        [message appendString:@"\n\n"];
+        if (countEmpties > 1)
+            [message appendString:[NSString stringWithFormat:@"has %ld empty recorder nodes",countEmpties]];
+        else
+            [message appendString:[NSString stringWithFormat:@"has %ld empty recorder node",countEmpties]];
+    }
+
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction* cancelAction =
+    [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action) {
+    }];
+    UIAlertAction* changeName =
+    [UIAlertAction actionWithTitle:@"Modify Title" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        [self namePrompt];
+    }];
+    UIAlertAction* moreInfo =
+    [UIAlertAction actionWithTitle:@"More Information" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        [self moreInfo];
+    }];
+
+    UIAlertAction* addNode =
+    [UIAlertAction actionWithTitle:@"Add Recorder Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        id jamTrackKey = object[@"key"];
+        [self addTrackNode:nil toJamTrackWithKey:jamTrackKey];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView beginUpdates];
+            [self.tableView reloadRowsAtIndexPaths:@[_selectedDetailIndexPath]
+                                  withRowAnimation:UITableViewRowAnimationNone];
+            [self.tableView endUpdates];
+        });
+
+    }];
+    
+    UIAlertAction* removeEmpty;
+    if (countEmpties > 0) {
+        removeEmpty =
+        [UIAlertAction actionWithTitle:@"Remove Empty Recorder Nodes" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+            
+            id trackNodes = object[@"trackobjectset"];
+            if (trackNodes) {
+                NSMutableIndexSet *deleteIndexes = [NSMutableIndexSet new];
+                NSUInteger index = 0;
+                for (id trackNode in trackNodes) {
+                    id typeValue = trackNode[@"type"];
+                    if (typeValue) {
+                        JWMixerNodeTypes nodeType = [typeValue unsignedIntegerValue];
+                        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+                            id fileURL = trackNode[@"fileURL"];
+                            if (fileURL == nil) {
+                                [deleteIndexes addIndex:index];
+                            }
+                        }
+                    }
+                    index++;
+                }
+                if ([deleteIndexes count] > 0){
+                    
+                    __block NSUInteger deleteCount = 0;
+                    [deleteIndexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
+                        [trackNodes removeObjectAtIndex:idx - deleteCount];
+                        deleteCount++;
+                    }];
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self.tableView beginUpdates];
+                        [self.tableView reloadRowsAtIndexPaths:@[_selectedDetailIndexPath]
+                                              withRowAnimation:UITableViewRowAnimationNone];
+                        [self.tableView endUpdates];
+                    });
+                    
+                }
+            }
+        }];
+    }
+    
+//    UIAlertAction* deleteTrack =
+//    [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+//    }];
+
+    [actionController addAction:changeName];
+    [actionController addAction:addNode];
+    if (removeEmpty)
+        [actionController addAction:removeEmpty];
+    [actionController addAction:moreInfo];
+//    [actionController addAction:deleteTrack];
+    [actionController addAction:cancelAction];
+    [self presentViewController:actionController animated:YES completion:nil];
+}
+
+
 -(void)namePrompt {
+    
     UIAlertController* actionController =
     [UIAlertController alertControllerWithTitle:@"Track Title" message:@"Enter title for the track" preferredStyle:UIAlertControllerStyleAlert];
 
@@ -235,6 +366,41 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
     [actionController addAction:okAction];
     [actionController addAction:cancelAction];
+    [self presentViewController:actionController animated:YES completion:nil];
+}
+
+-(void)moreInfo {
+    
+    NSString *title;
+    NSMutableString *message = [NSMutableString new];
+    
+    NSMutableDictionary *object = [self jamTrackObjectAtIndexPath:_selectedDetailIndexPath];
+    if (object)
+        title = [self preferredTitleForObject:object];
+    
+    id jamTrackKey = object[@"key"];
+    
+    [message appendString:jamTrackKey];
+    
+    NSDate *createDate = object[@"date"];
+    if (createDate) {
+        [message appendString:@"\n\n"];
+        NSDateFormatter *df = [NSDateFormatter new];
+        //        double al = [[JWFileController sharedInstance] audioLengthForFileWithName:[furl lastPathComponent]];
+        df.dateStyle = NSDateFormatterMediumStyle;
+        df.timeStyle = NSDateFormatterLongStyle;
+        [message appendString:[df stringFromDate:createDate]];
+        
+    }
+    UIAlertController* actionController =
+    [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* okAction =
+    [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        
+    }];
+    
+    [actionController addAction:okAction];
     [self presentViewController:actionController animated:YES completion:nil];
 }
 
@@ -1134,6 +1300,15 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
                 [self saveHomeMenuLists];
                 
                 result = jamTrack;
+                
+                NSUInteger nBaseRows = 1; // for JWHomeSectionTypeAudioFiles
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:nBaseRows+itemIndexPath.row inSection:itemIndexPath.section];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.tableView beginUpdates];
+                    [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                    [self.tableView endUpdates];
+                });
             }
         }
     }
@@ -1424,11 +1599,13 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     UIView *sbackgroundView = [UIView new];
 
     if (indexPath.row < count) {
-        backgroundView.backgroundColor = [UIColor iosMercuryColor];
-        sbackgroundView.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.5];
+        backgroundView.backgroundColor = [UIColor lightGrayColor];
+//        sbackgroundView.backgroundColor = [[UIColor iosMercuryColor] colorWithAlphaComponent:0.5];
+        sbackgroundView.backgroundColor = [UIColor iosMercuryColor];
+
     } else {
         backgroundView.backgroundColor = [UIColor blackColor];
-        sbackgroundView.backgroundColor = [UIColor orangeColor];
+        sbackgroundView.backgroundColor = [UIColor iosSteelColor];
 
     }
     

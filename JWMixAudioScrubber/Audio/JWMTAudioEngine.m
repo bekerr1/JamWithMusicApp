@@ -70,9 +70,7 @@
  stopPlayersForInterruption
   stop all players and remove taps
  */
-
-- (void)stopPlayersForInterruption
-{
+- (void)stopPlayersForInterruption {
     [super stopPlayersForInterruption];
     NSLog(@"%s",__func__);
     
@@ -124,7 +122,6 @@
     }
     
 }
-
 
 #pragma mark - player node data
 
@@ -341,7 +338,7 @@
 
 #pragma mark public setters getters
 
-- (void)setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
+-(void)setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
     _engineDelegate = engineDelegate;
     self.delegate = _engineDelegate;
 }
@@ -359,6 +356,7 @@
 -(float)mixerVolume {
     return [self.audioEngine mainMixerNode].outputVolume ;
 }
+
 -(void)setMixerVolume:(float)adjustedValume {
     [self.audioEngine mainMixerNode].outputVolume = adjustedValume ;
 }
@@ -379,8 +377,6 @@
     return [NSArray arrayWithArray:nodes];
 }
 
-
-//TODO: added this
 -(NSArray*)activeRecorderNodes {
     __block NSMutableArray *nodes = [[NSMutableArray alloc] initWithCapacity:[_playerNodeList count]];
     
@@ -392,7 +388,6 @@
     
     return [NSArray arrayWithArray:nodes];
 }
-
 
 -(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index {
     
@@ -410,8 +405,6 @@
 -(NSURL*)mixOutputFileURL {
     return _finalRecordingOutputURL;
 }
-
-// Old should use playerNode at index
 
 -(NSURL*) playerNode1FileURL {
     return [self playerNodeFileURLAtIndex:0];
@@ -484,11 +477,11 @@
  pausePlayingTrack1 - older model, but adapted to new model
  
  */
-- (void)stopPlayingTrack1 {
+-(void)stopPlayingTrack1 {
     [self.playerNode1 stop];
 }
 
-- (void)pausePlayingTrack1 {
+-(void)pausePlayingTrack1 {
     [self.playerNode1 pause];
 }
 
@@ -724,11 +717,10 @@
 
 #pragma mark -
 // TODO: deprecate
-- (void)playMicRecordedFile { }
+-(void)playMicRecordedFile { }
 -(void)setMicPlayerFramePosition:(AVAudioFramePosition)micPlayerFramePosition { }
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress { }
 // TODO: deprecate to here
-
 
 
 //=======================
@@ -972,83 +964,6 @@
     }
     
 }
-
-
-//// Option Buffer by buffer
-//else if (option==2) {
-//
-//    // Play buffer by buffer starting at read pos  read a portion and play the rest
-//    const AVAudioFrameCount kBufferFrameCapacity = 8 * 1024L;  // 8k .1857 seconds at 44100
-//    AVAudioPCMBuffer *readBuffer =
-//    [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat frameCapacity: kBufferFrameCapacity];
-//
-//    audioFile.framePosition = readPosition;
-//
-//    //    NSLog(@"FileLength: %lld  %.3f seconds ",
-//    //          (long long)fileLength, fileLength / seekingAudioFile.fileFormat.sampleRate);
-//
-//    NSError *error = nil;
-//
-//    if ([audioFile readIntoBuffer: readBuffer error: &error]) {
-//        [playerNode scheduleBuffer:readBuffer
-//                            atTime:delayAudioTime
-//                           options:AVAudioPlayerNodeBufferInterrupts
-//                 completionHandler:^{
-//                     NSError *error;
-//                     AVAudioPCMBuffer *buffer =
-//                     [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat
-//                                                   frameCapacity:(AVAudioFrameCount)audioFile.length];
-//
-//                     if ([audioFile readIntoBuffer: buffer error: &error]) {
-//                         [playerNode scheduleBuffer:buffer
-//                                             atTime:nil
-//                                            options:AVAudioPlayerNodeBufferInterrupts
-//                                  completionHandler:finalPlayerCompletion
-//                          ];
-//
-//                     } else {
-//                         NSLog(@"failed to read audio file: %@", error);
-//                     }
-//                 }];
-//
-//    } else {
-//        NSLog(@"failed to read audio file: %@", [error description]);
-//    }
-//}
-//// Option Schedule segment
-//else if (option==3) {
-//
-//    // Simply schedule some sound to play while seeking
-//    // Need a way to continue playing to end
-//    AVAudioFramePosition fileLength = audioFile.length;
-//    AVAudioFrameCount framesToread = 22050; // half second at 44100
-//    if ((readPosition + framesToread) > fileLength) {
-//        framesToread = (AVAudioFrameCount) (fileLength - readPosition);
-//    }
-//
-//    // TODO: needs to read the rest
-//    [playerNode scheduleSegment:playerNode.audioFile
-//                  startingFrame:readPosition
-//                     frameCount:framesToread
-//                         atTime:delayAudioTime
-//              completionHandler:^{
-//                  NSLog(@"seeking played segment");
-//                  // Now play here until end
-//
-//              }];
-//}
-//
-//// NO OPtion normal play all
-//else {
-//    AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
-//    if (audioBuffer == nil)
-//    {
-//        //continue; // not interested
-//        return;
-//    }
-//    AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
-//    [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:finalPlayerCompletion];
-//}
 
 
 #pragma mark - engine commands
@@ -1349,8 +1264,6 @@
 
 
 
-
-
 //=======================
 //  R E C O R D I N G
 //=======================
@@ -1450,21 +1363,14 @@
     return result;
 }
 
-- (NSURL*)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
-    
-    NSURL* result;
-    
+- (void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
     _isRecordingOnly = YES;
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     rc.metering = NO;
     [rc record];
-    result = rc.micOutputFileURL;
-
-    return result;
 }
 
 - (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex {
-
     NSTimeInterval result = 0;
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     result = [rc currentTime];
@@ -1472,9 +1378,7 @@
 }
 
 - (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
-    
-    NSLog(@"%s %ld",__func__,prIndex);
-    
+
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     
     [rc stopRecording];
@@ -1521,12 +1425,11 @@
 
  Play all audio player nodes from beginning and record
  
- // play all with fade in from primary
- //TODO: get this to work
- //In order to play all and record with a fade, i need to get the current position the
- //audio is at and i need to check if any crops have been done.  This is so if they are recording
- //from the middle of audio it can start there, or if they are recording from the beggining
- //of a clipped track, i can use seconds before the clips to fade in.
+  play all with fade in from primary
+ In order to play all and record with a fade, i need to get the current position the
+ audio is at and i need to check if any crops have been done.  This is so if they are recording
+ from the middle of audio it can start there, or if they are recording from the beggining
+ of a clipped track, i can use seconds before the clips to fade in.
 
  */
 
@@ -2107,9 +2010,95 @@
 @end
 
 
+
+
+
+
 //===========================================================================
+//  KEEPME - option buffer reads
 //
+//===========================================================================
+
+//// Option Buffer by buffer
+//else if (option==2) {
 //
+//    // Play buffer by buffer starting at read pos  read a portion and play the rest
+//    const AVAudioFrameCount kBufferFrameCapacity = 8 * 1024L;  // 8k .1857 seconds at 44100
+//    AVAudioPCMBuffer *readBuffer =
+//    [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat frameCapacity: kBufferFrameCapacity];
+//
+//    audioFile.framePosition = readPosition;
+//
+//    //    NSLog(@"FileLength: %lld  %.3f seconds ",
+//    //          (long long)fileLength, fileLength / seekingAudioFile.fileFormat.sampleRate);
+//
+//    NSError *error = nil;
+//
+//    if ([audioFile readIntoBuffer: readBuffer error: &error]) {
+//        [playerNode scheduleBuffer:readBuffer
+//                            atTime:delayAudioTime
+//                           options:AVAudioPlayerNodeBufferInterrupts
+//                 completionHandler:^{
+//                     NSError *error;
+//                     AVAudioPCMBuffer *buffer =
+//                     [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat
+//                                                   frameCapacity:(AVAudioFrameCount)audioFile.length];
+//
+//                     if ([audioFile readIntoBuffer: buffer error: &error]) {
+//                         [playerNode scheduleBuffer:buffer
+//                                             atTime:nil
+//                                            options:AVAudioPlayerNodeBufferInterrupts
+//                                  completionHandler:finalPlayerCompletion
+//                          ];
+//
+//                     } else {
+//                         NSLog(@"failed to read audio file: %@", error);
+//                     }
+//                 }];
+//
+//    } else {
+//        NSLog(@"failed to read audio file: %@", [error description]);
+//    }
+//}
+//// Option Schedule segment
+//else if (option==3) {
+//
+//    // Simply schedule some sound to play while seeking
+//    // Need a way to continue playing to end
+//    AVAudioFramePosition fileLength = audioFile.length;
+//    AVAudioFrameCount framesToread = 22050; // half second at 44100
+//    if ((readPosition + framesToread) > fileLength) {
+//        framesToread = (AVAudioFrameCount) (fileLength - readPosition);
+//    }
+//
+//    // TODO: needs to read the rest
+//    [playerNode scheduleSegment:playerNode.audioFile
+//                  startingFrame:readPosition
+//                     frameCount:framesToread
+//                         atTime:delayAudioTime
+//              completionHandler:^{
+//                  NSLog(@"seeking played segment");
+//                  // Now play here until end
+//
+//              }];
+//}
+//
+//// NO OPtion normal play all
+//else {
+//    AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
+//    if (audioBuffer == nil)
+//    {
+//        //continue; // not interested
+//        return;
+//    }
+//    AVAudioPlayerNodeBufferOptions boptions = loops? AVAudioPlayerNodeBufferLoops : 0;
+//    [playerNode scheduleBuffer:audioBuffer atTime:delayAudioTime options:boptions completionHandler:finalPlayerCompletion];
+//}
+
+
+
+//===========================================================================
+//  for ref to be tossed
 //===========================================================================
 
 //#pragma mark - support the scrubber older model
