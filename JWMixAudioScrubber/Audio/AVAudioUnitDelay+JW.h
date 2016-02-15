@@ -11,4 +11,11 @@
 
 @interface AVAudioUnitDelay (JW) <JWEffectsModifyingProtocol>
 
+-(float)floatValue1;
+-(float)floatValue2;
+-(BOOL)boolValue1;
+
+-(BOOL)adjustFloatValue1:(float)value;
+-(BOOL)adjustFloatValue2:(float)value;
+-(BOOL)adjustBoolValue1:(BOOL)value;
 @end

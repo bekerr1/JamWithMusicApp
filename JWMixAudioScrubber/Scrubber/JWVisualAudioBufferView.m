@@ -47,6 +47,29 @@
 }
 
 
+-(void)die {
+
+    [UIView animateWithDuration:0.25 delay:0.00 options:UIViewAnimationOptionCurveLinear animations:^{
+        self.alpha = 0.0;
+    } completion:^(BOOL fini){
+        [self removeFromSuperview];
+    }];
+
+}
+
+-(void)setTimeToLive:(NSTimeInterval)timeToLive {
+    
+    [NSTimer scheduledTimerWithTimeInterval:timeToLive target:self selector:@selector(die) userInfo:nil repeats:NO];
+    
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeToLive * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        [UIView animateWithDuration:0.25 delay:0.10 options:UIViewAnimationOptionCurveLinear animations:^{
+//            self.alpha = 0.0;
+//        } completion:^(BOOL fini){
+//            [self removeFromSuperview];
+//        }];
+//    });
+}
+
 -(void)setNotifString:(NSString *)notifString
 {
     if (_notifString)
@@ -910,9 +933,6 @@
             CGContextAddLineToPoint(context, endp.x, endp.y);
             CGContextStrokePath(context);
         }
-        
-    
-    
     
     }
 

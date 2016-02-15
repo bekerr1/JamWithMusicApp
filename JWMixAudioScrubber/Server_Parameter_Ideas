@@ -1,0 +1,23 @@
+Server Parameter Ideas:
+
+Users Data:
+-UserName
+-Password (private)
+-Picture
+-Uploaded Audio Files (in order of most recent)
+-Downloaded Audio Files (in order of most recent)
+-Connections
+-Identifying Device
+
+Audio File Data:
+-Name
+-Likes
+-Duration
+-Key
+-Date
+-MP3 (or other format)
+-How many people have added to the original (base track + every track added to that)
+-Elements a track has (Rhythm, solo, vocals, precusion)
+
+
+https://d262ilb51hltx0.cloudfront.net/max/800/0*21Ezm5SbYie_a3oD.png

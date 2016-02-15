@@ -9,6 +9,9 @@
 #import <Foundation/Foundation.h>
 #import "JWPlayerControlsProtocol.h"
 #import "JWEffectsHandler.h"
+#import "JWScrubberController.h"
+#import "JWMTEffectsAudioEngine.h"
+#import "JWPlayerControlsViewController.h"
 @import UIKit;
 
 
@@ -18,12 +21,20 @@ typedef void (^JWPlayerCompletionHandler)(void);
 
 @interface JWAudioPlayerController : NSObject <JWPlayerControlsProtocol>
 
+@property (nonatomic) JWScrubberController *sc;
+@property (strong, nonatomic) JWMTEffectsAudioEngine *audioEngine;
+@property (nonatomic) JWPlayerControlsViewController* pcvc;
 @property (strong, nonatomic) id trackItem;
 @property (strong, nonatomic) id trackItems;
 @property (nonatomic, readonly) PlayerControllerState state;
 @property (nonatomic, readonly) NSUInteger numberOfTracks;
 @property (nonatomic) id <JWAudioPlayerControllerDelegate> delegate;
 @property (nonatomic) BOOL autoPlay;
+//TODO: more five second stuff
+@property (nonatomic) BOOL hasFiveSecondClip;
+@property (nonatomic) BOOL listenToPositionChanges;
+@property (nonatomic) NSTimer *fiveSecondTimer;
+@property (nonatomic) NSTimer *mixerValueFadeTimer;
 
 -(void)setTrackSet:(id)trackSet;
 
@@ -44,6 +55,11 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(BOOL) stopEditingSelectedTrackSave;
 -(BOOL) stopEditingSelectedTrackCancel;
 -(void) stop;
+-(void)addEffectToEngineNodelist:(NSString *)effect;
+
+-(NSDictionary*)defaultWhiteColors;
+-(NSUInteger)numberOfTracksWithAudio;
+-(void)configureScrubbers:(BOOL)tap;
 
 @end
 
@@ -65,6 +81,9 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @optional
 -(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key;
 -(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key;
+//TODO: so i can set the target of a timer to the detail view controller
+//becuase it hold the label that needs to be manipulated
+-(id)countDownTarget;
 
 
 @end

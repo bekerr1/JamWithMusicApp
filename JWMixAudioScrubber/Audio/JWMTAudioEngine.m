@@ -19,6 +19,7 @@
     BOOL _suspendPlayAlll;
     dispatch_queue_t _bufferReceivedQueue;
     BOOL _isRecordingOnly;
+    
 }
 @property (nonatomic) NSURL *trimmedURL;
 @property (nonatomic) NSURL *fiveSecondURL;
@@ -27,7 +28,10 @@
 @property (nonatomic,strong) id <JWScrubberBufferControllerDelegate> scrubberBufferController;
 @property (nonatomic) NSMutableIndexSet *activePlayersIndex;
 @property (nonatomic) NSMutableIndexSet *activeRecorderIndex;
+@property (nonatomic) NSMutableArray *playingNodes;
 @property (nonatomic) AVAudioPCMBuffer *fiveSecondBuffer;
+@property (nonatomic) JWPlayerNode *fiveSecondNode;
+@property (nonatomic) NSString *fiveSecondString;
 @property (nonatomic) BOOL needMakeConnections;
 @end
 
@@ -214,6 +218,84 @@
        ] mutableCopy];
 }
 
+//TODO:Five Second stuff, not sure if mutable.  Added this for creation of five second node
+//only needed if engine is active (so doesnt show up in table view as a valid node)
+-(NSMutableDictionary *)createFiveSecondPlayerNodeWithDirectory:(NSString *)fileString fromKey:(NSString*)dbKey {
+    
+    if (dbKey == nil) {
+        NSLog(@"No Key To Create File String.");
+        return nil;
+    }
+    NSURL *validURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/fiveSecondsMP3_%@.m4a",fileString, dbKey]];
+    NSLog(@"Valid URL? %@", [validURL absoluteString]);
+    NSFileManager *quickManager = [NSFileManager defaultManager];
+    
+    if (![quickManager fileExistsAtPath:[validURL path]]) {
+        NSLog(@"No Valid URL To Create File String URL.");
+        return nil;
+    }
+    
+    
+    NSMutableDictionary *fiveSecondNode =
+    [@{
+      @"title" : @"fivesecondnode",
+      @"type" : @(JWMixerNodeTypeFiveSecondPlayer),
+      @"volumevalue" : @(0.0),
+      @"fileURLString" : [NSString stringWithFormat:@"%@/fiveSecondsMP3_%@.m4a",fileString, dbKey]
+      } mutableCopy];
+    
+    JWPlayerNode *pn = [JWPlayerNode new];
+    pn.volume = 0.4f;
+    fiveSecondNode[@"player"] = pn;
+    self.fiveSecondNode = pn;
+    
+    NSError *error;
+    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:validURL error:&error];
+    if (error)
+        NSLog(@"%@",[error description]);
+     else
+        fiveSecondNode[@"audiofile"] = audioFile;
+
+    
+    return fiveSecondNode;
+}
+
+
+//TODO: added this for five second addition to node list
+-(BOOL)addFiveSecondNodeToListForKey:(NSString *)dbKey {
+    
+//    NSString *keyForFiveSecondNode = nil;
+    
+    if (dbKey) {
+        
+        NSDictionary *fiveSecondNode = nil;
+        
+        //TODO:questionable methods to determining a five second node should be establishd
+        for (NSMutableDictionary *node in _playerNodeList) {
+            NSString* fileURLString = node[@"fileURLString"];
+            
+            if (fileURLString) {
+                
+                NSRange subStringRange = [fileURLString rangeOfString:@"Documents"];
+                NSString *directoryOfPlayerNodeURL = [fileURLString substringWithRange:NSMakeRange(0, subStringRange.location + subStringRange.length)];
+                fiveSecondNode = [self createFiveSecondPlayerNodeWithDirectory:directoryOfPlayerNodeURL
+                                                                                     fromKey:dbKey];
+                if (fiveSecondNode) {
+                    node[@"fivesecondnode"] = fiveSecondNode;
+                    NSLog(@"five second node added %s", __func__);
+                    _hasFiveSecondClip = YES;
+                    return YES;
+                }
+
+                
+            }
+        }
+        
+        
+    }
+    return NO;
+}
+
 
 #pragma mark - VAB listeners
 
@@ -389,6 +471,22 @@
     return [NSArray arrayWithArray:nodes];
 }
 
+-(NSUInteger)countOfNodesWithAudio {
+    
+    NSUInteger count = 0;
+    for (int i = 0; i < [_playerNodeList count]; i++) {
+        NSDictionary *node = _playerNodeList[i];
+        if (node) {
+            id fileUrl = node[@"fileURLString"];
+            if (fileUrl) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+
 -(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index {
     
     JWMixerNodeTypes result = 0;
@@ -522,7 +620,7 @@
         
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer || nodeType == JWMixerNodeTypeFiveSecondPlayer) {
         
             JWPlayerNode *pn = [JWPlayerNode new];
             pn.volume = 0.4f;
@@ -608,6 +706,27 @@
     }
 }
 
+-(void)configFiveSecondNode {
+    
+    for (id node in _playerNodeList) {
+        
+        id fiveSecondNode = node[@"fivesecondnode"];
+        AVAudioMixerNode *mainMixer = [self.audioEngine mainMixerNode];
+        
+        if (fiveSecondNode) {
+            
+            id playerNode = fiveSecondNode[@"player"];
+            AVAudioFile *audioFile = fiveSecondNode[@"audiofile"];
+            if (self.audioEngine && playerNode && audioFile) {
+                
+                [self.audioEngine attachNode:(JWPlayerNode *)playerNode];
+                [self.audioEngine connect:playerNode to:mainMixer format:audioFile.processingFormat];
+                
+            }
+        }
+    }
+}
+
 
 #pragma mark - engine setup
 
@@ -620,6 +739,8 @@
     [self teeUpAudioBuffers];
     [self teeUpAudioBufferFadeIn];
     [self makeEngineConnections];
+    //TODO:added for five seconds;
+    [self configFiveSecondNode];
     [self startEngine];
 }
 
@@ -669,17 +790,18 @@
 
 - (void)makeEngineConnections {
     
-    // get the engine's optional singleton main mixer node
-    AVAudioMixerNode *mainMixer = [self.audioEngine mainMixerNode];
+    
     
     // ITERATE through player list looking for players
+    // get the engine's optional singleton main mixer node
+    AVAudioMixerNode *mainMixer = [self.audioEngine mainMixerNode];
     
     NSUInteger nNodes = [self.playerNodeList count];
     
     for (int index = 0; index < nNodes; index++) {
 
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer || nodeType == JWMixerNodeTypeFiveSecondPlayer) {
             // loops, delays and volume attrs not cosidered here
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
@@ -696,6 +818,7 @@
         }
     }
     
+    NSLog(@"mixer inputs %i", [mainMixer numberOfInputs]);
     self.needMakeConnections = NO;
 }
 
@@ -716,11 +839,11 @@
  match that of the source node's output bus. */
 
 #pragma mark -
-// TODO: deprecate
+// deprecate
 -(void)playMicRecordedFile { }
 -(void)setMicPlayerFramePosition:(AVAudioFramePosition)micPlayerFramePosition { }
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress { }
-// TODO: deprecate to here
+// deprecate to here
 
 
 //=======================
@@ -747,12 +870,12 @@
 
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn  {
     
-    [self scheduleAllWithOptions:0 insetSeconds:secondsIn recording:NO];
+    [self scheduleAllWithOptions:0 insetSeconds:secondsIn duration:0.0 recording:NO];
 }
 
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn duration:(NSTimeInterval)duration {
     
-    [self scheduleAllWithOptions:0 insetSeconds:secondsIn recording:NO];
+    [self scheduleAllWithOptions:0 insetSeconds:secondsIn duration:duration recording:NO];
 }
 
 
@@ -783,17 +906,17 @@
 
 -(void)scheduleAllPlayerNode:(id)playerNodeInfo audioFile:(AVAudioFile *)audioFile index:(NSUInteger)index
                 insetSeconds:(NSTimeInterval)secondsIn
+                    duration:(NSTimeInterval)duration
                    recording:(BOOL)recording {
     
     AVAudioFormat *processingFormat = [audioFile processingFormat];
     
-    // PLAYNODE Config
+    // PLAYNODE Config and Properties
     BOOL loops = NO;
     NSTimeInterval secondsDelay = 0;
     AVAudioTime *delayAudioTime = nil;
     JWPlayerFileInfo *fileReference = nil;
     float volume = 0.25;
-    
     id obj = nil;
     if (recording  && index == 0) {
         // override loops on recording and track 0
@@ -812,74 +935,89 @@
         delayAudioTime = [AVAudioTime timeWithSampleTime:(secondsDelay * processingFormat.sampleRate)
                                                   atRate:processingFormat.sampleRate];
     }
-    
     obj = playerNodeInfo[@"referencefile"];
     if (obj) {
         NSTimeInterval durationSeconds = audioFile.length / processingFormat.sampleRate;
-        
         //how far in you want to start playing
         id startInsetValue = obj[@"startinset"];
         float startInset = startInsetValue ? [startInsetValue floatValue] : 0.0;
-        
         //how far in you want the track to stop playing
         id endInsetValue = obj[@"endinset"];
         float endInset = endInsetValue ? [endInsetValue floatValue] : 0.0;
-        
+
         fileReference =
         [[JWPlayerFileInfo alloc] initWithCurrentPosition:secondsIn duration:durationSeconds
                                             startPosition:secondsDelay
                                                startInset:startInset endInset:endInset];
     }
-    
+
+    // DETERMINE READ POSITION AND DELAY ANd WHETHER HAS AUDIO TO PLAY
+
     BOOL hasAudioToPlay = YES;
-    
-    // DETERMINE READ POSITION AND DELAY
     AVAudioFramePosition readPosition = 0;
-    
     if (secondsDelay > secondsIn) {
         // reduce delay
         delayAudioTime = [AVAudioTime timeWithSampleTime:((secondsDelay - secondsIn) * processingFormat.sampleRate)
                                                   atRate:processingFormat.sampleRate];
-    } else {
+    }
+    else {
+        // delay Zero, and readIn required, delay < secondsIn , in progress
+        // delay 5  seconds in 8 read 3 seconds in
         
-        if (fileReference) {
-            if (fileReference.readPositionInReferencedTrack < 0.0) {
-                NSLog(@"%s fileReference read position negative",__func__);
-                hasAudioToPlay = NO;
-            } else {
-
-                readPosition = fileReference.readPositionInReferencedTrack *  processingFormat.sampleRate;
+        readPosition = (secondsIn - secondsDelay) * processingFormat.sampleRate;
+    }
+    
+    if (fileReference) {
+        /*
+         The fileReference here has secondsDelay builtin will override readposition already established
+         */
+        if (fileReference.readPositionInReferencedTrack < 0.0) {
+            if (fileReference.remainingInTrack > 0) {
+                readPosition = fileReference.startPositionInset *  processingFormat.sampleRate;
                 
-                NSLog(@"%s fileReference dur %.2fs remaining %.2fs read %lld ",__func__,
-                      fileReference.duration,
-                      fileReference.remainingInTrack,
-                      readPosition);
+            } else {
+                NSLog(@"fileReference read position negative");
+                hasAudioToPlay = NO;
             }
-            
         } else {
+            readPosition = fileReference.readPositionInReferencedTrack *  processingFormat.sampleRate;
             
-            // delay Zero, and readIn required, delay < secondsIn , in progress
-            // delay 5  seconds in 8 read 3 seconds in
-
-            readPosition = (secondsIn - secondsDelay) * processingFormat.sampleRate;
+            NSLog(@"fileReference dur %.2fs remaining %.2fs read %lld ",
+                  fileReference.duration,
+                  fileReference.remainingInTrack,
+                  readPosition);
         }
     }
     
     //            NSLog(@"%s loops %@ secondsDelay %.3f secondsin %.3f read %lld ",__func__,@(loops),secondsDelay,secondsIn,readPosition);
     
     if (hasAudioToPlay) {
+        
+        JWMixerNodeTypes type = [playerNodeInfo[@"type"] integerValue];
+        
         // GET The player for this audio
         JWPlayerNode* playerNode =  playerNodeInfo[@"player"];
         [_activePlayersIndex addIndex:index];
         
         playerNode.audioFile = audioFile;
-        
+        playerNode.fileReference = playerNodeInfo[@"referencefile"];
+        playerNode.delayStart = secondsDelay;
+        playerNode.startPlayingInset = secondsIn;
+
         // Final Player completion
         void (^playerCompletion)(void) = ^{
-            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+//            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
             dispatch_sync(dispatch_get_main_queue(), ^() {
                 if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
                     [_engineDelegate completedPlayingAtPlayerIndex:index];
+            });
+        };
+        //TODO: added for five second completion
+        void (^fiveSecondCompletion)(void) = ^{
+            NSLog(@"Five second completed for playerAtIndex %ld", (unsigned long)index);
+            dispatch_sync(dispatch_get_main_queue(), ^() {
+                if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
+                    [_engineDelegate fiveSecondBufferCompletion];
             });
         };
         
@@ -887,35 +1025,48 @@
         // Play buffer One read at position if necessary
         AVAudioFramePosition fileLength = audioFile.length;
         AVAudioFrameCount remainingFrameCount = 0;
-        
-        if (fileReference)
-            remainingFrameCount =  fileReference.remainingInTrack * processingFormat.sampleRate;
-        else
-            remainingFrameCount =  (AVAudioFrameCount)(fileLength - readPosition);
-        
+        AVAudioFrameCount durationFrameCount = duration * processingFormat.sampleRate;
+        if (duration > 0) {
+            remainingFrameCount = durationFrameCount;
+            NSLog(@"AE USE_DURATION: dfrc %lld %.3f secs, rfrc %u,  %.3f scndsin %ld nds idx %ld",
+                  (long long)durationFrameCount,duration,remainingFrameCount,secondsIn,[_playerNodeList count],index);
+        } else {
+            if (fileReference)
+                remainingFrameCount =  fileReference.remainingInTrack * processingFormat.sampleRate;
+            else
+                remainingFrameCount =  (AVAudioFrameCount)(fileLength - readPosition);
+
+            NSLog(@"AE TO_THE_END: rfrc %u,  %.3f scndsin %ld nds idx %ld",remainingFrameCount,secondsIn,[_playerNodeList count],index);
+        }
+
+
+        // CREATE and READ buffer and READ from the File at READ POSITION
+        audioFile.framePosition = readPosition;
+
         AVAudioFrameCount bufferFrameCapacity = remainingFrameCount;
-        
-        
-        // CREATE and READ buffer
         AVAudioPCMBuffer *readBuffer =
         [[AVAudioPCMBuffer alloc] initWithPCMFormat: audioFile.processingFormat frameCapacity: bufferFrameCapacity];
-        
-        // READ from the File
         NSError *error = nil;
-        audioFile.framePosition = readPosition;
-        
         if ([audioFile readIntoBuffer: readBuffer error: &error]) {
             
-            NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
-                  fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
-            
+//            NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
+//                  fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
             
             // SCHEDULE THE BUFFER
-
-            [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
-                               options:AVAudioPlayerNodeBufferInterrupts
-                     completionHandler:playerCompletion
-             ];
+            //TODO: added a check on the type to make sure the right completion block is scheduled
+            if (type == JWMixerNodeTypePlayer || type == JWMixerNodeTypeMixerPlayerRecorder) {
+                [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
+                                   options:AVAudioPlayerNodeBufferInterrupts
+                         completionHandler:playerCompletion
+                 ];
+                
+            } else if (type == JWMixerNodeTypeFiveSecondPlayer) {
+                [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
+                                   options:AVAudioPlayerNodeBufferInterrupts
+                         completionHandler:fiveSecondCompletion
+                 ];
+                _scheduledFiveSecondClip = YES;
+            }
             
         } else {
             NSLog(@"failed to read audio file: %@", [error description]);
@@ -927,29 +1078,40 @@
  Iteration method scheduleAll
  */
 
--(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn recording:(BOOL)recording {
+-(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn
+                     duration:(NSTimeInterval)duration
+                    recording:(BOOL)recording {
 
-    NSLog(@"scheduleAllWithOptions %.3f secondsin, %ld nodes",secondsIn,[_playerNodeList count]);
+//    NSLog(@"scheduleAllWithOptions %.3f secondsin, %ld nodes",secondsIn,[_playerNodeList count]);
     NSUInteger index = 0;
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
         JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        //TODO: fivesecond
+        id fiveSecondNode = playerNodeInfo[@"fivesecondnode"];
+        id fsAudioFile = fiveSecondNode[@"audiofile"];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeFiveSecondPlayer) {
             
             AVAudioFile *audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
             if (audioFile == nil) {
                 if (nodeType == JWMixerNodeTypePlayerRecorder)
                     [_activeRecorderIndex addIndex:index];
                 
+                index++;
                 continue; // not interested
             }
             
             // OTHERWISE we are ready to go with a buffer which is what we are scheduling
             // including obtaining delay time information
 
-            [self scheduleAllPlayerNode:playerNodeInfo audioFile:audioFile index:index insetSeconds:secondsIn recording:recording];
+            [self scheduleAllPlayerNode:playerNodeInfo audioFile:audioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
+            //[self schedulePlayerNode:playerNodeInfo audioFile:audioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
+            
+            if (fiveSecondNode && fsAudioFile) {
+                [self scheduleAllPlayerNode:fiveSecondNode audioFile:fsAudioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
+            }
         }
         
         index++;
@@ -968,7 +1130,14 @@
 
 #pragma mark - engine commands
 
-//TODO: added this
+
+-(void)playFiveSecondNode {
+    NSLog(@"%s", __func__);
+    
+    [self.fiveSecondNode play];
+    
+}
+
 -(BOOL)playAllActivePlayerNodes {
 //    NSLog(@"%s", __func__);
     
@@ -1351,6 +1520,29 @@
     
     return result;
 }
+
+-(NSInteger)indexOfFirstRecorderNodeWithNoAudio {
+    
+    //Want to put the url for the recording
+    int returnIndex = 0;
+    for (NSMutableDictionary *pn in _playerNodeList) {
+        
+        JWMixerNodeTypes nodeType = [pn[@"type"] integerValue];
+        NSString *fileString = pn[@"fileURLString"];
+        
+        if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
+            
+            if (!fileString) {
+                //This is the top most recorder node with no fileURL
+                return returnIndex;
+            }
+        }
+        returnIndex++;
+    }
+    return -1;
+    
+}
+
 
 
 // NO Playback simply start recording
@@ -1806,7 +1998,7 @@
     AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
     
     NSLog(@"%s Installed visual Audio mixer tap",__func__);
-    [mainMixer installTapOnBus:0 bufferSize:1024 format:[mainMixer outputFormatForBus:0]
+    [mainMixer installTapOnBus:0 bufferSize:2024 format:[mainMixer outputFormatForBus:0]
                          block:^(AVAudioPCMBuffer* buffer, AVAudioTime* when) {
                              // Write buffer to final recording
                              // Get it out of here
@@ -2013,7 +2205,6 @@
 
 
 
-
 //===========================================================================
 //  KEEPME - option buffer reads
 //
@@ -2096,113 +2287,9 @@
 //}
 
 
-
 //===========================================================================
 //  for ref to be tossed
 //===========================================================================
 
-//#pragma mark - support the scrubber older model
-// OLD modelgeneric
-//-(NSString*)processingFormatStrOfAudioFile:(AVAudioFile*)audioFile {
-//    NSString *result = nil;
-//    if (audioFile) {
-//        AVAudioFormat *format = [_trimmedAudioFile processingFormat];
-//        result = [NSString stringWithFormat:@"%d ch %.0f %d %@ %@",
-//                  format.streamDescription->mChannelsPerFrame,
-//                  format.streamDescription->mSampleRate,
-//                  format.streamDescription->mBitsPerChannel,
-//                  format.standard ? @"Float32-std" : @"std NO",
-//                  format.interleaved ? @"inter" : @"non-interleaved"
-//                  ];
-//    }
-//    NSLog(@"%s %@",__func__,result);
-//    return result;
-//}
-// other
-
-
-//-(void)changeProgressOfSeekingAudioFile:(CGFloat)progress {
-//    //    AVAudioFramePosition fileLength = seekingAudioFile.length;
-//    //    AVAudioFramePosition readPosition = progress * fileLength;
-//    //    if (_micPlayer.playing) {
-//    //        [self playSeekingAudioFileAtFramPosition:readPosition];
-//}
-
-
-//-(CGFloat)progressOfSeekingAudioFile {
-//    return [self.playerNode1 progressOfAudioFile];
-//}
-//-(CGFloat)durationInSecondsOfSeekingAudioFile {
-//    return [self.playerNode1 durationInSecondsOfAudioFile];
-//}
-//-(CGFloat)remainingDurationInSecondsOfSeekingAudioFile {
-//    return [self.playerNode1 remainingDurationInSecondsOfAudioFile];
-//}
-//-(CGFloat)currentPositionInSecondsOfSeekingAudioFile {
-//    return [self.playerNode1 currentPositionInSecondsOfAudioFile];
-//}
-//-(NSString*)processingFormatStr{
-//    return nil;
-//    //    return [self.playerNode1 processingFormatStr];
-//}
-//
-
-//
-//-(CGFloat)progressOfAudioFileForPlayerNamed:(NSString*)name {
-//    JWPlayerNode *pn = [self playerForNodeNamed:name];
-//    return [pn progressOfAudioFile];
-//}
-//-(CGFloat)durationInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
-//    JWPlayerNode *pn = [self playerForNodeNamed:name];
-//    return [pn durationInSecondsOfAudioFile];
-//}
-//-(CGFloat)remainingDurationInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
-//    JWPlayerNode *pn = [self playerForNodeNamed:name];
-//    return [pn remainingDurationInSecondsOfAudioFile];
-//}
-//-(CGFloat)currentPositionInSecondsOfAudioFileForPlayerNamed:(NSString*)name {
-//    JWPlayerNode *pn = [self playerForNodeNamed:name];
-//    return [pn currentPositionInSecondsOfAudioFile];
-//}
-//-(NSString*)processingFormatStrForPlayerNamed:(NSString*)name {
-////    JWPlayerNode *pn = [self playerForNodeNamed:name];
-//    //    return [pn processingFormatStr];
-//    return nil;
-//}
-
-//#pragma mark - file methods
-//
-//-(NSString*)documentsDirectoryPath {
-//    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-//    return [searchPaths objectAtIndex:0];
-//}
-//
-//-(void)savePlayerNodeList{
-//    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"playernodes.dat"];
-//    // Remove non serilizableobjects
-//    for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
-//        [playerNodeInfo removeObjectForKey:@"player"];
-//        [playerNodeInfo removeObjectForKey:@"recorderController"];
-//        [playerNodeInfo removeObjectForKey:@"audiofile"];
-//        [playerNodeInfo removeObjectForKey:@"audiobuffer"];
-//        [playerNodeInfo removeObjectForKey:@"fileURL"];
-//    }
-//    [_playerNodeList writeToURL:[NSURL fileURLWithPath:fpath] atomically:YES];
-//    
-//    NSLog(@"\n%s\nplayernodes.dat\n%@",__func__,[_playerNodeList description]);
-//}
-//
-//-(void)readPlayerNodeList{
-//    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"playernodes.dat"];
-//    NSArray *playerNodeListFromFile = [[NSArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-//    //    _playerNodeList = [[NSMutableArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-//    if (playerNodeListFromFile) {
-//        self.playerNodeList = [@[] mutableCopy];
-//        for (NSDictionary* playerNodeInfo in playerNodeListFromFile) {
-//            [_playerNodeList addObject:[playerNodeInfo mutableCopy]];
-//        }
-//    }
-//    NSLog(@"\n%s\nplayernodes.dat\n%@",__func__,[_playerNodeList description]);
-//}
 
 

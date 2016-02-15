@@ -321,7 +321,7 @@ static void * XItemStatusContext = &XItemStatusContext;
                 message = [NSString stringWithFormat:@"Export cancelled!"];
                 break;
             default:
-                message = [NSString stringWithFormat:@"Export unhandled status: %ld", exportSession1.status];
+                message = [NSString stringWithFormat:@"Export unhandled status: %ld", (long)exportSession1.status];
                 break;
         }
         
@@ -349,7 +349,7 @@ static void * XItemStatusContext = &XItemStatusContext;
                 message = [NSString stringWithFormat:@"Export cancelled!"];
                 break;
             default:
-                message = [NSString stringWithFormat:@"Export unhandled status: %ld", exportSession2.status];
+                message = [NSString stringWithFormat:@"Export unhandled status: %ld", (long)exportSession2.status];
                 break;
         }
 

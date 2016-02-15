@@ -112,11 +112,15 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 
 
 -(void)play:(NSString*)sid;
+-(void)playMomentFromPos:(CGFloat)fromPos toPosition:(CGFloat)toPos;
 -(void)playRecord:(NSString*)sid;
 -(void)recordAt:(NSString*)sid;
 //-(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL;
 -(void)stopPlaying:(NSString*)sid;
 -(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind;
+-(void)readyForPlay:(NSString*)sid;
+-(void)readyForScrub;
+
 -(void)resumePlaying;
 -(void)selectTrack:(NSString*)tid;
 -(void)deSelectTrack;
@@ -131,8 +135,10 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)saveEditingTrack:(NSString*)trackId;
 -(void)stopEditingTrackCancel:(NSString*)trackId;
 -(void)stopEditingTrackSave:(NSString*)trackId;
--(void)seekToPosition:(NSString*)sid;
--(void)seekToPosition:(NSString*)sid animated:(BOOL)animated;
+-(void)seekToPosition:(CGFloat)pos scrubber:(NSString*)sid;
+-(void)seekToPosition:(CGFloat)pos scrubber:(NSString*)sid animated:(BOOL)animated;
+-(void)seekToPosition:(CGFloat)pos animated:(BOOL)animated;
+
 
 -(void)configureColors:(NSDictionary*)trackColors;
 -(void)configureColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
@@ -150,6 +156,9 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)modifyTrack:(NSString*)trackId colors:(NSDictionary*)trackColors alpha:(CGFloat)alpha;
 -(void)modifyTrack:(NSString*)trackId pan:(CGFloat)panValue;
 -(void)modifyTrack:(NSString*)trackId volume:(CGFloat)volumeValue;
+
+-(void)setBackgroundToClear;
+ 
 
 @end
 

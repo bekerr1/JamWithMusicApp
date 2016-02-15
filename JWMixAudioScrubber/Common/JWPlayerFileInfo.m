@@ -99,10 +99,12 @@ _readPositionInReferencedTrack returns NEGATIVE when track not ready to be read
         NSLog(@"%s cpos beyond length",__func__);
         _remainingInTrack = 0.0;
 
-    } else if (_currentPositionIntrack < 0) {
-        _remainingInTrack = 0.0;
-        
-    }else {
+    }
+//    else if (_currentPositionIntrack < 0) {
+//        _remainingInTrack = 0.0;
+//        
+//    }
+    else {
         _remainingInTrack = _duration - _currentPositionIntrack;
     }
 

@@ -12,11 +12,11 @@
 #import "JWScrubberGradientLayer.h"
 #import "JWScrubberClipEndsLayer.h"
 #import "JWPlayerFileInfo.h"
+#import "UIColor+JW.h"
 @import AVFoundation;
 @import QuartzCore;
 
 const int maxTracks = 10;
-
 const NSString *JWColorScrubberTopPeak = @"TopPeak";
 const NSString *JWColorScrubberBottomPeak = @"BottomPeak";
 const NSString *JWColorScrubberTopAvg = @"TopAvg";
@@ -31,7 +31,6 @@ const NSString *JWColorBackgroundTrackGradientColor2 = @"TrackGradientColor2";
 const NSString *JWColorBackgroundTrackGradientColor3 = @"TrackGradientColor3";
 const NSString *JWColorBackgroundHeaderGradientColor1 = @"HeaderGradientColor1";
 const NSString *JWColorBackgroundHeaderGradientColor2 = @"HeaderGradientColor2";
-
 typedef NS_ENUM(NSInteger, ScrubberEditType) {
     ScrubberEditNone = 0,
     ScrubberEditLeft,
@@ -49,10 +48,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat _currentPositions[maxTracks];
     CGFloat _vTrackLengths[maxTracks];
     CGFloat _startPositions[maxTracks];
+    NSUInteger _audioViewBufferCounts[maxTracks];
     CGFloat _overrideScrubberLength;  // in points
-
     ScrubberEditType _editType;
-
     BOOL _trackingCurrentPosition;
     BOOL _listenToScrolling;
     BOOL _isRecording;
@@ -62,12 +60,14 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     BOOL _hueNeedsUpdate;
     BOOL _waitForAnimated;
     BOOL _trackingEdit;
+    BOOL _seeksToPositionOnEdit;
 }
 @property (strong, nonatomic) IBOutlet UIView *playHeadWindow;
 @property (strong, nonatomic) IBOutlet UIScrollView *scrollView;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *topLayoutScrollViewConstraint;
 @property (strong, nonatomic) IBOutlet UIProgressView *recordingProgressView;
 @property (strong, nonatomic) IBOutlet UIProgressView *scrubberProgressView;
+@property (strong, nonatomic) IBOutlet NSLayoutConstraint *recordingBottomConstraint;
 @property (strong, nonatomic) IBOutlet UILabel *playheadLabel;
 @property (strong, nonatomic) IBOutlet UILabel *playheadValueLabel;
 @property (strong, nonatomic) IBOutlet UILabel *durationLabel;
@@ -81,6 +81,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //@property (nonatomic) UIView *clipEnd;
 @property (nonatomic) UIView *editLayerLeft;
 @property (nonatomic) UIView *editLayerRight;
+@property (nonatomic) UIView *editClipButton;
 @property (nonatomic) CAGradientLayer *gradient;
 @property (nonatomic) JWScrubberClipEndsLayer *gradientLeft;
 @property (nonatomic) JWScrubberClipEndsLayer *gradientRight;
@@ -89,6 +90,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 @property (nonatomic) JWScrubberGradientLayer *headerLayer;
 @property (nonatomic) NSMutableArray *trackGradients;
 @property (nonatomic) JWPlayerFileInfo *editFileReference;
+@property (nonatomic) NSUInteger editTrack;  // currenttrack being edited
+@property (nonatomic) NSUInteger recordingTrack;  // recording track being record
 @end
 
 
@@ -99,11 +102,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [super viewDidLoad];
     _playerProgressFormatString = @"%.0f";
     //_playerProgressFormatString = @"%00.2f";
-
+    _seeksToPositionOnEdit = NO;
+    _editTrack = 0;
+    _recordingTrack = 0;
     _uiPointsPerSecondLength = 84.0; // 80 width per second
 //    _uiPointsPerSecondLength = 102.0; // 80 width per second
 //    _uiPointsPerSecondLength = 320.0; // 80 width per second
-
     _vTrackLength = 0.0;
     for (int i=0; i < maxTracks; i++) {
         _currentPositions[i] = 0.0f;
@@ -114,19 +118,22 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat scrubberLengthSeconds = 7.0;
     scrubberLengthSeconds = 0;
     _overrideScrubberLength = scrubberLengthSeconds * _uiPointsPerSecondLength;
-    
     _lastRect = CGRectZero;
-
     [self reset];
     
     _editType = ScrubberEditNone;
-    
     _listenToScrolling = YES;
     _trackingCurrentPosition = YES;
-    self.scrollView.delegate = self;
+
+    // VIEW COLROS AND VISIBILITY
     self.view.backgroundColor = [UIColor whiteColor];
     self.scrollView.backgroundColor = [UIColor clearColor];
-    self.scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
+    self.playHeadWindow.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.10];
+    _playHeadWindow.layer.borderWidth = 0.90;
+    _playHeadWindow.layer.borderColor = _playHeadWindow.backgroundColor.CGColor;
+    self.playHeadWindow.hidden = YES;
+    self.scrollView.delegate = self;
+    self.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal;
     self.scrollView.bounces = NO;
     self.recordingProgressView.hidden = YES;
     self.recordingProgressView.alpha = 0.5;
@@ -134,14 +141,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrubberProgressView.layer.transform = CATransform3DMakeScale(1.0, 8.4, 1.0);
     self.scrubberProgressView.progress = 0.0;
     
-    self.playHeadWindow.hidden = YES;
 }
-
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
-
 
 - (void)viewWillTransitionToSize:(CGSize)size
        withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator> _Nonnull)coordinator
@@ -167,7 +171,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 #pragma mark -
-
 
 - (void)resetScrubberForRecording {  // public
     _isRecording = YES;
@@ -206,7 +209,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //    [self.scrollView setNeedsLayout];
     [self.view setNeedsLayout];
 }
-
 
 - (void)resetScrubberForReload {  // public
     // SOFT RESET - could be used for changing jamtracks altogether
@@ -259,6 +261,8 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     for (int i=0; i < maxTracks; i++)
     {
         _currentPositions[i] = _startPositions[i];
+        _audioViewBufferCounts[i]=0;
+
     }
     _outputValue = 1.0;
     _darkBackground = YES;
@@ -269,6 +273,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [self.view setNeedsLayout];
     [self.scrollView setNeedsLayout];
 //    [self.scrollView setNeedsDisplay];
+}
+
+// TODO: make transitionToReadyForPlay
+- (void)readyForPlay {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.playHeadWindow.layer.borderColor = [[UIColor greenColor] colorWithAlphaComponent:0.80].CGColor;
+    });
+}
+
+-(void)readyForScrub {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.playHeadWindow.layer.borderColor = [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.65].CGColor;
+    });
 }
 
 
@@ -372,6 +389,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     // using starttime and duration either from file reference or track Info
     NSTimeInterval duration = 0.0;
     JWPlayerFileInfo *fileRef = [_delegate fileReferenceObjectForTrack:track];
+    
     if (fileRef) {
         duration = fileRef.duration;
         pos = (fileRef.trackStartPosition + fileRef.duration) * _uiPointsPerSecondLength;
@@ -405,13 +423,13 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
         if (animated) {
             _listenToScrolling = NO;
-//            _trackingEdit = NO;
+            _trackingEdit = NO;
             _waitForAnimated = YES;
             [_scrollView setContentOffset:startOffset animated:animated];
         }
         else {
             [_scrollView setContentOffset:startOffset animated:NO];
-//            _trackingEdit = YES;
+            _trackingEdit = YES;
             _listenToScrolling = YES;
         }
     } else {
@@ -569,6 +587,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
 }
 
+-(void)setBackgroundToClear {
+    self.view.backgroundColor = [UIColor clearColor];
+}
+
 
 #pragma mark -
 
@@ -578,6 +600,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.scrollView.contentInset = UIEdgeInsetsMake(0, _tracksOffest, 0, _tracksOffest);
     self.scrollView.contentSize = CGSizeZero;
     [self configureBookendClips:size];
+    self.playHeadWindow.hidden = NO;
 }
 
 // allows length to be set
@@ -585,18 +608,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)prepareToPlay:(NSUInteger)track atPosition:(CGFloat)position{
 
     [self prepareToPlay:1];
-//    NSLog(@"%s pos %.2f",__func__,position);
-    
+    NSLog(@"%s pos %.2f",__func__,position);
     _listenToScrolling = NO;
-
     CGFloat pos = position * _uiPointsPerSecondLength;
-    CGPoint startOffest = CGPointMake( - self.scrollView.contentInset.left + pos,0);
+    
+ //    - self.scrollView.contentInset.left
+    CGPoint startOffest = CGPointMake(  pos - self.scrollView.contentInset.left,_scrollView.contentOffset.y);
     [_scrollView setContentOffset:startOffest animated:NO];
 }
 
 -(void)prepareToPlay:(NSUInteger)track {
-    _vTrackLength = _vTrackLengths[track];
-    
+//    _vTrackLength = _vTrackLengths[track];
+    _vTrackLength = _vTrackLengths[track] + _startPositions[track];
     if (self.playHeadWindow.hidden == YES) {  // first time at viewDidload
         self.playHeadWindow.alpha = 0.0;
         self.playHeadWindow.hidden = NO;
@@ -607,6 +630,16 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     }
 }
 
+-(void)prepareToRecord:(NSUInteger)track atPosition:(CGFloat)position{
+    
+    [self prepareToPlay:track];
+    //    NSLog(@"%s pos %.2f",__func__,position);
+    _listenToScrolling = NO;
+    CGFloat pos = position * _uiPointsPerSecondLength;
+    CGPoint startOffest = CGPointMake( - self.scrollView.contentInset.left + pos,0);
+    [_scrollView setContentOffset:startOffest animated:NO];
+}
+
 
 #pragma mark -
 
@@ -615,7 +648,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     self.playHeadValueStr = @"";
     CGFloat endPosition = [self largestTrackEndPosition];
     self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-    [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+    if ([_delegate respondsToSelector:@selector(positionInTrackChangedPosition:)]) {
+        [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+    }
 }
 
 -(void)userTrackingProgressEnd {
@@ -623,7 +658,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     CGFloat pos = endPosition;
     self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,pos/_uiPointsPerSecondLength];
     self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-    [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+    if ([_delegate respondsToSelector:@selector(positionInTrackChangedPosition:)]) {
+        [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+    }
 }
 
 -(void)userTrackingComputeProgressAtCurrentPosition {
@@ -638,34 +675,82 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if (pos < endPosition) {
             self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,pos/_uiPointsPerSecondLength];
             self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-            [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+            if ([_delegate respondsToSelector:@selector(positionInTrackChangedPosition:)]) {
+                [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+            }
         }
     }
 }
 
+
+//    NSLog(@"%s pos %.2f ,__func__,)pos;
+//        NSLog(@"%s SOMEWHERE GREATER ZERO",__func__);
+//        NSUInteger progressTrack = 1;
+
 // pos is greater or equal zero
 -(void)userTrackingComputeProgressAtPosition:(CGFloat)pos {
-    
-    //    NSLog(@"%s pos %.2f ,__func__,)pos;
-    //        NSLog(@"%s SOMEWHERE GREATER ZERO",__func__);
-    //        NSUInteger progressTrack = 1;
-    
     CGFloat endPosition = [self largestTrackEndPosition];
     if (pos < endPosition) {
         CGFloat cp = pos/_uiPointsPerSecondLength;
         if (cp < 0)
             cp = 0.0;
+
+        self.playHeadValueStr = [NSString stringWithFormat:@"%.2f",cp];
+        self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
+        if ([_delegate respondsToSelector:@selector(positionInTrackChangedPosition:)]) {
+            [_delegate positionInTrackChangedPosition:cp];
+        }
+
+        CGFloat progress = pos/endPosition;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.scrubberProgressView.progress = progress;
+        });
+
+
+    }
+}
+
+
 //        if  (cp < 1.00)
 //            self.playHeadValueStr = @"";
 //        else
 //        self.playHeadValueStr = [NSString stringWithFormat:_playerProgressFormatString,cp];
-        self.playHeadValueStr = [NSString stringWithFormat:@"%.2f",cp];
 
-        self.remainingValueStr = [NSString stringWithFormat:@"%.0f",endPosition/_uiPointsPerSecondLength - pos/_uiPointsPerSecondLength];
-        [_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
-        self.scrubberProgressView.progress = pos/endPosition;
-    }
-}
+/*
+[_delegate positionInTrackChangedPosition:pos/_uiPointsPerSecondLength];
+ 
+ crashes here
+ scrollViewTrackingatpos
+ DidEndScrolling anim
+ 
+ While backing out of detail record jam
+ 
+ 2016-01-22 16:02:24.011 JamWDev[25073:2588079] -[JWAudioEngine startEngine] starts here
+ 2016-01-22 16:02:24.011 JamWDev[25073:2588079] -[JWScrubberController reset]
+ 2016-01-22 16:02:24.011 JamWDev[25073:2588079] usePlayerScrubber for recorderplayer YES at index 0
+ 2016-01-22 16:02:24.015 JamWDev[25073:2588079] usePlayerScrubber for recorderplayer YES at index 1
+ 2016-01-22 16:02:24.017 JamWDev[25073:2588079] No Active player nodes to stop.
+ 2016-01-22 16:02:24.017 JamWDev[25073:2588079] scheduleAllWithOptions 0.000 secondsin, 2 nodes
+ 2016-01-22 16:02:24.018 JamWDev[25073:2588079] AE FileLength: 168366  3.818 seconds. Buffer length 168366
+ 2016-01-22 16:02:24.018 JamWDev[25073:2588079] AE FileLength: 44100  1.000 seconds. Buffer length 44100
+ 2016-01-22 16:02:24.022 JamWDev[25073:2588079] -[JWAudioRecorderController boolValue1] get isPlaying 0
+ Jan 22 16:02:24  JamWDev[25073] <Error>: CGContextSetLineWidth: invalid line width: negative values are not allowed.
+ Jan 22 16:02:24  JamWDev[25073] <Error>: CGContextSetLineWidth: invalid line width: negative values are not allowed.
+ 2016-01-22 16:02:24.240 JamWDev[25073:2588079] audioPlayerNode PLAY
+ 2016-01-22 16:02:24.252 JamWDev[25073:2588079] audioPlayerNode PLAY
+ 2016-01-22 16:02:25.274 JamWDev[25073:2589082] Audio Completed for playerAtIndex 1
+ 2016-01-22 16:02:25.504 JamWDev[25073:2588079] audioPlayerNode STOP
+ 2016-01-22 16:02:25.504 JamWDev[25073:2589082] Audio Completed for playerAtIndex 0
+ 2016-01-22 16:02:25.505 JamWDev[25073:2588079] audioPlayerNode STOP
+ 2016-01-22 16:02:25.505 JamWDev[25073:2588079] -[JWAudioPlayerController stop] STOP player controller
+ 2016-01-22 16:02:25.508 JamWDev[25073:2588079] audioPlayerNode STOP
+ 2016-01-22 16:02:25.508 JamWDev[25073:2588079] audioPlayerNode STOP
+ 2016-01-22 16:02:25.508 JamWDev[25073:2588079] scheduleAllWithOptions 0.000 secondsin, 2 nodes
+ 2016-01-22 16:02:25.509 JamWDev[25073:2588079] AE FileLength: 168366  3.818 seconds. Buffer length 168366
+ 2016-01-22 16:02:25.509 JamWDev[25073:2588079] AE FileLength: 44100  1.000 seconds. Buffer length 44100
+
+*/
+
 
 #pragma mark -
 
@@ -674,16 +759,24 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 -(void)scrollViewTrackingAtPosition:(CGFloat)position {
-    
+
+//    self.playHeadWindow.layer.borderColor = [UIColor colorWithWhite:0.7 alpha:0.5].CGColor;
     if (_trackingCurrentPosition) {
+//        self.playHeadWindow.layer.borderColor = [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.65].CGColor;
         [self userTrackingComputeProgressAtPosition:position];
+        
     }
 
     if (_trackingEdit) {
+        self.playHeadWindow.layer.borderColor = [[UIColor yellowColor] colorWithAlphaComponent:0.65].CGColor;
+
+//        self.playHeadWindow.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:1.0].CGColor;
         if (_editType == ScrubberEditLeft ) {
             [self userTrackingComputeEditingLeftProgressAtPosition:position];
+            
         } else if (_editType == ScrubberEditRight ) {
             [self userTrackingComputeEditingRightProgressAtPosition:position];
+            
         }
         
         // Start doesnt move _editType == ScrubberEditStart
@@ -708,18 +801,32 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
 
+//    NSLog(@"%s",__func__);
     if (_listenToScrolling) {
         CGFloat pos = scrollView.contentOffset.x + self.scrollView.contentInset.left;
         if (pos  < 0) {
             //NSLog(@"%s not tracking position %.3f",__func__,pos);
         } else {
             
+            self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
             [self scrollViewTrackingAtPosition:pos];
+
+//            double delayInSecs = 0.10;
+//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
+//                 NSLog(@"%s",__func__);
+//            });
+
+            
+
         }
     } else {
 //        NSLog(@"%s not listening to scrolling",__func__);
+//        self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
     }
 }
+
+// velocity It is points/millisecond.
 
 -(void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
 
@@ -752,7 +859,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #endif
             } else {
                 
-                [self scrollViewTrackingAtPosition:pos];
+//                [self scrollViewTrackingAtPosition:pos];
+//                NSLog(@"%s ",__func__);
+
+//                self.playHeadWindow.layer.borderColor = [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.65].CGColor;
+//                self.playHeadWindow.layer.borderColor = [[UIColor iosSkyColor] colorWithAlphaComponent:0.75].CGColor;
+//                double delayInSecs = 1.25;
+//                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                    self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
+//                    NSLog(@"%s",__func__);
+//
+//                });
+
+                
             }
         }
     } else {
@@ -775,7 +894,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
         } else {
             
+//            self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
             [self scrollViewTrackingAtPosition:pos];
+//            self.playHeadWindow.layer.borderColor = [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.65].CGColor;
+
+//            self.playHeadWindow.layer.borderColor = [[UIColor iosSkyColor] colorWithAlphaComponent:0.75].CGColor;
+//            double delayInSecs = 1.25;
+//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
+//                NSLog(@"%s",__func__);
+//
+//            });
+
+
         }
     } else {
 #ifdef TRACESCROLL
@@ -789,7 +920,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #ifdef TRACESCROLL
     NSLog(@"%s",__func__);
 #endif
-
 }
 
 -(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
@@ -797,12 +927,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     NSLog(@"%s",__func__);
 #endif
 
+
     if (_waitForAnimated) {
         _listenToScrolling = YES;
-        _waitForAnimated = NO;
-//        _trackingEdit = YES;
     }
-    
+
     if (_listenToScrolling) {
         CGFloat pos = scrollView.contentOffset.x + self.scrollView.contentInset.left;
         if (pos  < 0) {
@@ -810,10 +939,32 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         } else {
             
             [self scrollViewTrackingAtPosition:pos];
+            
+            if (pos < 0.000001) {
+                self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
+//                self.playHeadWindow.layer.borderColor = [[UIColor orangeColor] colorWithAlphaComponent:0.99].CGColor;
+            } else {
+                self.playHeadWindow.layer.borderColor = [[UIColor iosAquaColor] colorWithAlphaComponent:0.99].CGColor;
+            }
+//            self.playHeadWindow.layer.borderColor = [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.65].CGColor;
+//            double delayInSecs = 1.25;
+//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                self.playHeadWindow.layer.borderColor = self.playHeadWindow.backgroundColor.CGColor;
+//                NSLog(@"%s",__func__);
+//
+//            });
+
+
         }
     } else {
         NSLog(@"%s not listening to scrolling",__func__);
     }
+
+    if (_waitForAnimated) {
+        _waitForAnimated = NO;
+        //_trackingEdit = YES;
+    }
+
     
 }
 
@@ -838,9 +989,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 - (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated {
     CGFloat offset = self.scrollView.contentInset.left;
+    
     CGFloat destinationX = progress * _vTrackLength - offset;
-    CGFloat pointsPerSecond = _uiPointsPerSecondLength;
-    destinationX = destinationX; // + pointsPerSecond * 0.085; // seconds adjustment
+   // destinationX = destinationX; // + pointsPerSecond * 0.085; // seconds adjustment
     
     CGRect bounds = self.scrollView.bounds;
     CGFloat currentx = bounds.origin.x;
@@ -854,23 +1005,25 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (destinationX > currentx) {
         
         if (animated) {
-            
             distanceToTravelX = destinationX - currentx;
-            duration = distanceToTravelX / pointsPerSecond;
+            duration = distanceToTravelX / _uiPointsPerSecondLength;
             
             [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionCurveLinear
                              animations:^{
                                  self.scrollView.bounds = bounds;
                              } completion:nil];
+
         } else {
-            [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
-//            self.scrollView.bounds = bounds;
+            self.scrollView.bounds = bounds;
+            CGFloat pos = (progress * _vTrackLength) / _uiPointsPerSecondLength;
+            NSLog(@"%s x- pos %.2f",__func__,pos);
+
         }
     } else {
-//        distanceToTravelX = currentx - destinationX - offset;
-//        duration = -distanceToTravelX / pointsPerSecond;
-        //self.scrollView.bounds = bounds;
-        [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
+        self.scrollView.bounds = bounds;
+        CGFloat pos = (progress * _vTrackLength) / _uiPointsPerSecondLength;
+        NSLog(@"%s xx pos %.2f _vTrackLength %.3f",__func__,pos,_vTrackLength);
+//        [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
     }
 }
 
@@ -890,75 +1043,56 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 
 - (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated {
+    [self trackScrubberToPostion:animated timeAnimated:NO animated:NO];
+}
+
+- (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated animated:(BOOL)contentAnimated {
     
     CGFloat offset = self.scrollView.contentInset.left;
-
     CGFloat contentWidth = _scrollView.contentSize.width;
-    
     CGFloat endx = contentWidth - offset;
 
-    CGFloat destinationX = position * _uiPointsPerSecondLength - offset;
+    CGFloat destinationX = (position * _uiPointsPerSecondLength) - offset;
 
     CGFloat overage = 0;
     if (destinationX  > endx ) {
-//        NSLog(@"destinationX %.2f endx %.2f  contentWidth %.3f !!!!!",destinationX,endx,contentWidth);
         overage = destinationX - endx;
         destinationX = endx;
-//    if (destinationX > (endx + (.5 * _uiPointsPerSecondLength)) ) {
-//        NSLog(@"destinationX %.2f endx %.2f  contentWidth %.3f !!!!!",destinationX,endx,contentWidth);
-//        return;
-    } else {
-//        NSLog(@"destinationX %.2f endx %.2f",destinationX,endx);
     }
 
     CGRect bounds = self.scrollView.bounds;
     CGFloat currentx = bounds.origin.x;
-    bounds.origin.x = destinationX;
-
-//    CGFloat ltl = [self largestTrackLen];
-//    if (destinationX > ltl)
-//        destinationX = ltl;
-
     CGFloat duration = 0.0;
     CGFloat distanceToTravelX;
     
     //NSLog(@"destinationX %.2f currentx %.3f",destinationX,currentx);
 
-    if (destinationX > currentx - 0.0001) {
-        
-        if (animated) {
-            
-//            [self.scrollView setContentOffset:CGPointMake(destinationX + offset, _scrollView.contentOffset.y) animated:NO];
-
+    if (animated) {
+    
+        bounds.origin.x = destinationX;
+        if (destinationX > currentx - 0.0001) {
             distanceToTravelX = destinationX - currentx;
             duration = distanceToTravelX / _uiPointsPerSecondLength;
-
-            if (duration < 0.009) {
-                duration = 0;
-            }
-//            duration -= (overage / _uiPointsPerSecondLength);
-//            self.scrollView.bounds = bounds;
-
-//            NSLog(@"destinationX %.2f distanceToTravelX %.2f dur %.4f currentx %.3f",destinationX,distanceToTravelX,duration,currentx);
+            
+            if (duration < 0.009)
+                duration = 0.0;
+                
             [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionCurveLinear
                              animations:^{
                                  self.scrollView.bounds = bounds;
                              } completion:nil];
+            
         } else {
-            [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
-            //            self.scrollView.bounds = bounds;
+            [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y) animated:contentAnimated];
+//            NSLog(@"destinationX x+ %.2f currentx %.2f",destinationX,currentx);
         }
     } else {
         
-        NSLog(@"destinationX %.2f greatter currentx %.2f",destinationX,currentx);
-
-        //        distanceToTravelX = currentx - destinationX - offset;
-        //        duration = -distanceToTravelX / pointsPerSecond;
-        //self.scrollView.bounds = bounds;
-//        [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y)];
+        [_scrollView.layer removeAllAnimations];
+        [self.scrollView setContentOffset:CGPointMake(destinationX, _scrollView.contentOffset.y) animated:contentAnimated];
+//        NSLog(@"destinationX xx %.2f greatter currentx %.2f pos %.3f",destinationX,currentx,position);
     }
 }
-
 
 
 //NSLog(@"%s %.4f",__func__,progress);
@@ -1081,7 +1215,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 
-
 #pragma mark -
 
 //#define DEBUGBUFFER
@@ -1099,6 +1232,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                            inTrack:(NSUInteger)track
                      startDuration:(NSTimeInterval)startDuration
                           duration:(NSTimeInterval)duration
+                             final:(NSUInteger)finalValue
                            options:(SamplingOptions)options
                               type:(VABKindOptions)typeOptions
                             layout:(VABLayoutOptions)layoutOptions
@@ -1120,12 +1254,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [self frameForBuffer:track bufferWidth:uiBufferSize allTracksHeight:scrubberViewSize.height - bottomLayoutOffset];
     fr.origin.x = startingPosition;
     
+    
+
     // STEP 2 CREATE Buffer View(s)
     
     BOOL useTrackColorInEditStart = NO;
     JWVisualAudioBufferView *bufferView = nil;
 
     if (editing == NO) {
+        _audioViewBufferCounts[track]++;
+        
+//        NSUInteger avCount = _audioViewBufferCounts[track];
+
         // NOT EDITING
         bufferView = [[JWVisualAudioBufferView alloc] initWithSamples:samples1 samples2:samples2 samplingOptions:options];
         bufferView.samplesAverages = averageSamples;
@@ -1133,8 +1273,10 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         bufferView.layoutOptions = layoutOptions;
         bufferView.kindOptions = typeOptions;
         bufferView.recording = recording;
-        bufferView.backgroundColor = [UIColor clearColor];
         bufferView.notifString = [NSString stringWithFormat:@"track%ldnotification",track];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            bufferView.backgroundColor = [UIColor clearColor];
+        });
 #ifdef DEBUGBUFFER
         bufferView.layer.borderColor = [UIColor grayColor].CGColor;
         bufferView.layer.borderWidth = 0.5;
@@ -1169,6 +1311,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             // add the subview
             dispatch_async(dispatch_get_main_queue(), ^{
                 bufferView.frame = fr;
+                if (recording) {
+                    bufferView.timeToLive = 2.5;
+                }
                 [self.scrollView addSubview:bufferView];
                 [bufferView setNeedsDisplay];
             });
@@ -1196,6 +1341,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 
     } else {
+        _audioViewBufferCounts[0]++;
+        NSUInteger avCount = _audioViewBufferCounts[0];
+
         // EDITING
         bufferView = [[JWVisualAudioBufferView alloc] initWithSamples:samples1 samples2:samples2 samplingOptions:options];
         bufferView.samplesAverages = averageSamples;
@@ -1326,9 +1474,45 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             NSLog(@"editing npos bufferView       %.2f  %@",_currentPositions[0],NSStringFromCGPoint(bufferView.frame.origin));
         }
         
+        
+        if (avCount < finalValue) {
+            NSLog(@"NOT FINSIHED track %ld, avCount %ld",track,avCount );
+        } else {
+            NSLog(@"FINSIHED track %ld, avCount %ld",track,avCount );
+            _audioViewBufferCounts[0] = 0;
+//            [self revealInEditMode];
+        }
+
+        
     }  // Editing
     
 }
+
+//    if (finalValue > bufferNo) {
+//        NSLog(@"BUFFERS track %ld, %ld",track,finalValue);
+//    } else {
+//        // finshed
+//        NSLog(@"BUFFERS DONE for track %ld count %ld",track,finalValue);
+//    }
+
+//    if (avCount < finalValue) {
+//        NSLog(@"NOT FINSIHED track %ld, avCount %ld",track,avCount );
+//    } else {
+//        NSLog(@"FINSIHED track %ld, avCount %ld",track,avCount );
+//        _audioViewBufferCounts[track] = 0;
+//    }
+
+//        NSUInteger buffersCount = [_delegate buffersCompletedTrack:0];
+//        if (buffersCount > 0) {
+//            // finshed
+//            NSLog(@"BUFFERS DONE for track %ld count %ld",0,buffersCount);
+//
+//        } else {
+//            NSLog(@"BUFFERS track %ld ",0);
+//        }
+
+
+
 
 -(void)adjustContentSize:(CGSize)size {
     
@@ -1462,14 +1646,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     id startTimeValue = trackInfo[@"starttime"];
     startTime = startTimeValue ? [startTimeValue floatValue] : 0.0;
     id refFile = trackInfo[@"referencefile"];
+    NSURL *fileURL = trackInfo[@"fileurl"];
+    if (fileURL) {
+        NSError *error = nil;
+        AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
+        AVAudioFormat *processingFormat = [audioFile processingFormat];
+        durationSeconds = audioFile.length / processingFormat.sampleRate;
+    }
+    
     if (refFile) {
-        NSURL *fileURL = trackInfo[@"fileurl"];
-        if (fileURL) {
-            NSError *error = nil;
-            AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
-            AVAudioFormat *processingFormat = [audioFile processingFormat];
-            durationSeconds = audioFile.length / processingFormat.sampleRate;
-        }
         
         id startInsetValue = refFile[@"startinset"];
         startInset = startInsetValue ? [startInsetValue floatValue] : 0.0;
@@ -1481,6 +1666,14 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                                             startPosition:startTime
                                                startInset:startInset
                                                  endInset:endInset];
+    } else {
+        fileReference =
+        [[JWPlayerFileInfo alloc] initWithCurrentPosition:0.0 duration:durationSeconds
+                                            startPosition:startTime
+                                               startInset:startInset
+                                                 endInset:endInset];
+        
+        
     }
 
     NSLog(@"%s [si %.2f ei %.2f dur %.2f] ts %.2f",__func__,startInset,endInset,durationSeconds,startTime);
@@ -1491,7 +1684,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)editTrack:(NSUInteger)track {
 
-    _trackingEdit = YES;
+    _editTrack = track;
 
     // Removes the ActiveTrack Duration and delay
     [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
@@ -1510,12 +1703,12 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)editTrack:(NSUInteger)track startInset:(CGFloat)startInset {
 
-    _editType = ScrubberEditLeft;
-
+    _editType = ScrubberEditLeft;  // set the edit type
     [self editTrack:track];
     [self editTrackData:[_delegate trackInfoForTrack:track]];
-
-    [self rewindToBeginningOfTrack:track];
+    if (_seeksToPositionOnEdit) {
+        [self rewindToBeginningOfTrack:track];
+    }
     [self configureEditLayer];
     
 
@@ -1540,18 +1733,77 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
           _editFileReference.endPositionInset,
           _editFileReference.trackStartPosition);
     NSLog(@"%s boundsx %.2f",__func__,bounds.origin.x);
+    
+    [self revealInEditModeDelayed];
 }
+
+
+
+-(void)revealInEditMode {
+    CGFloat cpos = _scrollView.contentOffset.x + _scrollView.contentInset.left;
+    CGFloat spos = _scrollView.contentOffset.x;
+    NSLog(@"%s cpos %.2f  sec %.2f",__func__,cpos,cpos/_uiPointsPerSecondLength);
+    _scrollView.alpha = 0.5;
+    [UIView animateWithDuration:0.25 delay:0
+                            options:UIViewAnimationOptionCurveLinear
+                         animations:^{
+                             _scrollView.alpha = 1.0;
+                         } completion:^(BOOL fini){
+                         }];
+        
+    _scrollView.contentOffset = CGPointMake(spos, _scrollView.contentOffset.y);
+    [self scrollViewTrackingAtPosition:cpos];
+    _listenToScrolling = YES;
+}
+
+
+-(void)revealInEditModeDelayed {
+    CGFloat cpos = _scrollView.contentOffset.x + _scrollView.contentInset.left;
+    CGFloat spos = _scrollView.contentOffset.x;
+    
+    NSLog(@"%s cpos %.2f  sec %.2f",__func__,cpos,cpos/_uiPointsPerSecondLength);
+    
+    _trackingEdit = YES;
+    _listenToScrolling = NO;
+    
+    double delayInSecs = 0.025;
+    
+    // WAIT for buffers to complete, they cause viewDidScroll
+    [UIView animateWithDuration:delayInSecs delay:0 options:0
+                     animations:^{
+                         _scrollView.alpha = 0.0;
+                     } completion:^(BOOL fini){}];
+    
+    //    NSLog(@"%3f",delayInSecs);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        _scrollView.alpha = 0.5;
+        [UIView animateWithDuration:0.25 delay:0
+                            options:UIViewAnimationOptionCurveLinear
+                         animations:^{
+                             _scrollView.alpha = 1.0;
+                         } completion:^(BOOL fini){
+                         }];
+        
+        _scrollView.contentOffset = CGPointMake(spos, _scrollView.contentOffset.y);
+        [self scrollViewTrackingAtPosition:cpos];
+        _listenToScrolling = YES;
+    });
+    
+}
+
 
 -(void)editTrack:(NSUInteger)track endInset:(CGFloat)endInset {
 
-    _editType = ScrubberEditRight;
+    _trackingEdit = NO;
 
+    _editType = ScrubberEditRight; // set the edit type
     [self editTrack:track];
     [self editTrackData:[_delegate trackInfoForTrack:track]];
-
-    [self rewindToEndOfTrack:track];
+    if (_seeksToPositionOnEdit) {
+        [self rewindToEndOfTrack:track];
+    }
     [self configureEditLayer];
-
     
     // SET THE INITIAL VIEW OF MIRROR TRACK
     
@@ -1569,22 +1821,33 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                          _editLayerRight.bounds = bounds;
                      } completion:nil];
 
+//    [self scrollViewTrackingAtCurrentPosition];
     
     NSLog(@"%s endInset %.2f [si(%.2f)ei(%.2f) ts %.2f]",__func__,endInset,
           _editFileReference.startPositionInset,
           _editFileReference.endPositionInset,
           _editFileReference.trackStartPosition);
     NSLog(@"%s boundsx %.2f ",__func__,bounds.origin.x);
+
+// this
+//    _trackingEdit = YES;
+//    _listenToScrolling = NO;
+    
+// or this
+    
+    [self revealInEditModeDelayed];
+    
 }
+
 
 -(void)editTrack:(NSUInteger)track startTime:(CGFloat)startTime {
 
-    _editType = ScrubberEditStart;
-
+    _editType = ScrubberEditStart; // set the edit type
     [self editTrack:track];
     [self editTrackData:[_delegate trackInfoForTrack:track]];
-
-    [self rewindToBeginningOfTrack:track];
+    if (_seeksToPositionOnEdit) {
+        [self rewindToBeginningOfTrack:track];
+    }
     [self configureEditLayer];
     
     
@@ -1612,7 +1875,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)stopEditingTrackCancel:(NSUInteger)track {
     
     _trackingEdit = NO;
-
     // Removes the editingTrack
     [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
                                                         object:self userInfo:@{@"alpha":@(0.5)}];
@@ -1621,94 +1883,150 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //                                                        object:self userInfo:@{@"remove":@(0.25)}];
                                                         object:self userInfo:@{@"remove":@(delay/2),
                                                                                @"removeDelay":@(delay/2)}];
-    if (_editType == ScrubberEditLeft ) {
-        [self rewindToBeginningOfTrack:track];
-    } else if ( _editType == ScrubberEditRight ) {
-        [self rewindToEndOfTrack:track];
-    } else if ( _editType == ScrubberEditStart ) {
-        [self rewindToBeginningOfTrack:track];
+
+    if (_seeksToPositionOnEdit) {
+        if (_editType == ScrubberEditLeft )
+            [self rewindToBeginningOfTrack:track];
+        else if ( _editType == ScrubberEditRight )
+            [self rewindToEndOfTrack:track];
+        else if ( _editType == ScrubberEditStart )
+            [self rewindToBeginningOfTrack:track];
+    } else {
+        // TODO: remember current psoition before editing then go there
+        
     }
 
     [self stopEditingTrackDidCancel:track];
+    [_editClipButton removeFromSuperview];
+    self.editClipButton = nil;
+    _startPositions[0] = 0.0;
+    _editType = ScrubberEditNone;
+    _editTrack = 0;
+
+
 }
 
--(id)stopEditingTrackSave:(NSUInteger)track {
-    
-    _trackingEdit = NO;
+-(void)clipButtonPressed:(id)sender {
 
+    // CALLS stopEditingTrackSave and notifies the delegate of the event
+    
+    [UIView animateWithDuration:0.00 delay:0.0
+                        options: UIViewAnimationOptionCurveEaseIn
+                     animations:^{
+                         _editClipButton.backgroundColor = [UIColor iosSkyColor];
+                     } completion:^(BOOL fini){
+                         _editClipButton.backgroundColor = [UIColor iosSkyColor];
+                     }];
+
+    NSUInteger track = _editTrack;
+    [self stopEditingTrackSave:_editTrack completion:^(id fileRef) {
+        [_delegate editCompletedForTrack:track withTrackInfo:fileRef];
+    }];
+}
+
+-(id)stopEditingTrackSave:(NSUInteger)track completion:(void (^)(id fileRef))completion {
+    _trackingEdit = NO;
     // Removes the editingTrack
     [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
-                                                        object:self userInfo:@{@"alpha":@(0.5)}];
-    
+                                                        object:self userInfo:@{@"alpha":@(0.75)}];
     [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
-                                                             object:self userInfo:@{@"remove":@(0.25)}];
-//                                                        object:self userInfo:@{@"remove":@(0.55),
-//                                                                               @"removeDelay":@(0.10)}];
-
-    [self stopEditingTrackDidSave:track];
+                                                        object:self userInfo:@{@"remove":@(0.25)}];
+//                                                            object:self userInfo:@{@"remove":@(0.25),
+//                                                                                   @"removeDelay":@(2.5)}];
     
-    return _editFileReference;
+    
+//    mirrortrack%ldnotification
+//    [self stopEditingTrackDidSave:track];
+//    return _editFileReference;
+    
+    [self stopEditingTrackDidSave:track animated:YES completion:^{
+        if (completion)
+            completion(_editFileReference);
+    }];
+    
+    [_editClipButton removeFromSuperview];
+    self.editClipButton = nil;
+    _startPositions[0] = 0.0;
+    _editType = ScrubberEditNone;
+    _editTrack = 0;
+    
+    return nil;
 }
-
 
 /*
  stopEditingTrackDidSave
  Effect clip point is animated to pull away from the track and then disappear
  */
+-(void)stopEditingTrackDidSave:(NSUInteger)track  animated:(BOOL)animated completion:(void (^)())completion {
 
--(void)stopEditingTrackDidSave:(NSUInteger)track  {
-    [self stopEditingTrackDidSave:track animated:YES];
-}
+//-(void)stopEditingTrackDidSave:(NSUInteger)track  animated:(BOOL)animated {
+    
+    BOOL bounceOut = YES;
+    BOOL justFadeout = YES;
 
--(void)stopEditingTrackDidSave:(NSUInteger)track  animated:(BOOL)animated {
-    
-    BOOL bounceOut = NO;
-    
     // EDIT LEFT
     if (_editType == ScrubberEditLeft ) {
         if (_editLayerLeft) {
             
             if (animated) {
+                
+                if (completion)
+                    completion();
+
                 CGFloat moveLengthSeconds = 0.25;
                 CGPoint center = _editLayerLeft.center;
                 center.x -= (moveLengthSeconds * _uiPointsPerSecondLength);
 
                 CGFloat delayToAlpha = 0.0;
-                CGFloat delayToStartAnimating = 0.10; // delay to allow edit track to disappear
+                CGFloat delayToStartAnimating = 0.0; // delay to allow edit track to disappear
                 
                 // MOVE OUT THEN HIDE
                 if (bounceOut) {
-                    [UIView animateWithDuration:0.55 delay:delayToStartAnimating
+                    [UIView animateWithDuration:0.45 delay:delayToStartAnimating
                          usingSpringWithDamping:0.183 initialSpringVelocity:.84
                                         options:UIViewAnimationOptionCurveEaseOut
                                      animations:^{
                                          _editLayerLeft.center = center;
-                                     } completion:^(BOOL fini){}];
-                    
-                    delayToAlpha = 0.35 + delayToStartAnimating;
+                                     } completion:^(BOOL fini){
+//                                         if (completion)
+//                                             completion();
 
-                } else {
+                                     }];
+                    
+                    delayToAlpha = 0.75 + delayToStartAnimating;
+
+                } else if (justFadeout == NO){
                     [UIView animateWithDuration:moveLengthSeconds delay:delayToStartAnimating
                                         options:UIViewAnimationOptionCurveEaseOut
                                      animations:^{
                                          _editLayerLeft.center = center;
-                                     } completion:^(BOOL fini){}];
+                                     } completion:^(BOOL fini){
+//                                         if (completion)
+//                                             completion();
+
+                                     }];
                     
-                    delayToAlpha = 0.15 + delayToStartAnimating;
+                    delayToAlpha = 0.25 + delayToStartAnimating;
                 }
                 
-                [UIView animateWithDuration:0.75 delay:delayToAlpha
+                [UIView animateWithDuration:0.55 delay:delayToAlpha
                                     options: UIViewAnimationOptionCurveEaseIn
                                  animations:^{
                                      _editLayerLeft.alpha = 0.0;
                                  } completion:^(BOOL fini){
                                      [_editLayerLeft removeFromSuperview];
                                      self.editLayerLeft = nil;
+//                                     if (completion)
+//                                         completion();
                                  }];
+                
+
                 
             } else {
                 [_editLayerLeft removeFromSuperview];
                 self.editLayerLeft = nil;
+                if (completion)
+                    completion();
             }
         }
     }
@@ -1723,7 +2041,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                 CGPoint center = _editLayerRight.center;
                 center.x += (moveLengthSeconds * _uiPointsPerSecondLength);
                 
-                CGFloat delayToAlpha = 0.0;
+                CGFloat delayToAlpha = 0.250;
                 CGFloat delayToStartAnimating = 0.10; // delay to allow edit track to disappear
 
                 // MOVE OUT THEN HIDE
@@ -1754,10 +2072,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                                  } completion:^(BOOL fini){
                                      [_editLayerRight removeFromSuperview];
                                      self.editLayerRight = nil;
+                                     if (completion) {
+                                         completion();
+                                     }
+
                                  }];
             } else {
                 [_editLayerRight removeFromSuperview];
                 self.editLayerRight = nil;
+                if (completion) {
+                    completion();
+                }
+
             }
         }
         
@@ -1773,17 +2099,41 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                                  } completion:^(BOOL fini){
                                      [_editLayerRight removeFromSuperview];
                                      self.editLayerRight = nil;
+                                     if (completion) {
+                                         completion();
+                                     }
+
                                  }];
             } else {
                 [_editLayerRight removeFromSuperview];
                 self.editLayerRight = nil;
+                if (completion) {
+                    completion();
+                }
             }
         }
     }
     
-    _startPositions[0] = 0.0;
-    _editType = ScrubberEditNone;
 }
+
+
+//-(void)stopEditingTrackDidSave:(NSUInteger)track  {
+//    [self stopEditingTrackDidSave:track animated:YES];
+//-(id)stopEditingTrackSave:(NSUInteger)track {
+//    _trackingEdit = NO;
+//    // Removes the editingTrack
+//    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
+//                                                        object:self userInfo:@{@"alpha":@(0.5)}];
+//
+//    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
+//                                                             object:self userInfo:@{@"remove":@(0.25)}];
+//
+////                                                        object:self userInfo:@{@"remove":@(0.55),
+////                                                                               @"removeDelay":@(0.10)}];
+//    [self stopEditingTrackDidSave:track];
+//    return _editFileReference;
+
+
 
 
 /*
@@ -1874,9 +2224,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         }
     }
     
-    _startPositions[0] = 0.0;
-    _editType = ScrubberEditNone;
-    
 }
 
 -(void)stopEditingTrack:(NSUInteger)track  {
@@ -1896,6 +2243,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)editingTrackInsetChanged {
     
+    // LEFT
     if (_editType == ScrubberEditLeft ) {
         // BEGIN Inset
         CGFloat startInset = _editFileReference.startPositionInset;
@@ -1915,7 +2263,11 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         if ([_delegate respondsToSelector:@selector(editChangeForTrack:withTrackInfo:)])
             [_delegate editChangeForTrack:1  withTrackInfo:_editFileReference];
         
-    } else if (_editType == ScrubberEditRight ) {
+    }
+    
+    // RIGHT
+
+    else if (_editType == ScrubberEditRight ) {
         
         // END Inset
         CGFloat endInset = _editFileReference.endPositionInset;
@@ -1972,6 +2324,23 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 }
 
+
+/*
+ 
+ given a position pos
+ convert to currentPositionSeconds
+ fileReference calculateAtCurrentPosition in seconds
+ if the result of that calculation is a valid readPositionInReferencedTrack
+   then use it set positionInset to that
+               set starttime currentPositionSeconds
+               recognize the change editingTrackInsetChanged
+ 
+ if the result of that calculation is an INVALID readPositionInReferencedTrack
+    then consider the
+
+ 
+ */
+
 -(void)userTrackingComputeEditingLeftProgressAtPosition:(CGFloat)pos {
     
     // pos is greater or equal to zero
@@ -1987,11 +2356,14 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (trackReadPosition > 0){
         // we are still inside the track and interested to take action
         _editFileReference.startPositionInset = trackReadPosition;
+        // TODO: turn on and off to change trackStartPosition or 'starttime' or delay
         _editFileReference.trackStartPosition = currentPositionSeconds;
         
         [self editingTrackInsetChanged];
         
     } else {
+        // Outside track
+
         // trackReadPosition < 0
         float startPosition = _editFileReference.startPositionInReferencedTrack;
         float endPosition = _editFileReference.startPositionInReferencedTrack + _editFileReference.trackDuration;
@@ -2014,7 +2386,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     }
     
 }
-
 
 -(void)userTrackingComputeEditingLeftProgressDebug {
     
@@ -2106,7 +2477,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
 }
 
-
 -(void)userTrackingComputeEditingRightProgressAtCurrentPosition {
     
     CGPoint offset = _scrollView.contentOffset;
@@ -2119,17 +2489,42 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     }
 }
 
+
+#define DEBUGTRACE
+/*
+ 
+ given a position pos
+ convert to currentPositionSeconds
+ fileReference calculateAtCurrentPosition in seconds
+ if the result of that calculation is a valid readPositionInReferencedTrack
+ then use it set positionInset to that
+ set starttime currentPositionSeconds
+ recognize the change editingTrackInsetChanged
+ 
+ if the result of that calculation is an INVALID readPositionInReferencedTrack
+ then consider the
+-----
+ 
+ given a position pos (we assume is greater or equal to zero)
+ convert to currentPositionSeconds
+ fileReference calculateAtCurrentPosition in seconds
+
+ if the result of that calculation is a valid readPositionInReferencedTrack
+ __then use it 
+ ____set positionInset = trackDuration - readPositionInReferencedTrack
+ ____recognize the change editingTrackInsetChanged
+
+ 
+ */
+
 -(void)userTrackingComputeEditingRightProgressAtPosition:(CGFloat)pos {
     
     float currentPositionSeconds = pos / _uiPointsPerSecondLength;
     
-#ifdef DEBUGTRACE
     NSLog(@"%s pos %.2f  secs %.2f ",__func__,pos,currentPositionSeconds);
-#endif
     // POS > 0 or Zero
-    
 #ifdef DEBUGTRACE
-    NSLog(@"%s pos %.2f (%.2f secs) startPosInset %.2f trackStartPos %.2f ",__func__,pos,currentPositionSeconds,
+    NSLog(@"pos %.2f (%.2f secs) startPosInset %.2f trackStartPos %.2f ",pos,currentPositionSeconds,
           _editFileReference.startPositionInset,
           _editFileReference.trackStartPosition);
 #endif
@@ -2139,7 +2534,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     float trackReadPosition = _editFileReference.readPositionInReferencedTrack;
     
 #ifdef DEBUGTRACE
-    NSLog(@"%s pos %.2f (%.2f secs) trackReadPosition %.2f",__func__,pos,currentPositionSeconds,trackReadPosition);
+    NSLog(@"pos %.2f (%.2f secs) trackReadPosition %.2f",pos,currentPositionSeconds,trackReadPosition);
 #endif
     
     if (trackReadPosition > 0){
@@ -2153,16 +2548,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         //_editFileReference.trackStartPosition = currentPositionSeconds;
         
 #ifdef DEBUGTRACE
-        NSLog(@"%s pos %.2f (%.2f secs) trackReadPos %.2f endPosInset %.2f trackStartPos %.2f ",__func__,pos,currentPositionSeconds,trackReadPosition,
+        NSLog(@"pos %.2f (%.2f secs) trackReadPos %.2f endPosInset %.2f trackStartPos %.2f ",pos,currentPositionSeconds,trackReadPosition,
               _editFileReference.endPositionInset,
               _editFileReference.trackStartPosition);
 #endif
         
     } else {
+        
+        // Outside the track
         // trackReadPosition < 0
 #ifdef DEBUGTRACE
-        NSLog(@"%s Less than ZERO - invalid track readPosition %.2f pos %.2f",__func__,trackReadPosition,pos);
-        NSLog(@"%s startPosInReferencedTrack %.2f endPosInset %.2f trackStartPos %.2f ",__func__,
+        NSLog(@"Less than ZERO - invalid track readPosition %.2f pos %.2f",trackReadPosition,pos);
+        NSLog(@"startPosInReferencedTrack %.2f endPosInset %.2f trackStartPos %.2f ",
               _editFileReference.startPositionInReferencedTrack,
               _editFileReference.endPositionInset,
               _editFileReference.trackStartPosition);
@@ -2171,9 +2568,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         float startPosition = _editFileReference.startPositionInReferencedTrack;
         float endPosition = _editFileReference.startPositionInReferencedTrack + _editFileReference.trackDuration;
         
-        if (currentPositionSeconds > startPosition && currentPositionSeconds < endPosition) {
+        if (currentPositionSeconds >= startPosition && currentPositionSeconds <= endPosition) {
 #ifdef DEBUGTRACE
-            NSLog(@"%s CURRENTPOS in RANGE %.2f ",__func__,currentPositionSeconds);
+            NSLog(@"CURRENTPOS in RANGE %.2f ",currentPositionSeconds);
 #endif
             
             _editFileReference.endPositionInset = endPosition - currentPositionSeconds;
@@ -2183,13 +2580,13 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             [self editingTrackInsetChanged];
             
 #ifdef DEBUGTRACE
-            NSLog(@"%s trackReadPos %.2f endPosInset %.2f trackStartPos %.2f ",__func__,trackReadPosition,
+            NSLog(@"trackReadPos %.2f endPosInset %.2f trackStartPos %.2f ",trackReadPosition,
                   _editFileReference.endPositionInset,
                   _editFileReference.trackStartPosition);
 #endif
             
         } else {
-            NSLog(@"%s CURRENTPOS out of RANGE Start %.2f - %.2f ",__func__,startPosition,endPosition);
+            NSLog(@"CURRENTPOS out of RANGE Start %.2f - %.2f ",startPosition,endPosition);
         }
         
     }
@@ -2345,6 +2742,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)transitionToPlay {
     if (_usePulse)
         _pulseBlocked = NO;
+    
     [CATransaction begin];
     [CATransaction setAnimationDuration:0.9];
 //    _scrubberEffectsLayer.color1 = [[UIColor blueColor] colorWithAlphaComponent:0.5];
@@ -2352,17 +2750,15 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 //    [_scrubberEffectsLayer render];
 //     [self drawGradientOptionPlayForView:_gradient frame:self.view.frame];
     [CATransaction commit];
-//    [self modifyTrack:1 alpha:0.0];
-//    self.playHeadWindow.backgroundColor = [UIColor clearColor];
-//    self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.18];
-//    self.playHeadWindow.alpha = 0.0;
     self.scrollView.userInteractionEnabled = NO;
     self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.09];
-    
+    _playHeadWindow.layer.borderColor = _playHeadWindow.backgroundColor.CGColor;
+
     UIColor *playPinColor= [[UIColor whiteColor] colorWithAlphaComponent:0.80];
     UIView *playHeadPin = [_playHeadWindow subviews][0];
     playHeadPin.backgroundColor = playPinColor;
-
+    
+    _listenToScrolling = NO;
 }
 
 -(void)transitionToStopPlaying {
@@ -2372,15 +2768,20 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [CATransaction begin];
     [CATransaction setAnimationDuration:0.8];
     [CATransaction commit];
+    
     self.pulseBaseLayer.backgroundColor = [UIColor clearColor].CGColor;
     self.scrollView.userInteractionEnabled = YES;
     self.recordingProgressView.progress = 0.0;
     self.recordingProgressView.hidden = YES;
     self.playHeadWindow.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.10];
+    _playHeadWindow.layer.borderColor = _playHeadWindow.backgroundColor.CGColor;
+
     UIColor *playPinColor= [[UIColor lightGrayColor] colorWithAlphaComponent:0.80];
     UIView *playHeadPin = [_playHeadWindow subviews][0];
     playHeadPin.backgroundColor = playPinColor;
-
+    self.recordingBottomConstraint.constant = 0.0 + 6.0f;  // bottom height +
+    
+    _listenToScrolling = YES;
 }
 
 -(void)transitionToRecording {
@@ -2394,16 +2795,24 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     [CATransaction begin];
     [CATransaction setAnimationDuration:1.2];
     [CATransaction commit];
+    
     self.scrollView.userInteractionEnabled = NO;
-    if (singleRecorder == NO)
-        self.recordingProgressView.hidden = NO;
-
     self.playHeadWindow.backgroundColor = [[UIColor cyanColor] colorWithAlphaComponent:0.09];
+    _playHeadWindow.layer.borderColor = _playHeadWindow.backgroundColor.CGColor;
+
     UIColor *playPinColor= [[UIColor whiteColor] colorWithAlphaComponent:0.80];
     UIView *playHeadPin = [_playHeadWindow subviews][0];
     playHeadPin.backgroundColor = playPinColor;
+    if (singleRecorder == NO){
+        self.recordingProgressView.hidden = NO;
+        CGSize size = [_delegate viewSize];
+        // track frame
+        CGRect tfr = [self frameForBuffer:_recordingTrack bufferWidth:0 allTracksHeight:size.height - _topLayoutScrollViewConstraint.constant ];
+        self.recordingBottomConstraint.constant = _topLayoutScrollViewConstraint.constant + tfr.origin.y + CGRectGetHeight(tfr)/2;
+    }
+    
+    _listenToScrolling = NO;
 }
-
 
 -(void)transitionToPlayTillEnd {
 
@@ -2411,6 +2820,23 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 //    [self adjustGradientColorsBack];
 }
+
+-(void)transitionToPlayPreview {
+    if (_usePulse)
+        _pulseBlocked = YES;
+    [CATransaction begin];
+    [CATransaction setAnimationDuration:0.9];
+    [CATransaction commit];
+    self.scrollView.userInteractionEnabled = NO;
+    
+    _listenToScrolling = NO;
+}
+
+- (void)transitionToStopPlayPreview {
+    self.scrollView.userInteractionEnabled = YES;
+    _listenToScrolling = YES;
+}
+
 
 -(void)adjustGradientColorsBack {
     _headerLayer.color1 = [[UIColor blueColor] colorWithAlphaComponent:0.7];
@@ -2649,52 +3075,105 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)configureEditLayerLeft:(CGSize)size {
     CGRect fr = CGRectZero;
+    // fr starts at full view
     fr = CGRectMake(0, 0,
                     size.width/2 ,
                     size.height - _topLayoutScrollViewConstraint.constant );
-    
-//    CGRect fr = [self frameForBuffer:track bufferWidth:uiBufferSize allTracksHeight:size.height - _topLayoutScrollViewConstraint.constant ];
-//    fr.origin.x = startingPosition;
-
+    // adjust to track frame
+    CGRect tfr = [self frameForTrack:_editTrack allTracksHeight:size.height];
+    fr.origin.y = _topLayoutScrollViewConstraint.constant + tfr.origin.y;
+    fr.size.height = tfr.size.height;
     if (_editLayerLeft == nil) {
         _editLayerLeft = [UIView new];
-//        _editLayerLeft.backgroundColor = [UIColor blueColor];
-//        _editLayerLeft.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.40];
-        _editLayerLeft.backgroundColor = [UIColor darkGrayColor];
+        _editLayerLeft.backgroundColor = [UIColor iosOceanColor];
         _editLayerLeft.clipsToBounds = YES;
         _editLayerLeft.userInteractionEnabled = NO;
         [self.view addSubview:_editLayerLeft];
+        [self clipButtonViewLeft:fr];
     }
-    
     _editLayerLeft.frame = fr;
-    
-    NSLog(@"%s %@",__func__,NSStringFromCGRect(fr));
-
 }
 
 -(void)configureEditLayerRight:(CGSize)size {
-    NSLog(@"%s %@",__func__,NSStringFromCGSize(size));
     CGRect fr = CGRectZero;
+    // fr starts at full view
     fr = CGRectMake(size.width/2, 0,
                     size.width/2 ,
                     size.height - _topLayoutScrollViewConstraint.constant );
-    
-    //    CGRect fr = [self frameForBuffer:track bufferWidth:uiBufferSize allTracksHeight:size.height - _topLayoutScrollViewConstraint.constant ];
-    //    fr.origin.x = startingPosition;
-    
+    // adjust to track frame
+    CGRect tfr = [self frameForTrack:_editTrack allTracksHeight:size.height];
+    fr.origin.y = _topLayoutScrollViewConstraint.constant + tfr.origin.y;
+    fr.size.height = tfr.size.height;
     if (_editLayerRight == nil) {
         _editLayerRight = [UIView new];
-        //        _editLayerLeft.backgroundColor = [UIColor blueColor];
-        //_editLayerRight.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.42];
-        _editLayerRight.backgroundColor = [UIColor darkGrayColor];
+        _editLayerRight.backgroundColor = [UIColor iosOceanColor];
         _editLayerRight.clipsToBounds = YES;
         _editLayerRight.userInteractionEnabled = NO;
         [self.view addSubview:_editLayerRight];
+        [self clipButtonViewRight:fr];
     }
-    
     _editLayerRight.frame = fr;
-    
 }
+
+
+-(void)clipButtonViewRight:(CGRect)fr {
+    [self clipButtonView:fr left:NO];
+}
+
+-(void)clipButtonViewLeft:(CGRect)fr {
+    [self clipButtonView:fr left:YES];
+}
+
+-(void)clipButtonView:(CGRect)fr left:(BOOL)isLeft {
+    
+    CGRect bpfr = fr;
+    // BUTTON VIEW PANEL
+    UIView *buttonPanelView = [UIView new];
+    // Square to frame
+    bpfr.size.width = 0.40 * CGRectGetWidth(fr);
+    if (isLeft)
+        bpfr.origin.x = 0.0;
+    else
+        bpfr.origin.x = fr.origin.x + 0.60 * CGRectGetWidth(fr);
+
+    buttonPanelView.backgroundColor = [UIColor iosTungstenColor];
+    CGFloat h = CGRectGetHeight(bpfr) * .750;
+    CGFloat xInset = 4;
+    bpfr = CGRectInset(bpfr, xInset, (CGRectGetHeight(bpfr) - h) /2);
+    buttonPanelView.layer.cornerRadius = 6.0;
+    buttonPanelView.layer.borderColor = [UIColor iosSilverColor].CGColor;
+    buttonPanelView.layer.borderWidth = 1.2;
+    if (isLeft)
+        bpfr.origin.x = bpfr.origin.x - buttonPanelView.layer.cornerRadius - xInset;
+    else
+        bpfr.origin.x = bpfr.origin.x +  buttonPanelView.layer.cornerRadius + xInset;
+
+    buttonPanelView.frame = bpfr;
+
+    // BUTTON
+    CGRect bfr = bpfr;
+    bfr.origin = CGPointZero;
+    UIButton *clipButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    clipButton.frame = bfr;
+    [clipButton setTitle:@"Clip" forState:UIControlStateNormal];
+    [clipButton setTitleColor:[UIColor iosMercuryColor] forState:UIControlStateNormal];
+    [clipButton addTarget:self action:@selector(clipButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonPanelView addSubview:clipButton];
+    _editClipButton = buttonPanelView;
+    [self.view addSubview:_editClipButton];
+}
+
+
+
+//    NSLog(@"%s %@",__func__,NSStringFromCGSize(size));
+
+// NSLog(@"%s %@",__func__,NSStringFromCGRect(fr));
+//        _editLayerLeft.backgroundColor = [UIColor blueColor];
+//        _editLayerLeft.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.40];
+//        _editLayerLeft.backgroundColor = [UIColor darkGrayColor];
+//        _editLayerLeft.backgroundColor = [UIColor blueColor];
+//        _editLayerRight.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.42];
+//        _editLayerRight.backgroundColor = [UIColor darkGrayColor];
 
 
 -(void)configureBookendClips:(CGSize)size {
@@ -2830,6 +3309,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
                                                   //_playHeadWindow.layer.transform = CATransform3DIdentity;
                                                   _playHeadWindow.alpha = 1.0;
                                                   _playHeadWindow.backgroundColor = playHColor;
+
                                                   //_playHeadWindow.backgroundColor = restoreColor;
 
                                               } completion:^(BOOL fini){
@@ -2848,41 +3328,157 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     UITapGestureRecognizer *tap = (UITapGestureRecognizer *)sender;
     
     CGPoint phTouchPoint = [tap locationInView:self.playHeadWindow];
+
+    BOOL isStatusFrameTouch = NO;
+    BOOL isPlayheadTouch = NO;
+
     
+    /*
+     check for PLAY HEAD touch, first. Then check for STATUS FRAME touch, and last check select track
+     */
     if (CGRectContainsPoint(_playHeadWindow.bounds, phTouchPoint)){
+        isPlayheadTouch = YES;
         [_delegate playHeadTapped];
         [self bouncePlayhead];
         
-    } else if (_editType == ScrubberEditNone) {
-        // NOT EDITING
+    } else {
         
-        CGPoint touchPoint = [tap locationInView:self.scrollView];
-        
-        NSUInteger touchTrack = 0;
-        for (int i = 0; i < _numberOfTracks; i++){
-            if (CGRectContainsPoint([self frameForTrack:i+1 allTracksHeight:[_delegate viewSize].height], touchPoint)){
-                touchTrack = i+1;
-                break;
+        CGFloat progress = 0.0;
+
+        if (_listenToScrolling) {
+            CGPoint touchPoint = [tap locationInView:self.view];
+            CGSize size = self.view.bounds.size;
+            size.height = self.topLayoutScrollViewConstraint.constant;
+            CGRect statusFrame = CGRectZero;
+            statusFrame.size = size;
+            if (CGRectContainsPoint(statusFrame, touchPoint))
+                isStatusFrameTouch = YES;
+            
+            if (isStatusFrameTouch) {
+                CGFloat padding = 25;
+                CGFloat virtualX = touchPoint.x;
+                if (isStatusFrameTouch) {
+                    progress = touchPoint.x/size.width;
+                    if (virtualX > size.width - padding) {
+                        virtualX = (size.width - (2*padding));
+                        virtualX -= 0.01;
+                    } else if (virtualX < padding) {
+                        virtualX = 0;
+                    } else {
+                        virtualX -= padding;
+                    }
+
+                    progress = virtualX / (size.width - (2*padding));
+
+                }
+                
             }
         }
         
-        if (touchTrack > 0) {
-            if (_selectedTrack == touchTrack) {
-                // DESELECT if SELECTED
-                [self deSelectTrack];
-                [_delegate trackNotSelected];
-            } else {
-                // SELECT TRACK
-                [self selectTrack:touchTrack];
-                [_delegate trackSelected:_selectedTrack];
+        if (isStatusFrameTouch) {
+            _vTrackLength = [self largestTrackEndPosition];
+            NSLog(@"progress %.4f",progress);
+            CGFloat pos = progress * ([self largestTrackEndPosition] -  self.scrollView.contentInset.left) / _uiPointsPerSecondLength;
+            [self scrollViewTrackingAtPosition:pos];
+            [self.scrubberProgressView setProgress:progress animated:NO];
+            //            [self trackScrubberToProgress:progress timeAnimated:NO];
+            [self trackScrubberToPostion:pos timeAnimated:NO animated:YES];
+            
+        } else {
+            
+            if (_editType == ScrubberEditNone) {
+                // NOT EDITING
+                CGPoint touchPoint = [tap locationInView:self.scrollView];
+                NSUInteger touchTrack = 0;
+                for (int i = 0; i < _numberOfTracks; i++){
+                    if (CGRectContainsPoint([self frameForTrack:i+1 allTracksHeight:[_delegate viewSize].height], touchPoint)){
+                        touchTrack = i+1;
+                        break;
+                    }
+                }
+                if (touchTrack > 0) {
+                    if (_selectedTrack == touchTrack) {
+                        // DESELECT if SELECTED
+                        [self deSelectTrack];
+                        [_delegate trackNotSelected];
+                    } else {
+                        // SELECT TRACK
+                        [self selectTrack:touchTrack];
+                        [_delegate trackSelected:_selectedTrack];
+                    }
+                }
             }
         }
     }
+    
 }
 
 - (IBAction)didLongPress:(id)sender {
     NSLog(@"%s",__func__);
+    UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
+    CGPoint touchPoint = [longPress locationInView:self.view];
+//    CGSize size = [_delegate viewSize];
+    CGSize size = self.view.bounds.size;
+
+    size.height = self.topLayoutScrollViewConstraint.constant;
+    BOOL isStatusFrameTouch = NO;
+    CGRect statusFrame = CGRectZero;
+    statusFrame.size = size;
+    if (CGRectContainsPoint(statusFrame, touchPoint))
+        isStatusFrameTouch = YES;
     
+    CGFloat padding = .25;
+    CGFloat virtualX = touchPoint.x;
+    CGFloat progress = 0.0;
+    if (isStatusFrameTouch) {
+        progress = touchPoint.x/size.width;
+//        if (progress < padding) {
+//            progress = padding;
+//        }
+    }
+    
+//        if (progress > padding){
+//            virtualX = padding;
+//        } else if (virtualX > size.width - padding) {
+//            virtualX = size.width - padding;
+//        }
+//        
+//        virtualX -= padding;
+//        progress = virtualX / size.width - (2*padding);
+    
+
+    if (longPress.state == UIGestureRecognizerStateBegan) {
+        if (isStatusFrameTouch) {
+            NSLog(@"%s SFT BEGAN progress %.3f",__func__,progress);
+            _vTrackLength = [self largestTrackEndPosition];
+//            _listenToScrolling = YES;
+            CGFloat pos = progress * ([self largestTrackEndPosition] -  self.scrollView.contentInset.left) / _uiPointsPerSecondLength;
+            [self scrollViewTrackingAtPosition:pos];
+            [self.scrubberProgressView setProgress:progress animated:NO];
+            [self trackScrubberToPostion:pos timeAnimated:NO animated:YES];
+
+            //            _vTrackLength = [self largestTrackEndPosition];
+            //            [self trackScrubberToProgress:progress timeAnimated:NO];
+        }
+        
+    } else if (longPress.state == UIGestureRecognizerStateEnded) {
+        
+        NSLog(@"%s SFT ENDED",__func__);
+    } else if (longPress.state == UIGestureRecognizerStateChanged) {
+        
+        if (isStatusFrameTouch) {
+//            CGFloat progress = touchPoint.x / size.width;
+            CGFloat pos = progress * ([self largestTrackEndPosition] -  self.scrollView.contentInset.left) / _uiPointsPerSecondLength;
+//            [self scrollViewTrackingAtPosition:pos];
+//            [self.scrubberProgressView setProgress:progress animated:NO];
+//            [self trackScrubberToPostion:pos timeAnimated:NO];
+            NSLog(@"%s SFT CHANGED  pos %.3f progress %.3f",__func__,pos,progress);
+        }
+        
+    }
+
+    return;
+
     if (_editType == ScrubberEditNone) {
         UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
         
@@ -3052,207 +3648,16 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 
 
-// A bunch of logs to debug track frame info
-//    NSLog(@"vHeight %.3f",vHeight);
-//    NSLog(@"track %ld cpos %.3f",track ,_currentPositions[track]);
-//    NSLog(@"%ld %@",track,NSStringFromCGRect(result));
-//        NSLog(@"%ld  locationFactor %.2f trackHeight %.2f yorigin %.2f %.2f",
-//              track,locationFactor,trackHeight,yOrigin,
-//              allTracksHeight);
-//        NSLog(@"%ld  locationFactor %.2f trackHeight %.2f heightToLastLocation %.2f %.2f",
-//              track,locationFactor,trackHeight,heightToLastLocation,allTracksHeight);
-//        NSUInteger thisTrackOfRemaining = track - locationsCount;
-//        NSLog(@"%ld thisTrackOfRemaining %ld  trackHeight %.2f heightToLastLocation %.2f %.2f",
-//              track,thisTrackOfRemaining,trackHeight,heightToLastLocation,allTracksHeight);
-//    NSLog(@"%ld %@",track,NSStringFromCGRect(result));
-//        NSLog(@"%ld  locationFactor %.2f trackHeight %.2f heightToLastLocation %.2f %.2f",
-//              track,locationFactor,trackHeight,heightToLastLocation,allTracksHeight);
-//    NSLog(@"vHeight %.3f",vHeight);
-//    NSLog(@"track %ld cpos %.3f",track ,_currentPositions[track]);
 
-//    JWPlayerFileInfo *fileReferenceCheck =
-//    [[JWPlayerFileInfo alloc] initWithCurrentPosition:currentPositionSeconds duration:_editFileReference.trackDuration
-//                                        startPosition:_editFileReference.trackStartPosition
-//                                           startInset:_editFileReference.startPositionInset
-//                                             endInset:_editFileReference.endPositionInset];
 
-//                float trackNewReadPosition = _editFileReference.startPositionInReferencedTrack +  _editFileReference.startPositionInset;
-//                _editFileReference.startPositionInset = trackNewReadPosition;
-//                NSLog(@"%s trackNewReadPosition %.2f startPositionInReferencedTrack %.2f startPositionInset %.2f trackStartPosition %.2f ",__func__,
-//                      trackNewReadPosition,
-//                      _editFileReference.startPositionInReferencedTrack,
-//                      _editFileReference.startPositionInset,
-//                      _editFileReference.trackStartPosition);
+
+
+
+
+
+
+//====================================================================
 //
-//                [self editingTrackStartInsetChanged];
-
-//    NSLog(@"%s %@ %@",__func__,NSStringFromUIEdgeInsets(self.scrollView.contentInset),NSStringFromCGRect(self.scrollView.frame));
-
-//    CATransform3D scaleTrans = CATransform3DMakeScale(1.5,1.5, 1.0);
-//    self.scrollView.layer.transform = scaleTrans;
-
-//            JWScrubberGradientLayer *effectsLayer =  [[JWScrubberGradientLayer alloc] initWithKind:JWScrubberGradientKindCenteredBreaking];
-//            effectsLayer.color1 = _trackGradientColor1;
-//            effectsLayer.color2 = _trackGradientColor1;
-//            effectsLayer.color3 = _trackGradientColor1;
-//            effectsLayer.breakingPoint1 = 0.12f;
-//            effectsLayer.breakingPoint2 = 0.35;  // allows .30  to include spread at .50
-//            effectsLayer.centeredBreakingCenterSpread = 0.05f;  // prob should be less than opening in pulseLayer
-//            self.scrubberEffectsLayer = effectsLayer;
-//            if (_useEffects) {
-//                // Whatever was used to build scrubberEffectsLayer
-//                pulseEffectsLayer =  [[JWScrubberPulseGradientLayer alloc] initWithKind:JWScrubberGradientKindCenteredBreaking];
-//                pulseEffectsLayer.color1 = [UIColor blackColor]; // can be any color will not be seen (covered)
-//                pulseEffectsLayer.color2 = [UIColor blueColor];
-//                pulseEffectsLayer.color3 = [UIColor yellowColor];
-//                pulseEffectsLayer.breakingPoint1 = _scrubberEffectsLayer.breakingPoint1;
-//                pulseEffectsLayer.breakingPoint2 = _scrubberEffectsLayer.breakingPoint2;
-//                pulseEffectsLayer.centeredBreakingCenterSpread = _scrubberEffectsLayer.centeredBreakingCenterSpread;
-//            }
-//            else
-//    @property (nonatomic) BOOL useTrackGradient;
-//    @property (nonatomic) UIColor *trackGradientColor1;
-//    @property (nonatomic) UIColor *trackGradientColor2;
-//    @property (nonatomic) UIColor *trackGradientColor3;
-//        [self drawGradientOptionStopPlayForView:_gradient frame:self.view.frame];
-//        self.gradientPulseCenter.backgroundColor = [UIColor clearColor].CGColor;
-//@property (nonatomic) JWScrubberPulseGradientLayer *pulseLightLayer;
-//@property (nonatomic) JWScrubberPulseGradientLayer *pulseBaseLayer;
-//@property (nonatomic) JWScrubberGradientLayer *hueLayer;
-//@property (nonatomic) JWScrubberGradientLayer *scrubberEffectsLayer;
-
-// Compute current pos
-//    CGPoint offset = _scrollView.contentOffset;
-//    CGFloat pos = offset.x + self.scrollView.contentInset.left;
-//    float currentPositionSeconds = pos / _uiPointsPerSecondLength;
-
-//CGFloat ltl = [self largestTrackEndPosition];
-
-
-//// RECORDING
-//if (_isRecording) {
-//    //        _scrubberEffectsLayer.color1 = [[UIColor redColor] colorWithAlphaComponent:0.5];
-//    //        _scrubberEffectsLayer.color2 = [[UIColor redColor] colorWithAlphaComponent:0.2];
-//    ////        [_pulseLightLayer initWithLayer:_scrubberEffectsLayer];
-//    //        [_scrubberEffectsLayer render];
-//// PLAYING
-//else if ([_delegate isPlaying]) {
-//    //        _scrubberEffectsLayer.color1 = [[UIColor blueColor] colorWithAlphaComponent:0.5];
-//    //        _scrubberEffectsLayer.color2 = [[UIColor blueColor] colorWithAlphaComponent:0.2];
-//    //        [_scrubberEffectsLayer setNeedsDisplay];
-//    //        _pulseLightLayer = [_pulseLightLayer initWithLayer:_scrubberEffectsLayer];
-//// STOP and OTHER
-//else {
-//    //        _scrubberEffectsLayer.color1 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.5];
-//    //        _scrubberEffectsLayer.color2 = [[UIColor darkGrayColor] colorWithAlphaComponent:0.2];
-
-
-
-//#pragma mark - modify track trackdetect
-//
-//-(void)modifyTrack:(NSUInteger)track withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-//            view.alpha = alpha;
-//        }
-//    }
-//}
-//
-//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors
-//allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    NSLog(@"%s track %ld",__func__,track);
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-//                        recording:[(JWVisualAudioBufferView*)view recording]];
-//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-//            [view setNeedsDisplay];
-//        }
-//    }
-//    [self.scrollView setNeedsLayout];
-//}
-//
-//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha
-//allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    NSLog(@"%s track %ld",__func__,track);
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-//                        recording:[(JWVisualAudioBufferView*)view recording]];
-//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-//            view.alpha = alpha;
-//            [view setNeedsDisplay];
-//        }
-//    }
-//    [self.scrollView setNeedsLayout];
-//}
-//-(void)modifyTrack:(NSUInteger)track layout:(VABLayoutOptions)layoutOptions
-//kind:(VABKindOptions)kindOptions
-//allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-//            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
-//            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
-//            [view setNeedsDisplay];
-//        }
-//    }
-//}
-//
-//-(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
-//layout:(VABLayoutOptions)layoutOptions
-//kind:(VABKindOptions)kindOptions
-//allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-//            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
-//            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
-//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-//                        recording:[(JWVisualAudioBufferView*)view recording]];
-//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-//            [view setNeedsDisplay];
-//        }
-//    }
-//}
-//
-//-(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
-//alpha:(CGFloat)alpha
-//layout:(VABLayoutOptions)layoutOptions
-//kind:(VABKindOptions)kindOptions
-//allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]] && CGRectIntersectsRect(view.frame, trackFr)) {
-//            [(JWVisualAudioBufferView*)view setLayoutOptions:layoutOptions];
-//            [(JWVisualAudioBufferView*)view setKindOptions:kindOptions];
-//            [self configureColors:trackColors withFallback:NO inBufferView:(JWVisualAudioBufferView*)view
-//                        recording:[(JWVisualAudioBufferView*)view recording]];
-//            // we use fallback NO to just modify the colors set in trackColors leaving others unchanged
-//            view.alpha = alpha;
-//            [view setNeedsDisplay];
-//        }
-//    }
-//}
-//
-//-(void)modifyTrack:(NSUInteger)track allTracksHeight:(CGFloat)allTracksHeight {
-//    CGRect trackFr = [self frameForTrack:track  allTracksHeight:allTracksHeight];
-//    for (UIView *view in self.scrollView.subviews) {
-//        if ([view isKindOfClass:[JWVisualAudioBufferView class]]) {
-//            if (CGRectIntersectsRect(view.frame, trackFr)) {
-//                //                [(JWVisualAudioBufferView *)view setColorForTopNoAvg:[UIColor greenColor]];
-//                [view setNeedsDisplay];
-//            }
-//        }
-//    }
-//}
+//====================================================================
 
 

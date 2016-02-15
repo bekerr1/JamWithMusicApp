@@ -38,9 +38,13 @@
 @property (nonatomic) NSArray *playerNodes;
 @property (nonatomic,readonly) NSURL* mixOutputFileURL;
 @property (nonatomic,readwrite) float mixerVolume;
+@property (nonatomic) BOOL scheduledFiveSecondClip;
+@property (nonatomic) BOOL hasFiveSecondClip;
+
 
 -(void)initializeAudio;
 -(void)initializeAudioConfig;
+-(BOOL)addFiveSecondNodeToListForKey:(NSString *)dbKey;
 -(void)setupAVEngine;
 -(void)stopPlayersForReset;
 
@@ -55,11 +59,15 @@
 
 // commands
 
+-(NSUInteger)countOfNodesWithAudio;
+
 -(void)prepareToPlayMix;
 -(void)refresh; // makeconnections if needed
 -(void)pausePlayingAll;
+-(void) playFiveSecondNode;
 -(void)playAlll;
 -(BOOL)playAllActivePlayerNodes;
+-(BOOL)playActivePlayerNodesOfType:(NSArray *)nodeTypes;
 -(BOOL)pauseAllActivePlayerNodes;
 -(BOOL)stopAllActivePlayerNodes;
 -(void)playMix;
@@ -69,6 +77,8 @@
 -(void)revertToMixing;
 -(void)reMix;
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn;
+-(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn duration:(NSTimeInterval)duration;
+
 -(void)prepareToRecord;
 -(BOOL)prepareToRecordFirstAvailable;
 
@@ -77,6 +87,7 @@
 - (void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 - (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(NSInteger)indexOfFirstRecorderNodeWithNoAudio;
 
 // getter
 - (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;

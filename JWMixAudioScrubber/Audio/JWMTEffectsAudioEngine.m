@@ -180,9 +180,82 @@
 
 #pragma mark -
 
+//@"title" : @"Delay",
+//@"feedback" : @(50), //from -100 to 100 percent
+//@"delaytime" : @(1), //from 0 to 2 seconds
+//@"lowpasscutoff" : @(1500) //from 10 hz to sampleRate / 2
+
+//@"title" : @"Reverb",
+//@"factorypreset" : @(AVAudioUnitReverbPresetMediumHall)
+
+//@"title" : @"Distortion",
+//@"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
+//@"pregain" : @(0.0)
+
+
+-(void)updatePlayerNodeListEffectParameters {
+    
+    for (int i = 0; i < [self.playerNodeList count]; i++) {
+        
+        NSArray *effectNodes = self.playerNodeList[i][@"effectnodes"];
+        NSMutableArray *effects = self.playerNodeList[i][@"effects"];
+        
+        if ([effectNodes count] > 0) {
+            
+            
+                
+                for (int j = 0; j < [effects count] - 1; j++) {
+                    
+                    JWEffectNodeTypes type = [effects[j][@"type"] unsignedIntegerValue];
+                    switch (type) {
+                        case JWEffectNodeTypeReverb:
+                            
+                            effects[j][@"wetdry"] = @([effectNodes[j] floatValue1]);
+                            break;
+                            
+                        case JWEffectNodeTypeDelay:
+                            
+                            effects[j][@"wetdry"] = @([effectNodes[j] floatValue1]);
+                            effects[j][@"feedback"] = @([effectNodes[j] floatValue2]);
+                            effects[j][@"lowpasscutoff"] = @([effectNodes[j] floatValue3]);
+                            
+                            break;
+                            
+                        case JWEffectNodeTypeDistortion:
+                            
+                            effects[j][@"wetdry"] = @([effectNodes[j] floatValue1]);
+                            effects[j][@"pregain"] = @([effectNodes[j] floatValue2]);
+                            
+                            break;
+                            
+                        case JWEffectNodeTypeEQ:
+                            
+                            break;
+                            
+                        default:
+                            break;
+                    }
+                
+                
+            }
+            
+            
+        }
+    }
+    
+    
+}
+
+
+
 -(void)refreshEngineForEffectsNodeChanges {
 
     // Detach the nodes
+    
+    //Need to update player node list effects changes
+    
+    [self updatePlayerNodeListEffectParameters];
+
     
     for (NSMutableDictionary *playerNode in self.playerNodeList) {
         for (id effectsNode in playerNode[@"effectsnodes"])
@@ -231,16 +304,16 @@
             
             id fx;
             if (effectKind == JWEffectNodeTypeReverb) {
-                fx = (AVAudioUnitReverb *) [self reverbEffectWith:effect];
+                fx = [self reverbEffectWith:effect];
                 
             } else if (effectKind == JWEffectNodeTypeDelay) {
-                fx = (AVAudioUnitDelay *) [self delayEffectWith:effect];
+                fx = [self delayEffectWith:effect];
                 
             } else if (effectKind == JWEffectNodeTypeDistortion) {
-                fx = (AVAudioUnitDistortion *) [self distortionEffectWith:effect];
+                fx = [self distortionEffectWith:effect];
                 
             } else if (effectKind == JWEffectNodeTypeEQ) {
-                fx = (AVAudioUnitEQ *) [self eqEffectWith:effect    ];
+                fx = [self eqEffectWith:effect];
                 
             } else
                 NSLog(@"No effect Found. %s", __func__);
@@ -259,28 +332,32 @@
 #pragma mark - Effects Creator
 
 
--(AVAudioUnitEffect *)reverbEffectWith:(NSDictionary *)params {
+-(AVAudioUnitReverb *)reverbEffectWith:(NSDictionary *)params {
     NSLog(@"%s Effect Created. %@", __func__, [params description]);
     
-    AVAudioUnitEffect *effect = nil;
+    
+    AVAudioUnitReverb *reverb = [AVAudioUnitReverb new];
     
     id value = params[@"factorypreset"];
     if (value) {
         
         AVAudioUnitReverbPreset factoryPreset = [params[@"factorypreset"] integerValue];
-        AVAudioUnitReverb *reverb = [AVAudioUnitReverb new];
         [reverb loadFactoryPreset:factoryPreset];
         
-        effect = reverb;
+        
+    }
+    float wetDry = [params[@"wetdry"] floatValue];
+    if (wetDry) {
+        [reverb setWetDryMix:wetDry];
     }
     
     
-    return effect;
+    return reverb;
 }
 
--(AVAudioUnitEffect *)delayEffectWith:(NSDictionary *)params {
+-(AVAudioUnitDelay *)delayEffectWith:(NSDictionary *)params {
     NSLog(@"%s Effect Created. %@", __func__, [params description]);
-    AVAudioUnitEffect *effect = nil;
+    
     NSTimeInterval delayTime = 0.0;
     float feedback = 0.0;
     float lpc = 0.0;
@@ -301,14 +378,13 @@
     delay.delayTime = delayTime;
     delay.feedback = feedback;
     delay.lowPassCutoff = lpc;
-    effect = delay;
     
-    return effect;
+    return delay;
 }
 
--(AVAudioUnitEffect *)distortionEffectWith:(NSDictionary *)params {
-
-    AVAudioUnitEffect *effect;
+-(AVAudioUnitDistortion *)distortionEffectWith:(NSDictionary *)params {
+//   NSLog(@"%s Effect Created. %@", __func__, [params description]);
+    
     AVAudioUnitDistortion *distortion = [AVAudioUnitDistortion new];
     
     float preGain = 0.0;
@@ -323,26 +399,132 @@
     if (gain)
         preGain = [gain floatValue];
     
-    distortion.preGain = preGain;
-    effect = distortion;
+    id wetDry = params[@"wetdry"];
+    if (wetDry) {
+        [distortion setWetDryMix:[wetDry floatValue]];
+    }
     
-    distortion.wetDryMix = 0.1;
-    return effect;
+    distortion.preGain = preGain;
+    
+    return distortion;
     
 }
 
--(AVAudioUnitEffect *)eqEffectWith:(NSDictionary *)params {
-
-    AVAudioUnitEffect *effect;
+-(AVAudioUnitEQ *)eqEffectWith:(NSDictionary *)params {
+//    NSLog(@"%s Effect Created. %@", __func__, [params description]);
+    
     AVAudioUnitEQ *eq = [[AVAudioUnitEQ alloc] initWithNumberOfBands:2];
 
     if (eq == nil) {
         
     }
     
-    return effect;
+    
+    return eq;
     
 }
+
+
+-(BOOL)addEffect:(JWEffectNodeTypes)effect toPlayerNodeID:(NSString *)selectedTrackID {
+    
+    int trackIndex = 0;
+    for (int i = 0; i < [self.playerNodeList count]; i++) {
+        
+        NSMutableDictionary *dictAtPn = self.playerNodeList[i];
+        NSString *trackID = dictAtPn[@"trackid"];
+        
+        if ([trackID isEqualToString:selectedTrackID]) {
+            trackIndex = i;
+            break;
+        }
+    }
+    
+    //TODO: not sure if this is supposed to be mutable or not
+    NSMutableDictionary *newEffect;
+    
+    switch (effect) {
+            
+        case JWEffectNodeTypeReverb:
+            
+            newEffect = [@{
+                       @"title" : @"Reverb",
+                       @"factorypreset" : @(AVAudioUnitReverbPresetMediumHall)
+                       } mutableCopy];
+            break;
+            
+        case JWEffectNodeTypeDelay:
+            
+            newEffect = [@{
+                           @"title" : @"Delay",
+                           @"feedback" : @(50), //from -100 to 100 percent
+                           @"delaytime" : @(1), //from 0 to 2 seconds
+                           @"lowpasscutoff" : @(1500) //from 10 hz to sampleRate / 2
+                           } mutableCopy];
+            
+            break;
+            
+        case JWEffectNodeTypeDistortion:
+            
+            newEffect = [@{
+                           @"title" : @"Distortion",
+                           @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
+                           @"pregain" : @(0.0)
+                           } mutableCopy];
+
+            
+            break;
+            
+        case JWEffectNodeTypeEQ:
+            
+            break;
+            
+            
+        default:
+            break;
+    }
+    
+    newEffect[@"type"] = @(effect); //JWEffectType
+    newEffect[@"wetdry"] = @(100); //from 0 to 100 percent
+    
+    NSMutableArray *effectsArray = self.playerNodeList[trackIndex][@"effects"];
+    if (effectsArray) {
+        [effectsArray addObject:newEffect];
+    } else {
+        effectsArray = [@[newEffect] mutableCopy];
+        self.playerNodeList[trackIndex][@"effects"] = effectsArray;
+    }
+    
+    [self refreshEngineForEffectsNodeChanges];
+    
+    return YES;
+}
+
+
+#pragma mark -
+
+-(NSString*)documentsDirectoryPath {
+    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    return [searchPaths objectAtIndex:0];
+}
+
+-(void)saveUserOrderedList {
+    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"mixereffects.dat"];
+    [_effectnodesList writeToURL:[NSURL fileURLWithPath:fpath] atomically:YES];
+    
+    NSLog(@"\n%s\nmixereffects.dat\n%@",__func__,[_effectnodesList description]);
+}
+
+// joe: is not mutable
+-(NSArray *)readUserOrderedList {
+    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"mixereffects.dat"];
+//    NSMutableArray* effectsNodeList = [[NSMutableArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
+    // joe: is not mutable
+    NSArray* effectsNodeList = [[NSArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
+    
+    NSLog(@"\n%s\nmixereffects.dat\n%@",__func__,[effectsNodeList description]);
+    return effectsNodeList;
+}
+
 
 @end
 

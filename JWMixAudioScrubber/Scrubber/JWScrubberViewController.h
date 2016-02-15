@@ -14,14 +14,13 @@
 @interface JWScrubberViewController : UIViewController
 
 @property (nonatomic,assign) id <ScrubberDelegate> delegate;
-@property (strong, nonatomic) IBOutlet UIVisualEffectView *visualEffects;
-@property (strong, nonatomic) NSString *playHeadValueStr;
-@property (strong, nonatomic) NSString *formatValueStr;
-@property (strong, nonatomic) NSString *remainingValueStr;
-@property (strong, nonatomic) NSString *durationValueStr;
+@property (nonatomic) NSString *playHeadValueStr;
+@property (nonatomic) NSString *formatValueStr;
+@property (nonatomic) NSString *remainingValueStr;
+@property (nonatomic) NSString *durationValueStr;
 @property (nonatomic) NSUInteger numberOfTracks;
 @property (nonatomic) NSArray *locations;
-@property (strong, nonatomic) NSDictionary *userProvidedColorsAllTracks;
+@property (nonatomic) NSDictionary *userProvidedColorsAllTracks;
 @property (nonatomic) SamplingOptions configOptions;
 @property (nonatomic) ScrubberViewOptions viewOptions;
 @property (nonatomic) CGFloat scale;
@@ -40,33 +39,63 @@
 @property (nonatomic) BOOL pulseBackLight;
 @property (nonatomic) NSString *playerProgressFormatString;
 @property (nonatomic) CGFloat scrubberLength;
+@property (nonatomic) NSUInteger selectedTrack;
 @property (nonatomic) UIView *clipEnd;
-
 
 - (void)selectTrack:(NSUInteger)track;
 - (void)deSelectTrack;
-
-@property (nonatomic) NSUInteger selectedTrack;
-
-
 - (void)prepareForTracks;
 - (void)refresh;
 - (void)resetScrubber;
 - (void)resetScrubberForRecording;
 - (void)rewindToBeginning;
 - (void)rewindToEnd;
+- (void)readyForPlay;
+- (void)readyForScrub;
 - (void)prepareToPlay:(NSUInteger)track;
 - (void)prepareToPlay:(NSUInteger)track atPosition:(CGFloat)position;
-
+- (void)prepareToRecord:(NSUInteger)track atPosition:(CGFloat)position;
 - (void)setTrackStartPosition:(CGFloat)startPositionSeconds forTrack:(NSUInteger)track;
+- (void)trackScrubberToProgress:(CGFloat)progress;
+- (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated;
+- (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated;
+- (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated animated:(BOOL)contentAnimated;
 
-// Play and RECORD
+- (void)setProgress:(CGFloat)progress;
+- (void)transitionToPlay;
+- (void)transitionToPlayPreview;
+- (void)transitionToStopPlayPreview;
+
+- (void)transitionToStopPlaying;
+- (void)transitionToRecording;
+- (void)transitionToRecordingSingleRecorder:(BOOL)singleRecorder;
+- (void)transitionToPlayTillEnd;
+- (void)pulseRecording:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
+- (void)pulseBackLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
+- (void)pulseLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
+- (void)adjustWhiteBacklightValue:(CGFloat)value;
+-(void)setBackgroundToClear;
+- (void)editTrack:(NSUInteger)track startInset:(CGFloat)startInset;
+- (void)editTrack:(NSUInteger)track endInset:(CGFloat)endInset;
+- (void)editTrack:(NSUInteger)track startTime:(CGFloat)startTime;
+- (void)stopEditingTrackCancel:(NSUInteger)track;
+//-(void)stopEditingTrackSave:(NSUInteger)track;
+//-(id)stopEditingTrackSave:(NSUInteger)track;
+- (id)stopEditingTrackSave:(NSUInteger)track completion:(void (^)(id fileRef))completion;
+- (void)saveEditingTrack:(NSUInteger)track;
+- (void)modifyTrack:(NSUInteger)track alpha:(CGFloat)alpha;
+- (void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors;
+- (void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors alpha:(CGFloat)alpha;
+- (void)modifyTrack:(NSUInteger)track pan:(CGFloat)panValue;
+- (void)modifyTrack:(NSUInteger)track volume:(CGFloat)volumeValue;
+- (void)scaleBuffers;  // not working
 
 - (void)addAudioViewChannelSamples:(NSArray*)samples1 averageSamples:(NSArray*)averageSamples
                    channel2Samples:(NSArray*)samples2 averageSamples2:(NSArray*)averageSamples2
                            inTrack:(NSUInteger)track
                      startDuration:(NSTimeInterval)startDuration
                           duration:(NSTimeInterval)duration
+                             final:(NSUInteger)finalValue
                            options:(SamplingOptions)options
                               type:(VABKindOptions)typeOptions
                             layout:(VABLayoutOptions)layoutOptions
@@ -76,60 +105,6 @@
                          recording:(BOOL)recording
                            editing:(BOOL)editing
                               size:(CGSize)scrubberViewSize;
-
-
-- (void)trackScrubberToProgress:(CGFloat)progress;
-- (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated;
-
-- (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated;
-
-- (void)setProgress:(CGFloat)progress;
-- (void)transitionToPlay;
-- (void)transitionToStopPlaying;
-- (void)transitionToRecording;
-- (void)transitionToRecordingSingleRecorder:(BOOL)singleRecorder;
-- (void)transitionToPlayTillEnd;
-
--(void)pulseRecording:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
-
--(void)pulseBackLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
--(void)pulseLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
--(void)adjustWhiteBacklightValue:(CGFloat)value;
-
--(void)editTrack:(NSUInteger)track startInset:(CGFloat)startInset;
--(void)editTrack:(NSUInteger)track endInset:(CGFloat)endInset;
--(void)editTrack:(NSUInteger)track startTime:(CGFloat)startTime;
--(void)stopEditingTrackCancel:(NSUInteger)track;
-//-(void)stopEditingTrackSave:(NSUInteger)track;
--(id)stopEditingTrackSave:(NSUInteger)track;
-
--(void)saveEditingTrack:(NSUInteger)track;
-
--(void)modifyTrack:(NSUInteger)track alpha:(CGFloat)alpha;
--(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors;
--(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors alpha:(CGFloat)alpha;
--(void)modifyTrack:(NSUInteger)track pan:(CGFloat)panValue;
--(void)modifyTrack:(NSUInteger)track volume:(CGFloat)volumeValue;
-
-//-(void)modifyTrack:(NSUInteger)track allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSUInteger)track withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSUInteger)track withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha  allTracksHeight:(CGFloat)allTracksHeight;
-//
-//-(void)modifyTrack:(NSUInteger)track
-//            layout:(VABLayoutOptions)layoutOptions
-//              kind:(VABKindOptions)kindOptions
-//   allTracksHeight:(CGFloat)allTracksHeight;
-//
-//-(void)modifyTrack:(NSUInteger)track
-//            colors:(NSDictionary*)trackColors
-//             alpha:(CGFloat)alpha
-//            layout:(VABLayoutOptions)layoutOptions
-//              kind:(VABKindOptions)kindOptions
-//   allTracksHeight:(CGFloat)allTracksHeight;
-
-- (void)scaleBuffers;  // not working
-
 
 @end
 
@@ -156,6 +131,5 @@
 -(void)editChange:(NSUInteger)track;
 -(void)editCompletedForTrack:(NSUInteger)track withTrackInfo:(id)fileReference;
 -(void)editChangeForTrack:(NSUInteger)track withTrackInfo:(id)fileReference;
+-(NSUInteger)buffersCompletedTrack:(NSUInteger)track;
 @end
-
-

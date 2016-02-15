@@ -49,7 +49,7 @@
     
     if (_state == JWPlayerStatePlayFromPos) {
         [self setButtonsToR1];
-    } else if (_state == JWPlayerStateRecFromPos) {
+    } else if (_state == JWPlayerStateRecFromPos || _state == JWPlayerStatePlayFiveSecondAudio) {
         [self setButtonsToR2];
     } else if (_state == JWPlayerStateSetToBeg
                || _state == JWPlayerStateSetToPos

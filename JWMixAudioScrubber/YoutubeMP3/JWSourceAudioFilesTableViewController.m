@@ -424,11 +424,10 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         // NOT Selecting to advance to Clipper, but to simply play
         // Perhaps using Detail accessory to allow the other function when preview is ON and OFF
         BOOL playUsingEngine = NO;
-        
         // Start And Stop
-
         if (playUsingEngine) {
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            
             // AVAudioEngine
             if (_playerNode.isPlaying)
                 [_playerNode stop];
@@ -440,44 +439,13 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
             if (_playerNode.isPlaying)
                 [_playerNode stop];
             
-            if (_allFiles) {
-                id dbKey = [[JWFileController sharedInstance] dbKeyForFileName:[fileURL lastPathComponent]];
-                if (dbKey) {
-                    id mp3DataRecord = [self trimmedFileReference:dbKey];
-                    NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
-                    UIImage *imageIcon;
-                    @synchronized(_images){
-                        imageIcon = self.images[dbKey];
-                        if (imageIcon==nil) {
-                            imageIcon = self.images[@"iconmusic120"];
-                        } else {
-                            imageIcon = [UIImage imageWithCGImage:imageIcon.CGImage scale:1.0 orientation:UIImageOrientationUp];
-                        }
-                    }
-
-                    [self playFileUsingAVPlayer:fileURL image:imageIcon imageURL:imageURL];
-                    
-                } else {
-
-                    UIImage *imageIcon;
-                    if (indexPath.section == 3) {
-                        @synchronized(_images){
-                            imageIcon = self.images[@"iconmusic120"];
-                        }
-                    } else {
-                        imageIcon = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %u",(1 + 1)]];
-                    }
-                    
-                    [self playFileUsingAVPlayer:fileURL image:imageIcon imageURL:nil];
-                }
-                
-            } else {
-                NSString *dbKey = _userOrderList[indexPath.row];
-                id mp3DataRecord =  _mp3FilesInfo[dbKey];
-                NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
-                
-                [self playFileUsingAVPlayer:fileURL image:self.images[_userOrderList[indexPath.row]] imageURL:imageURL];
-            }
+            NSString *dbKey;
+            if (_allFiles)
+                dbKey = [[JWFileController sharedInstance] dbKeyForFileName:[fileURL lastPathComponent]];
+            else
+                dbKey = _userOrderList[indexPath.row];
+            
+            [self playInAvPlayerUsingKey:dbKey file:fileURL atIndexPath:indexPath];
         }
         
         // SET it as the CurrentWork item if file exists
@@ -507,6 +475,52 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         }
     }
 }
+
+
+-(void)playInAvPlayerUsingKey:(NSString*)dbKey file:(NSURL*)fileURL atIndexPath:(NSIndexPath*)indexPath {
+
+if (_allFiles) {
+    id dbKey = [[JWFileController sharedInstance] dbKeyForFileName:[fileURL lastPathComponent]];
+    if (dbKey) {
+        id mp3DataRecord = [self trimmedFileReference:dbKey];
+        NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
+        UIImage *imageIcon;
+        @synchronized(_images){
+            imageIcon = self.images[dbKey];
+            if (imageIcon==nil) {
+                imageIcon = self.images[@"iconmusic120"];
+            } else {
+                imageIcon = [UIImage imageWithCGImage:imageIcon.CGImage scale:1.0 orientation:UIImageOrientationUp];
+            }
+        }
+        
+        [self playFileUsingAVPlayer:fileURL image:imageIcon imageURL:imageURL];
+        
+    } else {
+        
+        UIImage *imageIcon;
+        if (indexPath.section == 3) {
+            @synchronized(_images){
+                imageIcon = self.images[@"iconmusic120"];
+            }
+        } else {
+            imageIcon = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensandlogos - %u",(1 + 1)]];
+        }
+        
+        [self playFileUsingAVPlayer:fileURL image:imageIcon imageURL:nil];
+    }
+    
+} else {
+    NSString *dbKey = _userOrderList[indexPath.row];
+    id mp3DataRecord =  _mp3FilesInfo[dbKey];
+    NSURL *imageURL = [self bestImageURLForMP3Record:mp3DataRecord];
+    
+    [self playFileUsingAVPlayer:fileURL image:self.images[_userOrderList[indexPath.row]] imageURL:imageURL];
+}
+
+}
+
+
 
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
@@ -653,10 +667,56 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
     UIAlertAction* useAction =
     [UIAlertAction actionWithTitle:@"Use in New Track" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        
+        NSURL *fileURL;
+        if (_allFiles)
+            fileURL = _allFilesSections[_selectedDetailIndexPath.section][_selectedDetailIndexPath.row][@"furl"];
+        else
+            fileURL = [self fileURLForCacheItem:_userOrderList[_selectedDetailIndexPath.row]];
+        
+        [JWCurrentWorkItem sharedInstance].currentAudioFileURL = fileURL;
+        [JWCurrentWorkItem sharedInstance].currentAudioOrigin = YouTubeOrigin;
+        if (_allFiles) {
+            if (_selectedDetailIndexPath.section == 3) {
+                id dbKey = [[JWFileController sharedInstance] dbKeyForFileName:[fileURL lastPathComponent]];
+                self.selectedCacheItemKey = @"trimmed";
+                [self finishedTrim:(id)self withDBKey:dbKey];
+            } else {
+                self.selectedCacheItemKey = @"source";
+                [self performSegueWithIdentifier:@"JWSourceAllFilesToClipSegue" sender:self];
+            }
+        } else {
+            self.selectedCacheItemKey = _userOrderList[_selectedDetailIndexPath.row];
+            [self performSegueWithIdentifier:@"JWSourceFilesToClipSegue" sender:self];
+        }
+
     }];
     
     UIAlertAction* listenAction =
     [UIAlertAction actionWithTitle:@"Listen" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        
+        //        [self tableView:self.tableView didSelectRowAtIndexPath:_selectedDetailIndexPath];
+        NSURL *fileURL;
+        if (_allFiles)
+            fileURL = _allFilesSections[_selectedDetailIndexPath.section][_selectedDetailIndexPath.row][@"furl"];
+        else
+            fileURL = [self fileURLForCacheItem:_userOrderList[_selectedDetailIndexPath.row]];
+        
+        BOOL playUsingEngine = NO;
+        if (playUsingEngine) {
+            [self playFileInEngine: fileURL];
+        } else {
+            // AVPLayer
+            NSString *dbKey;
+            if (_allFiles) {
+                dbKey = [[JWFileController sharedInstance] dbKeyForFileName:[fileURL lastPathComponent]];
+            } else {
+                dbKey = _userOrderList[_selectedDetailIndexPath.row];
+            }
+            
+            [self playInAvPlayerUsingKey:dbKey file:fileURL atIndexPath:_selectedDetailIndexPath];
+        }
+        
     }];
     
     UIAlertAction* moreInfo =
@@ -664,9 +724,9 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         [self namePrompt];
     }];
 
-    [actionController addAction:moreInfo];
     [actionController addAction:listenAction];
     [actionController addAction:useAction];
+    [actionController addAction:moreInfo];
     [actionController addAction:cancelAction];
 
     [self presentViewController:actionController animated:YES completion:nil];
@@ -791,21 +851,24 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
 
                     [playerViewController.contentOverlayView addSubview:iv];
 
-                    [UIView animateWithDuration:1.0 delay:0.0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-                        iv1.alpha = 0.0;
-                    } completion:^(BOOL fini){
-                    }];
-                    [UIView animateWithDuration:1.4 delay:0.650 options:UIViewAnimationOptionCurveEaseIn animations:^{
-                        iv.alpha = 1.0;
-                    } completion:^(BOOL fini){
-                    }];
+//                    [UIView animateWithDuration:1.0 delay:0.0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+//                        iv1.alpha = 0.0;
+//                    } completion:^(BOOL fini){
+//                    }];
+//                    [UIView animateWithDuration:1.4 delay:0.650 options:UIViewAnimationOptionCurveEaseIn animations:^{
+//                        iv.alpha = 1.0;
+//                    } completion:^(BOOL fini){
+//                    }];
+                    
+                    iv1.alpha = 0.0;
+                    iv.alpha = 1.0;
 
                     CGPoint center1 = iv.center;
                     center1.y += 12;
                     CGPoint center2 = center1;
                     center2.y += 20;
 
-                    [UIView animateWithDuration:5.0 delay:1.6
+                    [UIView animateWithDuration:5.0 delay:0.5
                                         options:UIViewAnimationOptionCurveEaseIn
                                      animations:^{
                                          iv.transform = CATransform3DGetAffineTransform(CATransform3DMakeScale(1.85, 1.85, 1.0));

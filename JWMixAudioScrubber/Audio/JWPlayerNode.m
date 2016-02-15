@@ -9,6 +9,12 @@
 #import "JWPlayerNode.h"
 
 
+@interface JWPlayerNode () {
+    float _startInset;
+    float _endInset;
+}
+@end
+
 @implementation JWPlayerNode
 
 -(CGFloat)progressOfAudioFile {
@@ -41,7 +47,14 @@
             result = 1.00f;
         } else {
             double fileLenInSecs = fileLength / [playerTime sampleRate];
+
+            fileLenInSecs -= _startInset;
+            fileLenInSecs -= _endInset;
+            fileLenInSecs += _delayStart;
+            
             double currentPosInSecs = [playerTime sampleTime] / [playerTime sampleRate];
+            currentPosInSecs += _startPlayingInset;
+            
             if (currentPosInSecs > fileLenInSecs ) {
                 if (/* DISABLES CODE */ (YES)) {
                     double normalizedProgress = currentPosInSecs/fileLenInSecs - floorf(currentPosInSecs/fileLenInSecs);
@@ -52,10 +65,11 @@
                 
             } else {
                 result = currentPosInSecs/fileLenInSecs;
+            
             }
         }
     }
-    //    NSLog(@"%s %.3f",__func__,result);
+//    NSLog(@"%s %.3f",__func__,result);
     return result;
 }
 
@@ -77,6 +91,12 @@
             Float64 duration =  (1.0 / mSampleRate) * audioFile.processingFormat.streamDescription->mFramesPerPacket;
             fileLenInSecs = duration * fileLength;
         }
+        
+        fileLenInSecs -= _startInset;
+        fileLenInSecs -= _endInset;
+        fileLenInSecs += _delayStart;
+        fileLenInSecs -= _startPlayingInset;
+
         result = (CGFloat)fileLenInSecs;
     }
     //    NSLog(@"%s %.3f",__func__,result);
@@ -92,7 +112,15 @@
         AVAudioTime *playerTime = [self playerTimeForNodeTime:audioTime];
         
         double fileLenInSecs = fileLength / [playerTime sampleRate];
+
+        fileLenInSecs -= _startInset;
+        fileLenInSecs -= _endInset;
+        fileLenInSecs += _delayStart;
+
         double currentPosInSecs = [playerTime sampleTime] / [playerTime sampleRate];
+
+        currentPosInSecs += _startPlayingInset;
+
         if (currentPosInSecs >= fileLenInSecs ) {
             if (/* DISABLES CODE */ (YES)) {
                 double normalizedProgress = currentPosInSecs/fileLenInSecs - floorf(currentPosInSecs/fileLenInSecs);
@@ -117,7 +145,15 @@
         AVAudioTime *playerTime = [self playerTimeForNodeTime:audioTime];
         
         double fileLenInSecs = fileLength / [playerTime sampleRate];
+        
+        fileLenInSecs -= _startInset;
+        fileLenInSecs -= _endInset;
+        fileLenInSecs += _delayStart;
+
         double currentPosInSecs = [playerTime sampleTime] / [playerTime sampleRate];
+
+        currentPosInSecs += _startPlayingInset;
+
         if (currentPosInSecs > fileLenInSecs ) {
             if (/* DISABLES CODE */ (YES)) {
                 // Looops player time keeps playing past ened figure out where in Loop
@@ -130,8 +166,36 @@
             result = currentPosInSecs;
         }
     }
-    //    NSLog(@"%s %.3f",__func__,result);
+//    NSLog(@"%s %.3f",__func__,result);
     return result;
 }
+
+#pragma mark -
+
+-(void)setFileReference:(NSDictionary *)fileReference {
+
+    if (fileReference) {
+        id startInsetValue = fileReference[@"startinset"];
+        float startInset = startInsetValue ? [startInsetValue floatValue] : 0.0;
+        id endInsetValue = fileReference[@"endinset"];
+        float endInset = endInsetValue ? [endInsetValue floatValue] : 0.0;
+        
+        _startInset = startInset;
+        _endInset = endInset;
+    } else {
+        _startInset = 0.0;
+        _endInset = 0.0;
+    }
+    
+//    result =
+//    [[JWPlayerFileInfo alloc] initWithCurrentPosition:0.0 duration:durationSeconds
+//                                        startPosition:startTime
+//                                           startInset:startInset
+//                                             endInset:endInset];
+    
+}
+
+
+
 
 @end

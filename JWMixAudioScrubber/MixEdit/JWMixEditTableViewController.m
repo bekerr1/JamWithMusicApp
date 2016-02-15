@@ -15,6 +15,7 @@
 #import "JWEffectPresetTableViewCell.h"
 // Player node types
 #import "JWMixNodes.h"
+#import "JWCustomCellBackground.h"
 #import "UIColor+JW.h"
 
 
@@ -53,6 +54,8 @@
 
     self.tableView.decelerationRate = UIScrollViewDecelerationRateFast;
     self.tableView.bounces = NO;
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.tableView.separatorColor = [UIColor clearColor];
 
     [self refresh];
 }
@@ -308,6 +311,8 @@
     
     [sliderCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
     
+    JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
+    
     // First section beyond mixNodeCount
     
     if (_mixerSection > 0 && indexPath.section == _mixerSection) {
@@ -355,6 +360,8 @@
     
     cell = sliderCell;
     
+    cell.backgroundView = cback;
+    
     return cell;
     
 }
@@ -373,6 +380,8 @@
     JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:nodeSection];
     
     // within BASE ROWS
+    
+    JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
     
     if (indexPath.row < nBaseRowsForNode) {
         
@@ -397,6 +406,11 @@
                 [sliderCell.slider addTarget:tnode action:@selector(adjustFloatValue1WithSlider:)
                             forControlEvents:UIControlEventValueChanged];
 
+                
+                [sliderCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
+                [sliderCell.slider addTarget:cback action:@selector(adjustGOffsetVolume:) forControlEvents:UIControlEventValueChanged];
+                //[sliderCell.slider addTarget:cback action:@selector(sliderDidFinish:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside];
+                
                 sliderCell.sliderLabel.text = @"volume";
                 cell = sliderCell;
                 
@@ -516,6 +530,8 @@
         
         cell = [self tableView:tableView effectCellForRowAtIndexPath:indexPath baseRowForNodes:nBaseRowsForNode];
     }
+    
+    cell.backgroundView = cback;
 
     return cell;
 }
@@ -533,7 +549,9 @@
     
     NSUInteger nodeSection = indexPath.section;
     nodeSection = _selectedNodeIndex;
-
+    
+    JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
+    
     id <JWEffectsModifyingProtocol> node = [_effectsHandler effectNodeAtIndex:arrayIndex forPlayerNodeAtIndex:nodeSection];
     
     if (node) {
@@ -557,7 +575,7 @@
             [sliderAndSwitchCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
             [sliderAndSwitchCell.switchControl addTarget:node action:@selector(adjustBoolValue1WithSwitch:) forControlEvents:UIControlEventValueChanged];
             
-            sliderAndSwitchCell.sliderLabel.text = @"wetDry";
+            sliderAndSwitchCell.sliderLabel.text = @"Wet/Dry";
             sliderAndSwitchCell.nodeTitleLabel.text = effectTitle;
             
             cell = sliderAndSwitchCell;
@@ -569,7 +587,7 @@
             [tableView dequeueReusableCellWithIdentifier:@"JWEffectParametersCell" forIndexPath:indexPath];
             
             // Slider 1
-            paramCell.parameterLabel1.text = @"wetDry";
+            paramCell.parameterLabel1.text = @"Wet/Dry";
             [paramCell.effectParameter1 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
             paramCell.effectParameter1.minimumValue = 0;
             paramCell.effectParameter1.maximumValue = 100;  // wet dry is percent 0 to 100
@@ -577,11 +595,11 @@
             [paramCell.effectParameter1 addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
             
             // Slider 2
-            paramCell.parameterLabel2.text = @"pregain";
+            paramCell.parameterLabel2.text = @"Pre-Gain";
             [paramCell.effectParameter2 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
             paramCell.effectParameter2.minimumValue = 0;
             paramCell.effectParameter2.maximumValue = 100;  // wet dry is percent 0 to 100
-            paramCell.effectParameter2.value = [node floatValue1];
+            paramCell.effectParameter2.value = [node floatValue2];
             [paramCell.effectParameter2 addTarget:node action:@selector(adjustFloatValue2WithSlider:) forControlEvents:UIControlEventValueChanged];
             
             // Slider 3
@@ -600,29 +618,29 @@
             
             
             // Slider 1
-            paramCell.parameterLabel1.text = @"delayTime";
+            paramCell.parameterLabel1.text = @"Wet/Dry";
             [paramCell.effectParameter1 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
             paramCell.effectParameter1.minimumValue = 0;
-            paramCell.effectParameter1.maximumValue = .9;
-            paramCell.effectParameter1.value = [node timeInterval1];
-            [paramCell.effectParameter1 addTarget:node action:@selector(adjustTimeInterval1WithSlider:) forControlEvents:UIControlEventValueChanged];
+            paramCell.effectParameter1.maximumValue = 100;
+            paramCell.effectParameter1.value = [node floatValue1];
+            [paramCell.effectParameter1 addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
             
             // Slider 2
-            paramCell.parameterLabel2.text = @"wetDry";
+            paramCell.parameterLabel2.text = @"Feedback";
             [paramCell.effectParameter2 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
-            paramCell.effectParameter2.minimumValue = 0;
+            paramCell.effectParameter2.minimumValue = -100;
             paramCell.effectParameter2.maximumValue = 100;  // wet dry is percent 0 to 100
-            paramCell.effectParameter2.value = [node floatValue1];
+            paramCell.effectParameter2.value = [node floatValue2];
             
-            [paramCell.effectParameter2 addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
+            [paramCell.effectParameter2 addTarget:node action:@selector(adjustFloatValue2WithSlider:) forControlEvents:UIControlEventValueChanged];
             
             // Slider 3
-            paramCell.parameterLabel3.text = @"feedBack";
+            paramCell.parameterLabel3.text = @"LowPass\nCutoff";
             [paramCell.effectParameter3 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
-            paramCell.effectParameter3.minimumValue = -100;
-            paramCell.effectParameter3.maximumValue = 100;  //
-            paramCell.effectParameter3.value = [node floatValue1];
-            [paramCell.effectParameter3 addTarget:node action:@selector(adjustFloatValue2WithSlider:) forControlEvents:UIControlEventValueChanged];
+            paramCell.effectParameter3.minimumValue = 10;
+            paramCell.effectParameter3.maximumValue = 25000;  //
+            paramCell.effectParameter3.value = [node floatValue3];
+            [paramCell.effectParameter3 addTarget:node action:@selector(adjustFloatValue3WithSlider:) forControlEvents:UIControlEventValueChanged];
             
             paramCell.nodeTitleLabel.text = effectTitle;
 
@@ -675,6 +693,8 @@
         
     }
     
+    cell.backgroundView = cback;
+    
     return cell;
     
 }
@@ -715,6 +735,10 @@
     }
     
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    
+    if (![cell.selectedBackgroundView isKindOfClass:[JWCustomCellBackground class]]) {
+        cell.selectedBackgroundView = [[JWCustomCellBackground alloc] init];
+    }
     
     return cell;
     
@@ -780,6 +804,18 @@
 //}
 //-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
 //    }
+
+
+-(void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    
+    //Set the background color of the View
+    view.tintColor = [[UIColor blackColor] colorWithAlphaComponent:1.0];
+    
+    // Text Color
+    UITableViewHeaderFooterView *header = (UITableViewHeaderFooterView *)view;
+    [header.textLabel setTextColor:[UIColor whiteColor]];
+    
+}
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
 

@@ -26,7 +26,9 @@ typedef NS_ENUM(NSInteger, JWMixerNodeTypes) {
     JWMixerNodeTypePlayer,
     JWMixerNodeTypePlayerRecorder,
     JWMixerNodeTypeMixerPlayer,
-    JWMixerNodeTypeMixerPlayerRecorder
+    JWMixerNodeTypeMixerPlayerRecorder,
+    JWMixerNodeTypeFiveSecondPlayer, 
+    JWMixerNodeTypeVideo
 };
 
 typedef NS_ENUM(NSUInteger, JWEffectNodeTypes) {

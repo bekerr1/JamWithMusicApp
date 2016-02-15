@@ -9,12 +9,14 @@
 #import "DetailViewController.h"
 #import "JWAudioPlayerController.h"
 #import "JWCurrentWorkItem.h"
+#import "JWCameraViewController.h"
 
 @import MediaPlayer;
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate> {
     BOOL _playing;
     NSUInteger selectedAmpImageIndex;
+    NSUInteger _countDownLabelValue;
 }
 @property (strong, nonatomic) JWAudioPlayerController* playerController;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *playButton;
@@ -27,6 +29,7 @@
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *flexSpace2;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *exportButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *effectsButton;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *cameraButton;
 @property (strong, nonatomic) IBOutlet UIView *volumeView;
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *scrubberActivity;
 @property (strong, nonatomic) IBOutlet UIView *scrubberContainerView;
@@ -39,6 +42,7 @@
 @property (strong, nonatomic) IBOutlet UIView *mixeditContainerView;
 @property (nonatomic) NSMutableString *statusString;
 @property (strong, nonatomic) NSArray *trackItems;
+@property (strong, nonatomic) IBOutlet UILabel *countDownLabel;
 @property (strong, nonatomic) UIColor *restoreColor;
 @end
 
@@ -145,13 +149,13 @@
     [self.navigationController setToolbarHidden:NO];
     [self toolbar1Animated:NO];
 
+    [self editingButtons];
     [self predictScrubberHeight];
     self.volumeView.backgroundColor = [UIColor clearColor];
     
 //    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
 //    mpVolume.showsRouteButton = YES;
 //    [_volumeView addSubview:mpVolume];
-
     
     self.restoreColor = self.view.backgroundColor;
     self.view.backgroundColor = [UIColor blackColor];
@@ -174,6 +178,8 @@
                                                                  }];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
+    
+    _countDownLabelValue = 5;
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -189,8 +195,7 @@
 //    [super viewDidDisappear:animated];
 //}
 
--(void)dealloc
-{
+-(void)dealloc {
     NSLog(@"%s",__func__);
 }
 
@@ -217,11 +222,10 @@
     NSNumber *selectedIndex = noti.userInfo[@"index"];
     if (selectedIndex)
         selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
-    
     [self updateAmpImage];
 }
 
-#pragma mark - commands
+#pragma mark - commands/target
 
 -(void)stopPlaying {
     [self.playerController stop];
@@ -237,8 +241,59 @@
         self.playerControls = segue.destinationViewController;
     } else if ([segue.identifier isEqualToString:@"JWMixEditEmbed"]){
         self.mixEdit = segue.destinationViewController;
+    } else if ([segue.identifier isEqualToString:@"cameraActionSegue"]) {
+        JWCameraViewController *destin = (JWCameraViewController *)segue.destinationViewController;
+        [destin setApccTrackSet:_trackItems];
+        //NSArray *childVC = destin.childViewControllers;
+        
+    }
+
+}
+
+//TODO:FIve second stuff
+-(void)countdownTimerFireMethod:(NSTimer *)timer {
+    
+    //NSLog(@"%s count %d volume: %f",__func__, _countDownLabelValue,[_audioEngine mixerVolume]);
+    
+    _countDownLabelValue--;
+    
+    if (_countDownLabelValue < 3) {
+        
+    }
+    
+    if (_countDownLabelValue > 0) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self presentCountDownValue];
+        });
+    } else {
+        
+        // five second was not completing
+        [_playerController.fiveSecondTimer invalidate];
+        
     }
 }
+
+-(void)presentCountDownValue {
+    
+    self.countDownLabel.text = [NSString stringWithFormat:@"%i", _countDownLabelValue];
+    
+    CATransform3D scaleTrans = CATransform3DMakeScale(3.2, 3.2, 1.0);
+    _countDownLabel.alpha = 1.0;
+    _countDownLabel.layer.transform = CATransform3DIdentity;
+    [UIView animateWithDuration:.60f delay:0.0 options:UIViewAnimationOptionCurveEaseOut
+                     animations:^{
+                         _countDownLabel.layer.transform = scaleTrans;
+                     } completion:^(BOOL fini){
+                     }];
+    
+    [UIView animateWithDuration:.40f delay:0.4 options:UIViewAnimationOptionCurveEaseIn
+                     animations:^{
+                         _countDownLabel.alpha = 0.00f;
+                     } completion:^(BOOL fini){
+                     }];
+}
+
+
 
 #pragma mark - TOOLBAR BUTTON ACTIONS
 
@@ -265,12 +320,12 @@
     }
 }
 
-
 -(void)toolbar1 {
     [self toolbar1Animated:YES];
 }
+
 -(void)toolbar1Animated:(BOOL)animated {
-    [self setToolbarItems:@[_flexSpace1,_effectsButton,_exportButton] animated:animated];
+    [self setToolbarItems:@[_cameraButton, _flexSpace1,_effectsButton,_exportButton] animated:animated];
 }
 
 -(void)toolbar2WithPlay:(BOOL)playbutton {
@@ -298,9 +353,6 @@
      ];
 }
 
-
-
-
 -(void)computeScrubberViewHeight:(NSUInteger)numberOfTracks{
     CGFloat tracksz = 60.0f;
     NSUInteger nTracks = numberOfTracks;
@@ -316,7 +368,15 @@
     self.layoutConstraintScrubberHeight.constant = expectedHeight;
     
 }
+
 #pragma mark -  JWAudioPlayerControllerDelegate
+
+
+-(id)countDownTarget {
+    NSLog(@"%@", self);
+    self.countDownLabel.hidden = NO;
+    return self;
+}
 
 -(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller {
     
@@ -329,7 +389,16 @@
 }
 
 -(void)save:(JWAudioPlayerController *)controller {
+
+    NSLog(@"%s \n _detailItem %@",__func__,[_detailItem description]);
+
     [self saveAction:nil];
+    if (self.editing) {
+        self.editing = NO;
+        [self editingButtons];
+    }
+//    [self configureView];
+
 }
 
 -(void)noTrackSelected:(JWAudioPlayerController *)controller {
@@ -361,8 +430,6 @@
     }
 }
 
-
-
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key {
 //}
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key {
@@ -377,14 +444,26 @@
 
 -(void)editingButtons{
     if (self.editing) {
+        UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelEdit:)];
+        [self.navigationItem setRightBarButtonItem:cancelButton];
         [self.effectsButton setTitle:@"Clip"];
         //        [self.exportButton setTitle:@"Cancel"];
     } else {
+        
+        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(addAction:)];
+        [self.navigationItem setRightBarButtonItem:actionButton];
         [self.effectsButton setTitle:@"Effects"];
         //        [self.exportButton setTitle:@"Export"];
     }
 }
 
+-(void)cancelEdit:(id)sender {
+    if ([_playerController stopEditingSelectedTrackCancel]){
+        // SELECTED and EDITING
+        self.editing = NO;
+        [self editingButtons];
+    }
+}
 
 -(void)clipActions {
     UIAlertController* actionController =
@@ -420,7 +499,7 @@
     [actionController addAction:clipRightTrack];
     [actionController addAction:startPosition];
     [actionController addAction:cancelAction];
-    [self presentViewController:actionController animated:YES completion:nil];
+    [self presentViewController:actionController animated:NO completion:nil];
 }
 
 -(void)clipActionsEditing {
@@ -436,6 +515,7 @@
     }];
     UIAlertAction* cancelClipEdit =
     [UIAlertAction actionWithTitle:@"Cancel Clip Edit" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+        [self cancelEdit:nil];
         if ([_playerController stopEditingSelectedTrackCancel]){
             // SELECTED and EDITING
             self.editing = NO;
@@ -454,6 +534,7 @@
 
 
 -(void)addEffectAction {
+    NSLog(@"%s", __func__);
     
     //TODO: specify in message which node they are adding the effect to
     UIAlertController *addEffect = [UIAlertController alertControllerWithTitle:@"Add An Effect" message:@"Choose From These Effects" preferredStyle:UIAlertControllerStyleAlert];
@@ -461,14 +542,22 @@
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
     UIAlertAction *addReverbAction = [UIAlertAction actionWithTitle:@"Reverb" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         
+        [_playerController addEffectToEngineNodelist:@"reverb"];
+        
     }];
     UIAlertAction *addDelayAction = [UIAlertAction actionWithTitle:@"Delay" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+        [_playerController addEffectToEngineNodelist:@"delay"];
         
     }];
     UIAlertAction *addDistortionAction = [UIAlertAction actionWithTitle:@"Distortion" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         
+        [_playerController addEffectToEngineNodelist:@"distortion"];
+        
     }];
     UIAlertAction *addEQAction = [UIAlertAction actionWithTitle:@"EQ" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+        [_playerController addEffectToEngineNodelist:@"eq"];
         
     }];
     
@@ -484,6 +573,57 @@
 
 //When User wants to add an effect node or a recorder node
 - (IBAction)addAction:(id)sender {
+    
+    NSString *title;
+    NSString *message;
+    
+    UIAlertAction *addEffectAction;
+    
+    if (self.mixeditContainerView.hidden == YES) {
+        title = @"Modify Jam";
+        message = @"Can Add Up To 3 Nodes";
+    } else {
+        title = @"Add Effect or Node";
+        message = @"Can Add Up To 3 Nodes And 4 Effects Each Node";
+        addEffectAction =
+        [UIAlertAction actionWithTitle:@"Add Effect" style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction *action) {
+                                   [self addEffectAction];
+                               }];
+    }
+    
+    //TODO: specify in message which node they are adding the effect to
+    
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    
+    UIAlertAction *clipAction = [UIAlertAction actionWithTitle:@"Clip" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self clipActions];
+    }];
+    
+    UIAlertAction *addNodeAction = [UIAlertAction actionWithTitle:@"Add Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        if ([_delegate respondsToSelector:@selector(addTrackNode:toJamTrackWithKey:)]) {
+            [_delegate addTrackNode:self toJamTrackWithKey:_detailItem[@"key"]];
+            [self configureView];
+        }
+        
+        // [_delegate addTrack:self cachKey:_detailItem[@"key"]];
+        // NSLog(@"%s ADD NODE not implemented",__func__);
+    }];
+    
+    
+    if (addEffectAction)
+        [alertController addAction:addEffectAction];
+    
+    [alertController addAction:addNodeAction];
+    [alertController addAction:clipAction];
+    [alertController addAction:cancel];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+//When User wants to add an effect node or a recorder node
+- (IBAction)addNodeOrEffectAction:(id)sender {
     
     NSString *title;
     NSString *message;

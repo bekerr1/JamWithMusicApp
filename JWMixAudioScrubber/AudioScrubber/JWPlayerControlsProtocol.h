@@ -13,8 +13,13 @@ typedef NS_ENUM(NSInteger, PlayerControllerState) {
     JWPlayerStatePlayFromPos,
     JWPlayerStateSetToPos,
     JWPlayerStateSetToBeg,
-    JWPlayerStateRecFromPos
-    
+    JWPlayerStateRecFromPos,
+    JWPlayerStatePlayFiveSecondAudio, 
+    JWPlayerStateScrubbAudioFromPosMoment,
+    JWPlayerStateSetPlayToPos,
+    JWPlayerStateScrubbAudioPreviewMoment
+
+
 };
 
 @protocol JWPlayerControlsProtocol <NSObject>

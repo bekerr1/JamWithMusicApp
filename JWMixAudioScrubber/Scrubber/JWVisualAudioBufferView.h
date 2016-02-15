@@ -24,6 +24,7 @@
 @property (nonatomic) NSArray *samplesAverages2;
 
 @property (nonatomic) NSUInteger bufferSeqNumber;
+@property (nonatomic) NSTimeInterval timeToLive;
 
 @property (nonatomic) VABKindOptions kindOptions;
 @property (nonatomic) VABLayoutOptions layoutOptions;
