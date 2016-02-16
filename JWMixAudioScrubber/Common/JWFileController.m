@@ -755,11 +755,11 @@
 //                                                     processingFormat.interleaved ? @"i" : @"ni"
 //                                                     ]);
         
-        result = [NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
+        result = [NSString stringWithFormat:@"%@ %d ch %.0f %u %@",
                   fileFormatIdStr,
                   (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
                   fileFormat.streamDescription->mSampleRate,
-                  fileFormat.streamDescription->mBitsPerChannel,
+                  (unsigned int)fileFormat.streamDescription->mBitsPerChannel,
                   fileFormat.interleaved ? @"i" : @"ni"
                   ];
         
@@ -826,11 +826,11 @@
 //                                                     ]);
 
         
-        result = [NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
+        result = [NSString stringWithFormat:@"%@ %u ch %.0f %u %@",
                   processingFormatIdStr,
-                  processingFormat.streamDescription->mChannelsPerFrame,
+                  (unsigned int)processingFormat.streamDescription->mChannelsPerFrame,
                   processingFormat.streamDescription->mSampleRate,
-                  processingFormat.streamDescription->mBitsPerChannel,
+                  (unsigned int)processingFormat.streamDescription->mBitsPerChannel,
                   processingFormat.interleaved ? @"i" : @"ni"
                   ];
 

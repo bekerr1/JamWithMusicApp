@@ -817,7 +817,7 @@
         }
     }
     
-    NSLog(@"mixer inputs %i", [mainMixer numberOfInputs]);
+    NSLog(@"mixer inputs %lu", (unsigned long)[mainMixer numberOfInputs]);
     self.needMakeConnections = NO;
 }
 

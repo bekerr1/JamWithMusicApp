@@ -68,26 +68,26 @@
             processingFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
         }
         
-        NSLog(@"%s FileFormat_______ : %@",__func__,[NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
+        NSLog(@"%s FileFormat_______ : %@",__func__,[NSString stringWithFormat:@"%@ %d ch %.0f %u %@",
                                              fileFormatIdStr,
                                              (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
                                              fileFormat.streamDescription->mSampleRate,
-                                             fileFormat.streamDescription->mBitsPerChannel,
+                                             (unsigned int)fileFormat.streamDescription->mBitsPerChannel,
                                              fileFormat.interleaved ? @"i" : @"ni"
                                              ]);
-        NSLog(@"%s ProcessingFormat_ : %@",__func__,[NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
+        NSLog(@"%s ProcessingFormat_ : %@",__func__,[NSString stringWithFormat:@"%@ %u ch %.0f %u %@",
                                                    processingFormatIdStr,
-                                                   processingFormat.streamDescription->mChannelsPerFrame,
+                                                   (unsigned int)processingFormat.streamDescription->mChannelsPerFrame,
                                                    processingFormat.streamDescription->mSampleRate,
-                                                   processingFormat.streamDescription->mBitsPerChannel,
+                                                   (unsigned int)processingFormat.streamDescription->mBitsPerChannel,
                                                    processingFormat.interleaved ? @"i" : @"ni"
                                                    ]);
         
-        result = [NSString stringWithFormat:@"%@/%@ %ld ch(%.1f)%ld %@",
+        result = [NSString stringWithFormat:@"%@/%@ %u ch(%.1f)%u %@",
                   fileFormatIdStr,processingFormatIdStr,
-                  processingFormat.streamDescription->mChannelsPerFrame,
+                  (unsigned int)processingFormat.streamDescription->mChannelsPerFrame,
                   processingFormat.streamDescription->mSampleRate/1000.0,
-                  processingFormat.streamDescription->mBitsPerChannel,
+                  (unsigned int)processingFormat.streamDescription->mBitsPerChannel,
                   processingFormat.interleaved ? @"i" : @"ni"
                   ];
         

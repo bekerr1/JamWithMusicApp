@@ -64,10 +64,10 @@
 -(void)prepareToPlayMix;
 -(void)refresh; // makeconnections if needed
 -(void)pausePlayingAll;
--(void) playFiveSecondNode;
+-(void)playFiveSecondNode;
 -(void)playAlll;
 -(BOOL)playAllActivePlayerNodes;
--(BOOL)playActivePlayerNodesOfType:(NSArray *)nodeTypes;
+//-(BOOL)playActivePlayerNodesOfType:(NSArray *)nodeTypes;
 -(BOOL)pauseAllActivePlayerNodes;
 -(BOOL)stopAllActivePlayerNodes;
 -(void)playMix;
@@ -78,15 +78,13 @@
 -(void)reMix;
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn;
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn duration:(NSTimeInterval)duration;
-
 -(void)prepareToRecord;
 -(BOOL)prepareToRecordFirstAvailable;
-
 -(void)prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:(NSUInteger)index;
 -(void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
 -(NSInteger)indexOfFirstRecorderNodeWithNoAudio;
 
 // getter
