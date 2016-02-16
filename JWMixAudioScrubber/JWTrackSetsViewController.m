@@ -297,7 +297,11 @@
     NSString *fileName = @"";
     if (fileURLValue)
         fileName = [[(NSURL*)fileURLValue path] lastPathComponent];
-    
+
+    NSURL *fileURL;
+    if (fileURLValue)
+        fileURL = fileURLValue;
+
     id titleValue = object[@"title"];
     id titleTypeValue = object[@"titletype"];
 
@@ -312,12 +316,28 @@
         durationString = @"no recording";
         durationColor = [UIColor darkGrayColor];
     }
+
+    
+    NSString *fileFormatIdStr ;
+    NSString *fileFormatStr ;
+    NSString *fileProcessingFormatStr;
+    if (fileURL) {
+        fileFormatStr = [[JWFileController sharedInstance] audioFileFormatStringForFile:fileURL];
+        fileProcessingFormatStr = [[JWFileController sharedInstance] audioFileProcessingFormatStringForFile:fileURL];
+        fileFormatIdStr = [fileFormatStr substringToIndex:4];
+    } else {
+        fileFormatStr = @"";
+        fileProcessingFormatStr = @"";
+        fileFormatIdStr = @"";
+    }
     
     NSString *textLabelText =[NSString stringWithFormat:@"%@%@",
                               durationString,
                               [fileName length] > 0 ? [NSString stringWithFormat:@" %@",fileName ] : fileName
                               ];
-
+    
+    
+    // VISUAL Attributes
     NSDictionary *attrs = @{ NSForegroundColorAttributeName : [UIColor darkGrayColor] };
     NSMutableAttributedString *textLabelAttributedText =
     [[NSMutableAttributedString alloc] initWithString:textLabelText attributes:attrs];
@@ -328,16 +348,46 @@
     cell.textLabel.attributedText = textLabelAttributedText;
 
 //    cell.textLabel.text = textLabelText;
-
 //    [object[@"key"] substringToIndex:5],
 
-    cell.detailTextLabel.text =
-    [NSString stringWithFormat:@"startTime %00.2f, Ref %@, %@ %@",
+    
+    
+
+    NSString* detailLabelText =
+    [NSString stringWithFormat:@"start %00.2f secs, Ref %@, %@ %@\n%@ %@",
      startTime,
      object[@"referencefile"]?@"YES":@"NO",
      titleTypeValue ? titleTypeValue : @"",
-     titleValue ? titleValue : @""
+     titleValue ? titleValue : @"",
+     fileFormatStr,
+     fileProcessingFormatStr
      ];
+
+    NSUInteger formatLen = fileFormatStr.length + fileProcessingFormatStr.length + 1; // and spacing
+    
+    NSDictionary *attrsDetail = @{ NSFontAttributeName : [UIFont systemFontOfSize:14],
+                                   NSForegroundColorAttributeName : [UIColor iosSteelColor]
+                                   };
+    
+    NSDictionary *attrsFormat = @{ NSFontAttributeName : [UIFont boldSystemFontOfSize:14],
+                                   NSForegroundColorAttributeName : durationColor
+                                   };
+
+
+    NSMutableAttributedString *detailTextLabelAttributedText =
+    [[NSMutableAttributedString alloc] initWithString:detailLabelText
+                                           attributes:attrsDetail];
+    
+//    [detailTextLabelAttributedText addAttribute:NSForegroundColorAttributeName
+//                                          value:durationColor
+//                                          range:NSMakeRange( detailLabelText.length - formatLen,formatLen)];
+    
+    [detailTextLabelAttributedText addAttributes:attrsFormat
+                                          range:NSMakeRange( detailLabelText.length - formatLen,fileFormatIdStr.length)];
+
+
+//    cell.detailTextLabel.text = detailText;
+    cell.detailTextLabel.attributedText = detailTextLabelAttributedText;
     
     cell.selectionStyle = UITableViewCellSelectionStyleBlue;
     

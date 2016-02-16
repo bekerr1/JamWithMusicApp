@@ -49,7 +49,6 @@ const int scMaxTracks = 10;
 @property (nonatomic)  NSDate *recordingStartTime;
 @property (nonatomic)  AVAudioFramePosition recordingLastReadPosition;
 @property (nonatomic)  NSURL *recordingURL;
-
 @end
 
 
@@ -2342,19 +2341,21 @@ EDITING PROTOCOL PUBLIC API
     }
 
 
+    
+    // ===============================================
+    
     // Iterate again to generate buffer views
 
     framesToReadCount = remainingFrameCount;
-    
-//    NSLog(@"%s startReadPosition %lld framesToReadCount %u",__func__,startReadPosition,framesToReadCount);
-    
     frameCount = 0;
     audioFile.framePosition = startReadPosition;
     NSUInteger track = [self trackNumberForTrackId:tid];
     
+    //    NSLog(@"%s startReadPosition %lld framesToReadCount %u",__func__,startReadPosition,framesToReadCount);
+
     _buffersSentCounts[track]++;  // always have one more until we are finished
 
-    const AVAudioFrameCount kBufferMaxFrame = 15 * 1024L; // 18
+    const AVAudioFrameCount kBufferMaxFrame = 16 * 1024L; // 18
 
     while (frameCount < framesToReadCount) {
         
@@ -2583,12 +2584,9 @@ EDITING PROTOCOL PUBLIC API
 
 @end
 
-
-
 // ------------------------------------
 // FOR REFERENCE - COlor dictionary
 // ------------------------------------
-
 
 //@{
 // JWColorScrubberTopPeakNoAvg : [UIColor redColor],
@@ -2599,114 +2597,4 @@ EDITING PROTOCOL PUBLIC API
 // JWColorScrubberBottomPeak : [[UIColor blueColor] colorWithAlphaComponent:0.5],
 // };
 
-
-// ------------------------------------
-// FOR REFERENCE AND REMOVAL
-// ------------------------------------
-
-
-
-
-//#pragma mark - modify using track detect
-
-//-(void)modifyTrack:(NSString*)trackId allTracksHeight:(CGFloat)allTracksHeight {
-//    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-//    [_scrubber modifyTrack:track allTracksHeight:allTracksHeight];
-//}
-//-(void)modifyTrack:(NSString*)trackId withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
-//    NSUInteger track = 1;
-//    if (trackId)
-//        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-//    [_scrubber modifyTrack:track withAlpha:alpha allTracksHeight:allTracksHeight];
-//}
-//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight {
-//    NSUInteger track = 1;
-//    if (trackId)
-//        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-//    NSLog(@"%s %ld",__func__,track);
-//    [_scrubber modifyTrack:track withColors:trackColors allTracksHeight:allTracksHeight];
-//}
-//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight {
-//    NSUInteger track = 1;
-//    if (trackId)
-//        track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-//    [_scrubber modifyTrack:track withColors:trackColors alpha:alpha allTracksHeight:allTracksHeight];
-//    NSLog(@"%s %ld",__func__,track);
-//}
-//-(void)modifyTrack:(NSString*)trackId
-//            layout:(VABLayoutOptions)layoutOptions
-//              kind:(VABKindOptions)kindOptions
-//   allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-//    [_scrubber modifyTrack:track layout:layoutOptions kind:kindOptions allTracksHeight:allTracksHeight];
-//    [self setLayoutOptions:layoutOptions forTrack:trackId];
-//    [self setKindOptions:kindOptions forTrack:trackId];
-//}
-//
-//-(void)modifyTrack:(NSString*)trackId
-//            colors:(NSDictionary*)trackColors
-//             alpha:(CGFloat)alpha
-//            layout:(VABLayoutOptions)layoutOptions
-//              kind:(VABKindOptions)kindOptions
-//   allTracksHeight:(CGFloat)allTracksHeight
-//{
-//    NSUInteger track = [(NSNumber*)_tracks[trackId][@"tracknum"] unsignedIntegerValue];
-//    [_scrubber modifyTrack:track colors:trackColors alpha:alpha layout:layoutOptions kind:kindOptions allTracksHeight:allTracksHeight];
-//    [self setLayoutOptions:layoutOptions forTrack:trackId];
-//    [self setKindOptions:kindOptions forTrack:trackId];
-//}
-//
-
-
-// old meterChannelSamples
-//
-//    NSUInteger track = [(NSNumber*)_tracks[tid][@"tracknum"] unsignedIntegerValue];
-//    SamplingOptions options = [self configOptionsForTrack:tid];
-//    VABLayoutOptions layoutOptions = [self layoutOptionsForTrack:tid];
-//    VABKindOptions typeOptions = [self kindOptionsForTrack:tid];
-//    id trackColors = _trackColorsByTrackId[tid];
-//    if (trackColors == nil)
-//        trackColors = _trackColorsAllTracks;
-//    BOOL autoAdvance = NO;
-//    if (_numberOfTracks == 1)
-//        autoAdvance = YES;
-//
-//    _buffersReceivedCounts[track]++;
-//    _durationForTrack[track] += duration;
-//
-//    float startDuration = _durationForTrack[track];
-//    NSUInteger bufferNo = _buffersReceivedCounts[track];
-////    NSLog(@"%s track %ld nsamples %ld ",__func__,track,(unsigned long)[samples count]);
-//    dispatch_async(_bufferReceivedPerformanceQueue, ^{
-//        dispatch_async(_bufferSampledPerformanceQueue, ^{
-//
-//            _elapsedTimesSoFar[track] += (CGFloat)duration;
-//
-//            [self.scrubber addAudioViewChannelSamples:samples averageSamples:averageSamples
-//                                      channel2Samples:samples2 averageSamples2:averageSamples2
-//                                              inTrack:track
-//                                        startDuration:(NSTimeInterval)startDuration
-//                                             duration:duration
-//                                              options:options
-//                                                 type:typeOptions
-//                                               layout:layoutOptions
-//                                               colors:trackColors
-//                                            bufferSeq:bufferNo
-//                                          autoAdvance:autoAdvance
-//                                            recording:YES
-//                                              editing:NO
-//                                                 size:_scrubberControllerSize ];
-//
-//            if (autoAdvance) {
-//                // is the primary track
-//                dispatch_async(dispatch_get_main_queue(), ^{
-//                    _scrubber.playHeadValueStr = [NSString stringWithFormat:@"%.2f s",_elapsedTimesSoFar[track]];
-//                });
-//            }
-//
-//        }); //_bufferReceivedPerformanceQueue
-//    }); // _bufferSampledPerformanceQueue
-//
-//}
 

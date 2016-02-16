@@ -41,5 +41,10 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 
 -(NSURL *)fileURLForCacheItem:(NSString*)dbkey;
 
+-(NSURL *)processInBoxItem:(NSURL*)fileURL options:(id)options;
+
+-(NSString*)audioFileFormatStringForFile:(NSURL*)fileURL;
+-(NSString*)audioFileProcessingFormatStringForFile:(NSURL*)fileURL;
+
 
 @end

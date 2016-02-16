@@ -24,19 +24,19 @@
 @property (nonatomic) SamplingOptions configOptions;
 @property (nonatomic) ScrubberViewOptions viewOptions;
 @property (nonatomic) CGFloat scale;
+@property (nonatomic) BOOL pulseBackLight;
 @property (nonatomic) BOOL darkBackground;
 @property (nonatomic) BOOL useGradient;
 @property (nonatomic) BOOL usePulse;
+@property (nonatomic) BOOL useTrackGradient;
 @property (nonatomic) UIColor *hueColor;
 @property (nonatomic) UIColor *hueGradientColor1;
 @property (nonatomic) UIColor *hueGradientColor2;
-@property (nonatomic) BOOL useTrackGradient;
 @property (nonatomic) UIColor *trackGradientColor1;
 @property (nonatomic) UIColor *trackGradientColor2;
 @property (nonatomic) UIColor *trackGradientColor3;
 @property (nonatomic) UIColor *headerColor1;
 @property (nonatomic) UIColor *headerColor2;
-@property (nonatomic) BOOL pulseBackLight;
 @property (nonatomic) NSString *playerProgressFormatString;
 @property (nonatomic) CGFloat scrubberLength;
 @property (nonatomic) NSUInteger selectedTrack;
@@ -60,12 +60,10 @@
 - (void)trackScrubberToProgress:(CGFloat)progress timeAnimated:(BOOL)animated;
 - (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated;
 - (void)trackScrubberToPostion:(CGFloat)position timeAnimated:(BOOL)animated animated:(BOOL)contentAnimated;
-
 - (void)setProgress:(CGFloat)progress;
 - (void)transitionToPlay;
 - (void)transitionToPlayPreview;
 - (void)transitionToStopPlayPreview;
-
 - (void)transitionToStopPlaying;
 - (void)transitionToRecording;
 - (void)transitionToRecordingSingleRecorder:(BOOL)singleRecorder;
@@ -79,8 +77,6 @@
 - (void)editTrack:(NSUInteger)track endInset:(CGFloat)endInset;
 - (void)editTrack:(NSUInteger)track startTime:(CGFloat)startTime;
 - (void)stopEditingTrackCancel:(NSUInteger)track;
-//-(void)stopEditingTrackSave:(NSUInteger)track;
-//-(id)stopEditingTrackSave:(NSUInteger)track;
 - (id)stopEditingTrackSave:(NSUInteger)track completion:(void (^)(id fileRef))completion;
 - (void)saveEditingTrack:(NSUInteger)track;
 - (void)modifyTrack:(NSUInteger)track alpha:(CGFloat)alpha;

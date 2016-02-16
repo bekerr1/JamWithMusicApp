@@ -6,6 +6,38 @@
 //  Copyright © 2015 b3k3r. All rights reserved.
 //
 
+
+/*
+ SAMPLE EFFECTS CONFIG
+ @{@"type" : @(JWEffectNodeTypeReverb),
+ @"title" : @"Reverb",
+ @"factorypreset" : @(AVAudioUnitReverbPresetMediumRoom),
+ },
+ @{@"type" : @(JWEffectNodeTypeDelay),
+ @"title" : @"Delay",
+ @"feedback" : @(0.0),
+ @"lowpasscutoff" : @(15000.0)
+ },
+ @"delaytime" : @(0.0)
+ @"lowpasscutoff" : @(15000.0),
+ @{@"type" : @(JWEffectNodeTypeReverb),
+ @"title" : @"Reverb",
+ @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
+ },
+ @{@"type" : @(JWEffectNodeTypeDelay),
+ @"title" : @"Delay",
+ @"feedback" : @(0.0),
+ @"lowpasscutoff" : @(0.0),
+ @"delaytime" : @(0.0)
+ },
+ @{@"type" : @(JWEffectNodeTypeDistortion),
+ @"title" : @"Distortion",
+ @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
+ @"pregain" : @(0.0)
+ }
+ */
+
+
 #import "JWAudioPlayerController.h"
 #import "JWScrubber.h"
 
@@ -23,7 +55,7 @@ JWMixEditDelegate
 {
     BOOL _colorizedTracks;
     BOOL _rewound;
-
+    BOOL _listenToPositionChanges;
     BOOL _wasPlaying;
     BOOL _editing;
     BOOL _scrubbAudioEnabled;
@@ -225,11 +257,11 @@ JWMixEditDelegate
     NSURL *fileURL = item[@"fileURL"];
     
     
-    NSMutableDictionary * fileReference =
-    [@{@"duration":@(0),
-       @"startinset":@(1.0),
-       @"endinset":@(0.0),
-       } mutableCopy];
+//    NSMutableDictionary * fileReference =
+//    [@{@"duration":@(0),
+//       @"startinset":@(1.0),
+//       @"endinset":@(0.0),
+//       } mutableCopy];
     
     JWMixerNodeTypes  nodeType = JWMixerNodeTypeNone;
     id typeValue = item[@"type"];
@@ -314,7 +346,7 @@ JWMixEditDelegate
     if (confignode)
         playerNode[@"config"] = confignode; //  slider values
 
-    NSLog(@"node type %u title %@  fname %@  ",[playerNode[@"type"] unsignedIntegerValue],
+    NSLog(@"node type %lu title %@  fname %@  ",[playerNode[@"type"] unsignedIntegerValue],
           titleValue?titleValue:@"notitle",
           fileURL?[fileURL lastPathComponent]:@"nofilurl");
     
@@ -535,6 +567,10 @@ JWMixEditDelegate
 
 -(void)setState:(PlayerControllerState)state {
     
+    PlayerControllerState fromState = _state;
+    
+    NSLog(@"state %ld to %ld",(long)fromState,(long)state);
+
     _state = state;
     
     switch (state) {
@@ -617,6 +653,7 @@ JWMixEditDelegate
             
         case JWPlayerStatePlayFromPos:
             if ([_audioEngine playAllActivePlayerNodes]){
+                self.positionChangeUpdateTimeStamp = nil;
                 _listenToPositionChanges = NO;
                 [_sc play:nil];
             } else {
@@ -869,6 +906,24 @@ JWMixEditDelegate
     
 }
 
+
+// blue motif
+//colors:@{
+//         JWColorScrubberTopPeak : [ [UIColor iosSkyColor] colorWithAlphaComponent:1.0],
+//         JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.9],
+//         JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.9],
+//         JWColorScrubberBottomPeak : [ [UIColor iosAquaColor] colorWithAlphaComponent:1.0],
+//         }
+
+// black motif
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor blackColor] colorWithAlphaComponent:0.88],
+//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
+//}
+
+
 -(void)scrubberConfigurePlayerRecorder:(id)playerNode atIndex:(NSUInteger)index withFileURL:(NSURL*)fileURL playerOnly:(BOOL)playerOnly {
     
     float delay = 0.0;
@@ -939,6 +994,31 @@ JWMixEditDelegate
     }
 }
 
+// strawberry
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.8],
+//JWColorScrubberTopAvg : [[UIColor iosSilverColor] colorWithAlphaComponent:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.6],
+//}
+
+// whites
+//    colors:@{
+//             JWColorScrubberTopPeak : [[UIColor iosMercuryColor] colorWithAlphaComponent:0.6],
+//             JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.8],
+//             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.8],
+//             JWColorScrubberBottomPeak : [[UIColor iosAluminumColor] colorWithAlphaComponent:0.9],
+//             }
+
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor iosSteelColor] colorWithAlphaComponent:0.6],
+//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
+//}
+
+
+
 // Configure Track Colors for all Tracks
 // configureColors is whole saled the dictionary is simply kept
 //    configureColors
@@ -953,11 +1033,21 @@ JWMixEditDelegate
         [_sc configureScrubberColors:
          @{
            JWColorBackgroundHueColor : [UIColor blackColor],
-          JWColorBackgroundHeaderGradientColor2 : [UIColor blackColor],
-          JWColorBackgroundHeaderGradientColor1 : [UIColor iosSteelColor]
-            }
+           JWColorBackgroundHeaderGradientColor2 : [UIColor blackColor],
+           JWColorBackgroundHeaderGradientColor1 : [UIColor iosSteelColor]
+           }
          ];
+
+        // dark blue on black
+//        [_sc configureScrubberColors:
+//         @{
+//           JWColorBackgroundHueColor : [UIColor blackColor],
+//          JWColorBackgroundHeaderGradientColor2 : [UIColor blackColor],
+//          JWColorBackgroundHeaderGradientColor1 : [UIColor iosSteelColor]
+//            }
+//         ];
         
+        // track gradient and dark
 //        [_sc configureScrubberColors:
 //         @{ JWColorBackgroundHueColor : [UIColor blackColor],
 //            JWColorBackgroundTrackGradientColor1 : [UIColor blueColor],
@@ -1329,10 +1419,9 @@ JWMixEditDelegate
 
 -(NSString*)processingFormatStr:(JWScrubberController*)controller forScrubberId:(NSString*)sid{
     
-    return [_delegate playerControllerTitleForTrackSetContainingKey:self];
+    //return [_delegate playerControllerTitleForTrackSet:self];
     
-    //    return [_audioEngine processingFormatStr];
-    
+    return [_audioEngine processingFormatStrForPlayerAtIndex:0];
 }
 
 

@@ -38,13 +38,10 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 
 @interface JWScrubberController : NSObject <JWScrubberBufferControllerDelegate,JWEffectsModifyingProtocol>
 
-
 -(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController;
-
 -(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue;
 
 @property (weak,nonatomic) id <JWScrubberControllerDelegate> delegate;
-
 @property (nonatomic) NSUInteger numberOfTracks;
 @property (nonatomic) CGSize scrubberControllerSize;
 @property (nonatomic) NSArray *trackLocations;
@@ -110,17 +107,17 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
                                    colors:(NSDictionary*)trackColors
                              onCompletion:(JWScrubberControllerCompletionHandler)completion;
 
+// getter
+-(id <JWEffectsModifyingProtocol>) trackNodeControllerForTrackId:(NSString*)tid;
 
 -(void)play:(NSString*)sid;
 -(void)playMomentFromPos:(CGFloat)fromPos toPosition:(CGFloat)toPos;
 -(void)playRecord:(NSString*)sid;
 -(void)recordAt:(NSString*)sid;
-//-(void)recordAt:(NSString*)sid usingFileURL:(NSURL*)fileURL;
 -(void)stopPlaying:(NSString*)sid;
 -(void)stopPlaying:(NSString*)sid rewind:(BOOL)rewind;
 -(void)readyForPlay:(NSString*)sid;
 -(void)readyForScrub;
-
 -(void)resumePlaying;
 -(void)selectTrack:(NSString*)tid;
 -(void)deSelectTrack;
@@ -138,19 +135,12 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)seekToPosition:(CGFloat)pos scrubber:(NSString*)sid;
 -(void)seekToPosition:(CGFloat)pos scrubber:(NSString*)sid animated:(BOOL)animated;
 -(void)seekToPosition:(CGFloat)pos animated:(BOOL)animated;
-
-
 -(void)configureColors:(NSDictionary*)trackColors;
 -(void)configureColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
 -(void)configureTrackColors:(NSDictionary*)trackColors;
 -(void)configureTrackColors:(NSDictionary*)trackColors forTackId:(NSString*)trackId;
 -(void)configureScrubberColors:(NSDictionary*)scrubberColors;
-
 -(void)adjustBackLightValue:(float)value;  // always white black
-
-// getter
--(id <JWEffectsModifyingProtocol>) trackNodeControllerForTrackId:(NSString*)tid;
-
 -(void)modifyTrack:(NSString*)trackId alpha:(CGFloat)alpha;
 -(void)modifyTrack:(NSString*)trackId colors:(NSDictionary*)trackColors;
 -(void)modifyTrack:(NSString*)trackId colors:(NSDictionary*)trackColors alpha:(CGFloat)alpha;
@@ -209,33 +199,5 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(void)editingCompleted:(JWScrubberController*)controller forScrubberId:(NSString*)sid withTrackInfo:(id)fileReference;
 -(void)positionChanged:(JWScrubberController*)controller positionSeconds:(CGFloat)position;
 @end
-
-
-
-// VALID for mats for specifying block paramaters
-//withCompletion:(void (^)())completion;
-//- (void)something:(JWClipAudioCompletionHandler)completion;
-//(void (^)(CMTime time))block
-//typedef void (^AVAudioNodeCompletionHandler)(void);
-//onCompletion:(void (^)(NSMutableArray* channelData,NSString *searchStr))completion;
-//typedef void (^JWFileDowloadCompletionHandler)(void);
-
-
-//-(void)modifyTrack:(NSString*)trackId allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSString*)trackId withAlpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSString*)trackId withColors:(NSDictionary*)trackColors alpha:(CGFloat)alpha allTracksHeight:(CGFloat)allTracksHeight;
-//-(void)modifyTrack:(NSString*)trackId
-//            layout:(VABLayoutOptions)layoutOptions
-//              kind:(VABKindOptions)kindOptions
-//   allTracksHeight:(CGFloat)allTracksHeight;
-//
-//-(void)modifyTrack:(NSString*)trackId
-//            colors:(NSDictionary*)trackColors
-//             alpha:(CGFloat)alpha
-//            layout:(VABLayoutOptions)layoutOptions
-//              kind:(VABKindOptions)kindOptions
-//   allTracksHeight:(CGFloat)allTracksHeight;
-
 
 

@@ -9,11 +9,13 @@
 #import "DetailViewController.h"
 #import "JWAudioPlayerController.h"
 #import "JWCurrentWorkItem.h"
+#import "JWActivityItemProvider.h"
+#import "JWFileTransferActivity.h"
 #import "JWCameraViewController.h"
 
 @import MediaPlayer;
 
-@interface DetailViewController () <JWAudioPlayerControllerDelegate> {
+@interface DetailViewController () <JWAudioPlayerControllerDelegate,UIDocumentInteractionControllerDelegate> {
     BOOL _playing;
     NSUInteger selectedAmpImageIndex;
     NSUInteger _countDownLabelValue;
@@ -97,7 +99,6 @@
     });
 }
 
-
 -(void)revealScrubber {
     [self revealScrubberAnimated:YES];
 }
@@ -125,7 +126,6 @@
     }
 }
 
-
 -(void)predictScrubberHeight {
     
     if (_detailItem) {
@@ -140,6 +140,8 @@
     }
 }
 
+#define DEVICEVOLUMECONTROL
+
 - (void)viewDidLoad {
     
     [super viewDidLoad];
@@ -153,9 +155,17 @@
     [self predictScrubberHeight];
     self.volumeView.backgroundColor = [UIColor clearColor];
     
-//    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
-//    mpVolume.showsRouteButton = YES;
-//    [_volumeView addSubview:mpVolume];
+    // DEVICE VOLUME CONTROL
+#ifdef DEVICEVOLUMECONTROL
+    MPVolumeView *mpVolume = [[MPVolumeView alloc] initWithFrame:_volumeView.bounds];
+    mpVolume.showsRouteButton = YES;
+    mpVolume.autoresizingMask =
+    UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin |
+    UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    mpVolume.translatesAutoresizingMaskIntoConstraints = true;
+    [_volumeView addSubview:mpVolume];
+#endif
+
     
     self.restoreColor = self.view.backgroundColor;
     self.view.backgroundColor = [UIColor blackColor];
@@ -188,13 +198,6 @@
     [self updateAmpImage];
 }
 
-//-(void)viewWillDisappear:(BOOL)animated {
-//    [super viewWillDisappear:animated];
-//}
-//-(void)viewDidDisappear:(BOOL)animated {
-//    [super viewDidDisappear:animated];
-//}
-
 -(void)dealloc {
     NSLog(@"%s",__func__);
 }
@@ -205,10 +208,6 @@
 }
 
 #pragma mark - amp image
-
-//NSLog(@"%s %ld",__func__,selectedAmpImageIndex);
-//// jwframesandscreens - 3 jwscreensandcontrols jwjustscreensandlogos jwjustscreensonly
-//NSLog(@"%s %@",__func__,[[noti userInfo] description]);
 
 -(void)updateAmpImage {
     UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %ld",selectedAmpImageIndex + 1]];
@@ -357,7 +356,7 @@
     CGFloat tracksz = 60.0f;
     NSUInteger nTracks = numberOfTracks;
     if (nTracks == 1)
-        tracksz = 120;
+        tracksz = 140;
     else if (nTracks == 2)
         tracksz = 85.0f;
     else if (nTracks == 3)
@@ -435,7 +434,7 @@
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key {
 //}
 
--(NSString*)playerControllerTitleForTrackSetContainingKey:(JWAudioPlayerController*)controllerkey {
+-(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controller {
     
     return [_delegate detailController:self titleForJamTrackKey:_detailItem[@"key"]];
 }
@@ -574,6 +573,11 @@
 //When User wants to add an effect node or a recorder node
 - (IBAction)addAction:(id)sender {
     
+//    [self activityAction];
+//    return;
+//    [self clipActions];
+//    return;
+    
     NSString *title;
     NSString *message;
     
@@ -594,30 +598,30 @@
     
     //TODO: specify in message which node they are adding the effect to
     
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alertController =
+    [UIAlertController alertControllerWithTitle:title message:message
+                                 preferredStyle:UIAlertControllerStyleActionSheet];
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-    
-    UIAlertAction *clipAction = [UIAlertAction actionWithTitle:@"Clip" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+    UIAlertAction *clipAction = [UIAlertAction actionWithTitle:@"Clip ..." style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         [self clipActions];
     }];
-    
+    UIAlertAction *activityAction = [UIAlertAction actionWithTitle:@"Share ..." style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self activityAction];
+    }];
     UIAlertAction *addNodeAction = [UIAlertAction actionWithTitle:@"Add Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         if ([_delegate respondsToSelector:@selector(addTrackNode:toJamTrackWithKey:)]) {
             [_delegate addTrackNode:self toJamTrackWithKey:_detailItem[@"key"]];
             [self configureView];
         }
-        
-        // [_delegate addTrack:self cachKey:_detailItem[@"key"]];
-        // NSLog(@"%s ADD NODE not implemented",__func__);
     }];
     
     
     if (addEffectAction)
         [alertController addAction:addEffectAction];
-    
     [alertController addAction:addNodeAction];
     [alertController addAction:clipAction];
+    [alertController addAction:activityAction];
     [alertController addAction:cancel];
     [self presentViewController:alertController animated:YES completion:nil];
 }
@@ -662,7 +666,6 @@
     [self presentViewController:addNodeOrEffect animated:YES completion:nil];
 }
 
-
 - (IBAction)effectsAction:(id)sender {
 
     if (self.editing) {
@@ -697,82 +700,167 @@
     }
 }
 
-
-- (IBAction)exportAction:(id)sender
-{
+- (IBAction)exportAction:(id)sender {
     NSLog(@"%s",__func__);
 }
 
 
 
+#pragma mark -
+
+
+-(void)activityAction {
+    
+//    [self activityActionDocument];
+//    return;
+    
+    NSURL *fileURL;
+    if ([self.trackItems count] > 0) {
+        id item = _trackItems[0];
+        fileURL = item[@"fileURL"];
+    }
+    fileURL = [NSURL fileURLWithPath:[fileURL path]];
+    
+//    UIActivityViewController *avc =
+//    [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
+//                                      applicationActivities:nil];
+    
+    JWActivityItemProvider *activityItemProvider = [[JWActivityItemProvider alloc] initWithPlaceholderItem:fileURL];
+    activityItemProvider.fileURL = fileURL;
+    
+    JWFileTransferActivity *ftActivity = [JWFileTransferActivity new];
+//    ftActivity.fileURL = fileURL;
+    ftActivity.view = self.view;
+    
+    UIActivityViewController *avc =
+    [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
+                                      applicationActivities:@[ftActivity]];
+
+//    ftActivity.activityVC = avc;
+
+    //    UIActivityTypeMail UIActivityTypeMessage
+    NSArray *excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
+                                    UIActivityTypePostToWeibo,
+                                    UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
+                                    UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
+                                    UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
+                                    UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
+    
+    avc.excludedActivityTypes = excludedActivities;
+    avc.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError){
+        if (activityType) {
+            if ([activityType isEqualToString:UIActivityTypeAirDrop]) {
+                NSLog(@"AIRDROP completed %@ %@",@(completed),[returnedItems description]);
+            }
+            else if ([activityType isEqualToString:UIActivityTypeMail]) {
+                NSLog(@"MAIL completed %@ %@",@(completed),[returnedItems description]);
+            }
+            else if ([activityType isEqualToString:UIActivityTypeMessage]) {
+                NSLog(@"MESSAGE completed %@ %@",@(completed),[returnedItems description]);
+            }
+            else if ([activityType isEqualToString:@"com.getdropbox.Dropbox.ActionExtension"]) {
+                NSLog(@"DROPBOX completed %@ %@",@(completed),[returnedItems description]);
+            }
+            else if ([activityType isEqualToString:@"com.apple.mobilenotes.SharingExtension"]) {
+                NSLog(@"NOTES completed %@ %@",@(completed),[returnedItems description]);
+            }
+            else{
+                NSLog(@"%@ %@ %@",activityType,@(completed),[returnedItems description]);
+            }
+            
+        } else {
+            // perhaps CANCEL
+            NSLog(@"CANCEL completed %@",@(completed));
+        }
+        
+        // ERROR
+        
+        if (activityError) {
+            NSLog(@"MESSAGE %@",[activityError description]);
+        }
+    };
+    
+    
+    [self presentViewController:avc animated:YES completion:^{
+        
+    }];
+    
+
+}
+
+////    NSData *fdata = [[fileURL lastPathComponent] dataUsingEncoding:NSASCIIStringEncoding];
+//NSData *fdata = [NSData new];
+//
+//JWActivityItemProvider *activityItemProvider = [[JWActivityItemProvider alloc] initWithPlaceholderItem:fdata];
+//activityItemProvider.fileURL = fileURL;
+//
+//JWActivityItemProvider *activityItemProvider2 = [[JWActivityItemProvider alloc] initWithPlaceholderItem:fileURL];
+//activityItemProvider2.fileURL = fileURL;
+//
+//JWFileTransferActivity *ftActivity = [JWFileTransferActivity new];
+//ftActivity.fileURL = fileURL;
+//ftActivity.view = self.view;
+//
+
+//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
+//                                      applicationActivities:nil];
+
+//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider2]
+//                                    applicationActivities:nil];
+
+
+//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider2]
+//                                      applicationActivities:@[ftActivity]];
+
+//   [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
+//                                      applicationActivities:nil];
+
+//    [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
+//                                      applicationActivities:@[ftActivity]];
+
+// Uploads with airdrop
+//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
+//                                      applicationActivities:nil];
+
+
+#pragma mark -
+
+/*
+
+- (void)documentInteractionController:(UIDocumentInteractionController *)controller
+           didEndSendingToApplication:(NSString *)application {
+    NSLog(@"%s %@",__func__,application);
+}
+- (void)documentInteractionController:(UIDocumentInteractionController *)controller
+        willBeginSendingToApplication:(nullable NSString *)application {
+    NSLog(@"%s %@",__func__,application);
+}
+
+- (UIDocumentInteractionController *) setupControllerWithURL: (NSURL*) fileURL
+                                               usingDelegate: (id <UIDocumentInteractionControllerDelegate>) interactionDelegate {
+    UIDocumentInteractionController *interactionController =
+    [UIDocumentInteractionController interactionControllerWithURL: fileURL];
+    interactionController.delegate = interactionDelegate;
+    return interactionController;
+}
+
+-(void)activityActionDocument {
+    NSURL *fileURL;
+    if ([self.trackItems count] > 0) {
+        id item = _trackItems[0];
+        fileURL = item[@"fileURL"];
+    }
+    UIDocumentInteractionController *interactionController = [self setupControllerWithURL:fileURL usingDelegate:self];
+    interactionController.UTI = @"public.audio";
+    //    interactionController.annotation = @{@"url":fileURL};
+    interactionController.name = [fileURL lastPathComponent];
+    //    [interactionController presentOpenInMenuFromRect:self.view.bounds inView:self.view animated:YES];
+    [interactionController presentOptionsMenuFromRect:self.view.bounds inView:self.view animated:YES];
+    //    [interactionController presentPreviewAnimated:YES];
+}
+
+*/
+
 @end
-
-
-//    CGFloat tracksz = 50.0f;
-//    NSUInteger nTracks = controller.numberOfTracks;
-//    if (nTracks == 1) {
-//        tracksz = 120;
-//    } else if (nTracks == 2) {
-//        tracksz = 75.0f;
-//    } else if (nTracks == 3) {
-//        tracksz = 55.0f;
-//    } else {
-//        tracksz = 45.0f;
-//    }
-
-
-//- (NSArray *)getTrackSections:(UIBarButtonItem *)sender {
-//    NSArray *tracks =
-//    self.trackItems = [_delegate tracks:self cachKey:_detailItem[@"key"]];
-//    return tracks;
-//}
-
-
-//    double delayInSecs = 0.5;
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        _scrubberContainerView.hidden = NO;
-//        [_scrubberActivity stopAnimating];
-//    });
-
-//    _scrubberContainerView.hidden = NO;
-//    [_scrubberActivity stopAnimating];
-
-//    [UIView transitionWithView:_scrubberContainerView duration:0.5 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-//        _scrubberContainerView.hidden = NO;
-//    } completion:^(BOOL fini){
-//        [_scrubberActivity stopAnimating];
-//    }];
-
-
-
-
-//if (_playerController) {
-//    // SETUP AUDIO PLAYER CONTROLLER
-//    if (_trackItems) {
-//        // MULTIPLE items
-//        if (hasTrackObjectSet) {
-//            dispatch_async(dispatch_get_main_queue(), ^{
-//                [_playerController setTrackSet:_trackItems];
-//            });
-//        } else {
-//            dispatch_async(dispatch_get_main_queue(), ^{
-//                [_playerController setTrackItems:_trackItems];
-//            });
-//        }
-//    } else {
-//        // SINGLE detail item
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [_playerController setTrackItem:_detailItem];
-//        });
-//    }
-//}
-
-//if (hasTrackObjectSet) {
-//    self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
-//    NSLog(@"%s %@",__func__,[_trackItems description]);
-//} else {
-//    NSLog(@"%s DEPRECATED FIXME %@",__func__,[_trackItems description]);
-//    self.trackItems =[_delegate tracks:self cachKey:_detailItem[@"key"]];
-//}
 
 

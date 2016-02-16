@@ -108,6 +108,7 @@
               withTrackId:(NSString*)trackId
         forPlayerRecorder:(NSString*)player;
 
+// others maybe not necessarily used
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress;
 -(void)stopPlayingTrack1;
 -(void)pausePlayingTrack1;
@@ -136,12 +137,6 @@
 @end
 
 
-//-(CGFloat)progressOfSeekingAudioFile;
-//-(CGFloat)durationInSecondsOfSeekingAudioFile;
-//-(CGFloat)remainingDurationInSecondsOfSeekingAudioFile;
-//-(CGFloat)currentPositionInSecondsOfSeekingAudioFile;
-//-(NSString*)processingFormatStr;
-//
 
 
 

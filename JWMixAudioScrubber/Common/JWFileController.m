@@ -162,6 +162,9 @@
 -(NSString*)trashDirectoryPath {
     return [[self documentsDirectoryPath] stringByAppendingPathComponent:@".trash"];
 }
+-(NSString*)inBoxDirectoryPath {
+    return [[self documentsDirectoryPath] stringByAppendingPathComponent:@"InBox"];
+}
 
 - (void)initdb {
     
@@ -256,6 +259,133 @@
                                             toURL:[self fileURLWithFileName:[fileURL lastPathComponent]]
                                             error:&error];
 }
+
+#pragma mark -
+
+
+
+
+-(NSURL*)validFileURLForFileName:(NSString*)fileName atRelativePath:(NSString*)relativePath {
+    
+    NSURL *result;
+    NSURL *baseURL = [NSURL fileURLWithPath:[self documentsDirectoryPath]];
+    NSString *pathString = @"";
+//    for (id path in pathComponents) {
+//        pathString = [pathString stringByAppendingPathComponent:path];
+//    }
+    pathString = [relativePath stringByAppendingPathComponent:fileName];
+    NSURL *url = [NSURL fileURLWithPath:pathString relativeToURL:baseURL];
+//    NSString *baseName = [[[url lastPathComponent] stringByDeletingPathExtension] stringByRemovingPercentEncoding];
+    NSString *baseName = [[[url lastPathComponent] stringByDeletingPathExtension] stringByRemovingPercentEncoding];
+
+    BOOL isDir = NO;
+    BOOL alreadyExists = [[NSFileManager defaultManager] fileExistsAtPath:[url path] isDirectory:&isDir];
+    if (alreadyExists == NO) {
+        result = url;
+    } else {
+        NSUInteger fileNumber = 2;
+        while (alreadyExists) {
+            NSString *newFileName = [baseName stringByRemovingPercentEncoding];
+            newFileName = [[newFileName stringByAppendingFormat:@"-%ld",fileNumber] stringByAppendingPathExtension:[url pathExtension]];
+            pathString = [relativePath stringByAppendingPathComponent:newFileName];
+            NSLog(@"newFileName %@",pathString);
+
+            url = [NSURL fileURLWithPath:[pathString stringByRemovingPercentEncoding] relativeToURL:baseURL];
+            
+            alreadyExists = [[NSFileManager defaultManager] fileExistsAtPath:[url path] isDirectory:&isDir];
+            if (alreadyExists == NO) {
+                result = url;
+                break;
+            }
+            fileNumber++;
+            
+        }
+    }
+    
+    return result;
+    
+}
+
+
+-(NSURL*)processInBoxItem:(NSURL*)fileURL options:(id)options {
+    NSURL *result;
+    
+    BOOL moveDocOnOpen = NO;
+    id optionsAnnotation = options[UIApplicationOpenURLOptionsAnnotationKey];
+    if (optionsAnnotation) {
+        id moveDocument = optionsAnnotation[@"LSMoveDocumentOnOpen"];
+        if (moveDocument) {
+            moveDocOnOpen = [moveDocument boolValue];
+        }
+    }
+    
+    BOOL openInPlace = NO;
+    id optionsOpenInPlace = options[UIApplicationOpenURLOptionsOpenInPlaceKey];
+    if (optionsOpenInPlace) {
+        openInPlace = [optionsOpenInPlace boolValue];
+    }
+
+    BOOL isMusicMemos = NO;
+    id optionsSourceApp = options[UIApplicationOpenURLOptionsSourceApplicationKey];
+    if (optionsSourceApp) {
+        NSLog(@"optionsSourceApp %@",optionsSourceApp);
+        if ([optionsSourceApp isEqualToString:@"com.apple.musicmemos"]) {
+            NSLog(@"MusicMemos %@",[fileURL lastPathComponent]);
+            isMusicMemos = YES;
+        }
+    }
+
+    
+    double audioLength = [self audioLengthForFile:fileURL];
+    NSString *destinationRelativePath;
+    if (audioLength > 60 ) {
+        // is  source
+        destinationRelativePath = @"Source";
+    } else {
+        // is a trim
+//        destinationRelativePath = @"";
+        destinationRelativePath = @"Source";
+    }
+    
+    NSURL *toFileURL = [self validFileURLForFileName:[fileURL lastPathComponent]  atRelativePath:destinationRelativePath];
+
+    NSError *error;
+    BOOL status = [[NSFileManager defaultManager] moveItemAtURL:fileURL toURL:toFileURL error:&error];
+    if (status) {
+        // Success
+        result = toFileURL;
+        
+    } else {
+        NSLog(@"ERROR copy file %@",[error description]);
+    }
+    
+    return result;
+}
+
+/*
+ 
+ AIRDROP from mac
+ -[AppDelegate application:openURL:options:] file:///private/var/mobile/Containers/Data/Application/6BABD702-3B1E-42F3-8C6D-2532196EDC05/Documents/Inbox/trimmedMP3_B01D917D-5253-4D23-AA05-E39C5FB93A72.m4a {
+ UIApplicationOpenURLOptionsAnnotationKey =     {
+ LSMoveDocumentOnOpen = 1;
+ };
+ UIApplicationOpenURLOptionsOpenInPlaceKey = 0;
+ }
+ 
+ AIRDROP FROM app MusicMemos
+ 2016-01-29 22:16:31.445 JamWDev[2035:868086] -[AppDelegate application:openURL:options:] file:///private/var/mobile/Containers/Data/Application/6BABD702-3B1E-42F3-8C6D-2532196EDC05/Documents/Inbox/My%20Idea%207.m4a {
+ UIApplicationOpenURLOptionsAnnotationKey =     {
+ };
+ UIApplicationOpenURLOptionsOpenInPlaceKey = 0;
+ UIApplicationOpenURLOptionsSourceApplicationKey = "com.apple.musicmemos";
+ }
+ 
+*/
+//NSString *const UIApplicationOpenURLOptionsSourceApplicationKey;
+//NSString *const UIApplicationOpenURLOptionsAnnotationKey;
+//NSString *const UIApplicationOpenURLOptionsOpenInPlaceKey;
+
+
 
 #pragma mark -
 
@@ -478,14 +608,21 @@
     if (range.location != NSNotFound && range.location < basename.length) {
         dbkey = [basename substringFromIndex:range.location+1];
         ftypeName = [basename substringToIndex:range.location];
+        
         audioLength = [self audioLengthForFile:fileURL];
     }
+    
+    
+    NSString *fileFormatStr = [self audioFileFormatStringForFile:fileURL];
+    NSString *fileProcessingFormatStr = [self audioFileProcessingFormatStringForFile:fileURL];
     
     if (dbkey) {
         _dbMetaData[dbkey] = @{
                                @"furl":fileURL,
                                @"fsize":fileInfo[@"fsize"],
-                               @"faudiolength":@(audioLength)
+                               @"faudiolength":@(audioLength),
+                               @"fileformatstr":fileFormatStr,
+                               @"fileprocessingformatStr":fileProcessingFormatStr
                                };
     }
     
@@ -544,6 +681,179 @@
     
     return result;
 }
+
+
+
+-(NSString *)formatStr:(const AudioStreamBasicDescription *)format {
+
+    NSString *result;
+    
+    {
+        unsigned char bytes[4];
+        unsigned long n = format->mFormatID;
+        bytes[0] = (n >> 24) & 0xFF;
+        bytes[1] = (n >> 16) & 0xFF;
+        bytes[2] = (n >> 8) & 0xFF;
+        bytes[3] = n & 0xFF;
+        result = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
+    }
+
+    
+    return result;
+
+}
+
+-(NSString*)audioFileFormatStringForFile:(NSURL*)fileURL {
+    
+    NSString *result=@"";
+    NSError *error = nil;
+    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
+    if (audioFile && error == nil) {
+        //AVAudioFormat *processingFormat = [audioFile processingFormat];
+        
+        AVAudioFormat *fileFormat = [audioFile fileFormat];
+        NSString *fileFormatIdStr;
+//        AVAudioFormat *processingFormat = [audioFile processingFormat];
+//        NSString *processingFormatIdStr;
+
+//        double durationSeconds = audioFile.length / processingFormat.sampleRate;
+        fileFormatIdStr = [self formatStr:fileFormat.streamDescription];
+        
+        
+//        {
+//            unsigned char bytes[4];
+//            unsigned long n = fileFormat.streamDescription->mFormatID;
+//            bytes[0] = (n >> 24) & 0xFF;
+//            bytes[1] = (n >> 16) & 0xFF;
+//            bytes[2] = (n >> 8) & 0xFF;
+//            bytes[3] = n & 0xFF;
+//            fileFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
+//        }
+//        
+//        {
+//            unsigned char bytes[4];
+//            unsigned long n = processingFormat.streamDescription->mFormatID;
+//            bytes[0] = (n >> 24) & 0xFF;
+//            bytes[1] = (n >> 16) & 0xFF;
+//            bytes[2] = (n >> 8) & 0xFF;
+//            bytes[3] = n & 0xFF;
+//            processingFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
+//        }
+        
+//        NSLog(@"%s FileFormat_______ : %@",__func__,[NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
+//                                                     fileFormatIdStr,
+//                                                     (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
+//                                                     fileFormat.streamDescription->mSampleRate,
+//                                                     fileFormat.streamDescription->mBitsPerChannel,
+//                                                     fileFormat.interleaved ? @"i" : @"ni"
+//                                                     ]);
+//        NSLog(@"%s ProcessingFormat_ : %@",__func__,[NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
+//                                                     processingFormatIdStr,
+//                                                     processingFormat.streamDescription->mChannelsPerFrame,
+//                                                     processingFormat.streamDescription->mSampleRate,
+//                                                     processingFormat.streamDescription->mBitsPerChannel,
+//                                                     processingFormat.interleaved ? @"i" : @"ni"
+//                                                     ]);
+        
+        result = [NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
+                  fileFormatIdStr,
+                  (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
+                  fileFormat.streamDescription->mSampleRate,
+                  fileFormat.streamDescription->mBitsPerChannel,
+                  fileFormat.interleaved ? @"i" : @"ni"
+                  ];
+        
+        //        format.interleaved ? @"inter" : @"non-interleaved"
+        //        format.standard ? @"Fl32 std" : @"std NO  ",
+        
+    } else {
+        NSLog(@"error in audio file %@",[fileURL lastPathComponent]);
+    }
+    
+    return result;
+}
+
+-(NSString*)audioFileProcessingFormatStringForFile:(NSURL*)fileURL {
+    
+    NSString *result=@"";
+    NSError *error = nil;
+    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
+    if (audioFile && error == nil) {
+        //AVAudioFormat *processingFormat = [audioFile processingFormat];
+        
+//        AVAudioFormat *fileFormat = [audioFile fileFormat];
+//        NSString *fileFormatIdStr;
+        AVAudioFormat *processingFormat = [audioFile processingFormat];
+        NSString *processingFormatIdStr;
+        
+//        double durationSeconds = audioFile.length / processingFormat.sampleRate;
+        
+        processingFormatIdStr = [self formatStr:processingFormat.streamDescription];
+
+//        {
+//            unsigned char bytes[4];
+//            unsigned long n = fileFormat.streamDescription->mFormatID;
+//            bytes[0] = (n >> 24) & 0xFF;
+//            bytes[1] = (n >> 16) & 0xFF;
+//            bytes[2] = (n >> 8) & 0xFF;
+//            bytes[3] = n & 0xFF;
+//            fileFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
+//        }
+//        
+//        {
+//            unsigned char bytes[4];
+//            unsigned long n = processingFormat.streamDescription->mFormatID;
+//            bytes[0] = (n >> 24) & 0xFF;
+//            bytes[1] = (n >> 16) & 0xFF;
+//            bytes[2] = (n >> 8) & 0xFF;
+//            bytes[3] = n & 0xFF;
+//            processingFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
+//        }
+        
+//        NSLog(@"%s FileFormat_______ : %@",__func__,[NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
+//                                                     fileFormatIdStr,
+//                                                     (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
+//                                                     fileFormat.streamDescription->mSampleRate,
+//                                                     fileFormat.streamDescription->mBitsPerChannel,
+//                                                     fileFormat.interleaved ? @"i" : @"ni"
+//                                                     ]);
+//        NSLog(@"%s ProcessingFormat_ : %@",__func__,[NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
+//                                                     processingFormatIdStr,
+//                                                     processingFormat.streamDescription->mChannelsPerFrame,
+//                                                     processingFormat.streamDescription->mSampleRate,
+//                                                     processingFormat.streamDescription->mBitsPerChannel,
+//                                                     processingFormat.interleaved ? @"i" : @"ni"
+//                                                     ]);
+
+        
+        result = [NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
+                  processingFormatIdStr,
+                  processingFormat.streamDescription->mChannelsPerFrame,
+                  processingFormat.streamDescription->mSampleRate,
+                  processingFormat.streamDescription->mBitsPerChannel,
+                  processingFormat.interleaved ? @"i" : @"ni"
+                  ];
+
+        
+//        result = [NSString stringWithFormat:@"%@/%@ %ld ch(%.1f)%ld %@",
+//                  fileFormatIdStr,processingFormatIdStr,
+//                  processingFormat.streamDescription->mChannelsPerFrame,
+//                  processingFormat.streamDescription->mSampleRate/1000.0,
+//                  processingFormat.streamDescription->mBitsPerChannel,
+//                  processingFormat.interleaved ? @"i" : @"ni"
+//                  ];
+        
+        //        format.interleaved ? @"inter" : @"non-interleaved"
+        //        format.standard ? @"Fl32 std" : @"std NO  ",
+        
+    } else {
+        NSLog(@"error in audio file %@",[fileURL lastPathComponent]);
+    }
+    
+    return result;
+}
+
+
 
 
 -(NSArray*)trimmmedFilesForCacheItem:(NSString*)key {

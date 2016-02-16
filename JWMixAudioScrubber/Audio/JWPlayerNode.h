@@ -15,6 +15,7 @@
 -(CGFloat)durationInSecondsOfAudioFile;
 -(CGFloat)remainingDurationInSecondsOfAudioFile;
 -(CGFloat)currentPositionInSecondsOfAudioFile;
+-(NSString*)processingFormatStrOfAudioFile;
 
 @property (nonatomic) NSDictionary *fileReference;
 @property (nonatomic) float delayStart;
