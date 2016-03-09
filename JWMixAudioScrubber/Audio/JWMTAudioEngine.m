@@ -869,6 +869,7 @@
 
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn  {
     
+    // duration 0.0 not sepcified play to end
     [self scheduleAllWithOptions:0 insetSeconds:secondsIn duration:0.0 recording:NO];
 }
 

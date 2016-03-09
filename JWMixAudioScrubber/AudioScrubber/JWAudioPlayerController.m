@@ -579,6 +579,7 @@ JWMixEditDelegate
     _state = state;
     
     switch (state) {
+            
         case JWPlayerStatePlayFromBeg: {
             _editing = NO;
             _listenToPositionChanges = NO;
