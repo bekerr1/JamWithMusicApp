@@ -1054,7 +1054,7 @@
             
             // SCHEDULE THE BUFFER
             //TODO: added a check on the type to make sure the right completion block is scheduled
-            if (type == JWMixerNodeTypePlayer || type == JWMixerNodeTypeMixerPlayerRecorder) {
+            if (type == JWMixerNodeTypePlayer || type == JWMixerNodeTypePlayerRecorder) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
                                    options:AVAudioPlayerNodeBufferInterrupts
                          completionHandler:playerCompletion
