@@ -2224,6 +2224,7 @@ EDITING PROTOCOL PUBLIC API
             if (fileReference.readPositionInReferencedTrack < 0.0) {
                 NSLog(@"%s read position negative",__func__);
             } else {
+                //Sample Rate: The number of times an analog signal is measured (sampled) per second
                 startReadPosition = fileReference.readPositionInReferencedTrack *  processingFormat.sampleRate;
                 
 #ifdef TRACEANALYZE
@@ -2258,9 +2259,12 @@ EDITING PROTOCOL PUBLIC API
 
     AVAudioFrameCount frameCount = 0; // frames read
 
+    //While the number of frames read is less than the number of frames that need
+    //to be read
     while (frameCount < framesToReadCount) {
         
         AVAudioFrameCount framesRemaining = framesToReadCount - frameCount;
+        //More frames to read
         if (framesRemaining > 0) {
 
         } else {
@@ -2378,7 +2382,7 @@ EDITING PROTOCOL PUBLIC API
                       readBuffer.frameLength, readBuffer.frameLength / processingFormat.sampleRate);
 #endif
                 if (readBuffer.frameLength > 0) {
-                    
+          	          
                     frameCount += readBuffer.frameLength;
                     
                     AVAudioFramePosition readPosition = audioFile.framePosition;

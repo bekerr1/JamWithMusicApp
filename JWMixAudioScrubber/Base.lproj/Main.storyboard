@@ -580,7 +580,7 @@
                                 <color key="trackTintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </progressView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2, 44100, 32bit" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YY4-0z-C7h">
-                                <rect key="frame" x="20" y="0.0" width="310" height="18"/>
+                                <rect key="frame" x="20" y="0.0" width="560" height="18"/>
                                 <fontDescription key="fontDescription" name="Avenir-BookOblique" family="Avenir" pointSize="13"/>
                                 <color key="textColor" red="0.80000001190000003" green="0.80000001190000003" blue="0.80000001190000003" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
@@ -654,7 +654,7 @@
                             </constraint>
                             <constraint firstItem="Clj-bz-LXm" firstAttribute="top" secondItem="NO3-uJ-dJc" secondAttribute="bottom" constant="8" id="iZf-wt-tad"/>
                             <constraint firstItem="aNa-dT-qI6" firstAttribute="width" secondItem="VcL-fG-KnP" secondAttribute="width" id="kXW-PX-Lz3"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="YY4-0z-C7h" secondAttribute="trailing" constant="250" id="keo-Q8-LfV"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="YY4-0z-C7h" secondAttribute="trailing" id="keo-Q8-LfV"/>
                             <constraint firstItem="uDH-u1-M28" firstAttribute="centerY" secondItem="rim-bp-Zgn" secondAttribute="centerY" id="n24-Sx-adT"/>
                             <constraint firstItem="HTw-Qv-0Vu" firstAttribute="top" secondItem="aNa-dT-qI6" secondAttribute="bottom" constant="42" id="nc7-HH-Nqz"/>
                             <constraint firstItem="HPo-Eo-rZ0" firstAttribute="top" secondItem="NO3-uJ-dJc" secondAttribute="bottom" constant="32" id="njA-VZ-hup">
@@ -666,6 +666,11 @@
                             <constraint firstItem="vuB-kG-N6W" firstAttribute="centerX" secondItem="VcL-fG-KnP" secondAttribute="centerX" id="uJK-wQ-c4M"/>
                             <constraint firstAttribute="trailingMargin" secondItem="2eO-5n-y8v" secondAttribute="trailing" id="z45-DA-VW4"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="MNZ-uc-iZN"/>
+                            </mask>
+                        </variation>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="w51-vB-0h1" appends="YES" id="WFR-Yp-8lO"/>
                             <outletCollection property="gestureRecognizers" destination="E3O-fG-R7r" appends="YES" id="pEp-ct-YO6"/>
@@ -966,9 +971,9 @@
                                             <rect key="frame" x="98" y="42" width="404" height="31"/>
                                         </slider>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Effect Preset" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QvX-vt-weQ">
-                                            <rect key="frame" x="143" y="8" width="354" height="26"/>
+                                            <rect key="frame" x="292" y="8" width="250" height="26"/>
                                             <constraints>
-                                                <constraint firstAttribute="width" constant="354" id="ivW-tt-MQI"/>
+                                                <constraint firstAttribute="width" constant="250" id="ivW-tt-MQI"/>
                                             </constraints>
                                             <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="17"/>
                                             <color key="textColor" red="1" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -990,7 +995,7 @@
                                             <variation key="heightClass=regular-widthClass=compact" constant="4"/>
                                         </constraint>
                                         <constraint firstItem="QvX-vt-weQ" firstAttribute="leading" secondItem="eGd-5r-Ldt" secondAttribute="trailing" constant="20" id="jfk-2u-qxW"/>
-                                        <constraint firstAttribute="trailingMargin" secondItem="QvX-vt-weQ" secondAttribute="trailing" constant="95" id="liw-EN-s4m"/>
+                                        <constraint firstAttribute="trailingMargin" secondItem="QvX-vt-weQ" secondAttribute="trailing" constant="50" id="liw-EN-s4m"/>
                                         <constraint firstItem="eGd-5r-Ldt" firstAttribute="leading" secondItem="Qyd-ML-PUq" secondAttribute="leadingMargin" constant="20" id="r9X-a3-77U">
                                             <variation key="heightClass=regular-widthClass=compact" constant="4"/>
                                         </constraint>
@@ -998,6 +1003,11 @@
                                         <constraint firstItem="6pg-8A-bDM" firstAttribute="top" secondItem="Qyd-ML-PUq" secondAttribute="topMargin" constant="6" id="zfM-Ka-36n"/>
                                         <constraint firstItem="PMQ-hz-fXI" firstAttribute="centerX" secondItem="6pg-8A-bDM" secondAttribute="centerX" id="zzr-4c-1uc"/>
                                     </constraints>
+                                    <variation key="default">
+                                        <mask key="constraints">
+                                            <exclude reference="jfk-2u-qxW"/>
+                                        </mask>
+                                    </variation>
                                 </tableViewCellContentView>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <connections>
