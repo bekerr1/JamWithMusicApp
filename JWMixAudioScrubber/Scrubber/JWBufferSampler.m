@@ -141,6 +141,7 @@
 
     for (int frameSampleIndex = 0; frameSampleIndex < sampleSize; frameSampleIndex++) {
         frameIndexes1[frameSampleIndex] = (frameSampleIndex + 1) / (float)sampleSize  * buffer.frameLength;
+        NSLog(@"%u", frameIndexes1[frameSampleIndex]);
         frameIndexes2[frameSampleIndex] = frameIndexes1[frameSampleIndex];
         loudestSamples1[frameSampleIndex] = 0.0f;
         loudestSamples2[frameSampleIndex] = 0.0f;
@@ -157,7 +158,7 @@
     //    }
     
     //duration = (1 / mSampleRate) * mFramesPerPacket
-    
+    //TODO: ive seen this code a couple times in different classes.  Wanted to maybe try message forwarding with it (forwardInvocation:)
     Float64 mSampleRate = buffer.format.streamDescription->mSampleRate;
     Float64 duration =  (1.0 / mSampleRate) * buffer.format.streamDescription->mFramesPerPacket;
     Float64 durThisBuffer = duration * buffer.frameLength;
@@ -184,10 +185,12 @@
         {
             float sampleAbsLevel = fabs(channelData[frameIndex]);
             
+            
             // CHANNEL 1
             if (channelIndex == 0) {
                 
                 for (int i=0; i < sampleSize; i++) {
+                    //Sample is in the range of this section of scrubber.  Scrubber split up into sampleSize different peices
                     if (frameIndex < frameIndexes1[i]) {
                         
                         if  (i > 0) {
@@ -209,6 +212,7 @@
                                 }
                                 
                                 if (sampleAbsLevel > loudestSamples1[i])
+                                    //NSLog(@"Sample abs level %.7f", sampleAbsLevel);
                                     loudestSamples1[i] = sampleAbsLevel;
                             } else {
                                 break;

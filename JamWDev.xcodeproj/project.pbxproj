@@ -397,16 +397,7 @@
 		5525FEC31C3728920081FB23 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				5525FF091C3729980081FB23 /* AVAudioMixerNode+JW.h */,
-				5525FF0A1C3729980081FB23 /* AVAudioMixerNode+JW.m */,
-				5525FF0B1C3729980081FB23 /* AVAudioPlayerNode+JW.h */,
-				5525FF0C1C3729980081FB23 /* AVAudioPlayerNode+JW.m */,
-				5525FF0D1C3729980081FB23 /* AVAudioUnitDelay+JW.h */,
-				5525FF0E1C3729980081FB23 /* AVAudioUnitDelay+JW.m */,
-				5525FF0F1C3729980081FB23 /* AVAudioUnitDistortion+JW.h */,
-				5525FF101C3729980081FB23 /* AVAudioUnitDistortion+JW.m */,
-				5525FF111C3729980081FB23 /* AVAudioUnitReverb+JW.h */,
-				5525FF121C3729980081FB23 /* AVAudioUnitReverb+JW.m */,
+				F48AEC4F1C765BAA0044ACE8 /* categories */,
 				5525FF131C3729980081FB23 /* JWAudioEngine.h */,
 				5525FF141C3729980081FB23 /* JWAudioEngine.m */,
 				5525FF201C3729980081FB23 /* JWMTAudioEngine.h */,
@@ -638,6 +629,23 @@
 			path = Camera;
 			sourceTree = "<group>";
 		};
+		F48AEC4F1C765BAA0044ACE8 /* categories */ = {
+			isa = PBXGroup;
+			children = (
+				5525FF091C3729980081FB23 /* AVAudioMixerNode+JW.h */,
+				5525FF0A1C3729980081FB23 /* AVAudioMixerNode+JW.m */,
+				5525FF0B1C3729980081FB23 /* AVAudioPlayerNode+JW.h */,
+				5525FF0C1C3729980081FB23 /* AVAudioPlayerNode+JW.m */,
+				5525FF0D1C3729980081FB23 /* AVAudioUnitDelay+JW.h */,
+				5525FF0E1C3729980081FB23 /* AVAudioUnitDelay+JW.m */,
+				5525FF0F1C3729980081FB23 /* AVAudioUnitDistortion+JW.h */,
+				5525FF101C3729980081FB23 /* AVAudioUnitDistortion+JW.m */,
+				5525FF111C3729980081FB23 /* AVAudioUnitReverb+JW.h */,
+				5525FF121C3729980081FB23 /* AVAudioUnitReverb+JW.m */,
+			);
+			name = categories;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -705,6 +713,7 @@
 				TargetAttributes = {
 					5525FE861C3727430081FB23 = {
 						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = CN6KC63QNP;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 0;
@@ -1009,11 +1018,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = JWMixAudioScrubber/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = joker.JamWDev;
 				PRODUCT_NAME = JamWDev;
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1023,11 +1034,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = JWMixAudioScrubber/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = joker.JamWDev;
 				PRODUCT_NAME = JamWDev;
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

@@ -347,6 +347,8 @@ JWMixEditDelegate
 
 -(void)addEffectToEngineNodelist:(NSString *)effect {
     
+    [self.audioEngine stopAllActivePlayerNodes];
+    
     NSString *selectedTrackID = _sc.selectedTrack;
     
     if ([effect isEqualToString:@"reverb"]) {
@@ -359,6 +361,7 @@ JWMixEditDelegate
         [self.audioEngine addEffect:JWEffectNodeTypeEQ toPlayerNodeID:selectedTrackID];
     }
     [_metvc refresh];
+    self.state = JWPlayerStatePlayFromBeg;
     
     
 }
