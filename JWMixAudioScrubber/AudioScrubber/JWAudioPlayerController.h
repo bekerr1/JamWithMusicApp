@@ -69,15 +69,11 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller;
 -(void)save:(JWAudioPlayerController *)controller;
 -(void)playTillEnd;
-
 -(void)noTrackSelected:(JWAudioPlayerController *)controller;
 -(void)trackSelected:(JWAudioPlayerController *)controller;
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
-
--(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
-
--(NSString*)playerControllerTitleForTrackSetContainingKey:(JWAudioPlayerController*)controllerkey;
-
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
+-(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controllerkey;
 @optional
 -(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key;
 -(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key;

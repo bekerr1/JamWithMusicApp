@@ -57,40 +57,37 @@
 -(void)setTrimmedAudioPathWith:(NSString *)trimmedFilePath And5SecondPathWith:(NSString* )fiveSeconds;
 -(void)setTrimmedAudioURL:(NSURL *)trimmedFileURL andFiveSecondURL:(NSURL* )fiveSecondURL;
 
+
 // commands
-
--(NSUInteger)countOfNodesWithAudio;
-
--(void)prepareToPlayMix;
--(void)refresh; // makeconnections if needed
--(void)pausePlayingAll;
--(void) playFiveSecondNode;
--(void)playAlll;
+-(void)playFiveSecondNode;
 -(BOOL)playAllActivePlayerNodes;
--(BOOL)playActivePlayerNodesOfType:(NSArray *)nodeTypes;
 -(BOOL)pauseAllActivePlayerNodes;
 -(BOOL)stopAllActivePlayerNodes;
+-(void)refresh; // makeconnections if needed
+-(void)pausePlayingAll;
+-(void)playAlll;
 -(void)playMix;
 -(void)playAllAndRecordIt;
 -(void)pauseAlll;
 -(void)resumeAlll;
 -(void)revertToMixing;
 -(void)reMix;
--(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn;
--(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn duration:(NSTimeInterval)duration;
-
+-(void)prepareToPlayMix;
 -(void)prepareToRecord;
 -(BOOL)prepareToRecordFirstAvailable;
-
+-(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn;
+-(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn duration:(NSTimeInterval)duration;
 -(void)prepareToRecordFromBeginningAtPlayerRecorderNodeIndex:(NSUInteger)index;
 -(void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
-- (NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
--(NSInteger)indexOfFirstRecorderNodeWithNoAudio;
+-(void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+
 
 // getter
-- (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(NSUInteger)countOfNodesWithAudio;
+-(NSInteger)indexOfFirstRecorderNodeWithNoAudio;
+-(NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
+-(NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
 -(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index;
 -(AVAudioPCMBuffer*)audioBufferForPlayerNodeAtIndex:(NSUInteger)index;
 -(CGFloat)progressOfAudioFileForPlayerAtIndex:(NSUInteger)index;
@@ -108,6 +105,7 @@
               withTrackId:(NSString*)trackId
         forPlayerRecorder:(NSString*)player;
 
+// others maybe not necessarily used
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress;
 -(void)stopPlayingTrack1;
 -(void)pausePlayingTrack1;
@@ -136,12 +134,6 @@
 @end
 
 
-//-(CGFloat)progressOfSeekingAudioFile;
-//-(CGFloat)durationInSecondsOfSeekingAudioFile;
-//-(CGFloat)remainingDurationInSecondsOfSeekingAudioFile;
-//-(CGFloat)currentPositionInSecondsOfSeekingAudioFile;
-//-(NSString*)processingFormatStr;
-//
 
 
 

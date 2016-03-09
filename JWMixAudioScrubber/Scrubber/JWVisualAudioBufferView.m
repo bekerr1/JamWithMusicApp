@@ -312,6 +312,11 @@
     CGFloat spacerSize = .6f * spacerCount;
     CGFloat width = CGRectGetWidth(self.bounds);
     barWidth = (width - spacerSize) / sampleCount;
+    if (barWidth < 0.1) {
+//        barWidth = 0.7;
+        barWidth = 0.9;
+
+    }
 
     // LETS START DRAWING
     

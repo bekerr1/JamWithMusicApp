@@ -8,6 +8,8 @@
 
 #import "AppDelegate.h"
 #import "DetailViewController.h"
+#import "MasterViewController.h"
+
 #import "JWCurrentWorkItem.h"
 #import "JWFileController.h"
 
@@ -23,6 +25,8 @@
     [JWFileController sharedInstance];
     [[JWFileController sharedInstance] reload];
     
+    NSLog(@"%s %@",__func__,[launchOptions description]);
+
     NSNumber *ampIndexNumber = [[NSUserDefaults standardUserDefaults] valueForKey:@"currentAmp"];
     if (ampIndexNumber)
         [JWCurrentWorkItem sharedInstance].currentAmpImageIndex = [ampIndexNumber unsignedIntegerValue];
@@ -35,6 +39,100 @@
     return YES;
 }
 
+/*
+Jan 30 01:10:55 JOes-Phone JamWDev[2111] <Warning>: -[AppDelegate application:didFinishLaunchingWithOptions:] {
+    UIApplicationLaunchOptionsAnnotationKey =     {
+        LSMoveDocumentOnOpen = 1;
+    };
+    UIApplicationLaunchOptionsURLKey = "file:///private/var/mobile/Containers/Data/Application/FE75359C-1B9E-4B09-B1C3-97E29BC1CBD4/Documents/Inbox/trimmedMP3_7710DD31-7046-497E-AA09-B30BA8AB3080.m4a";
+}
+Jan 30 01:10:55 JOes-Phone
+*/
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
+    
+    NSLog(@"%s %@ %@",__func__,[url description],[options description]);
+    
+    BOOL moveDocOnOpen = NO;
+    id optionsAnnotation = options[UIApplicationOpenURLOptionsAnnotationKey];
+    if (optionsAnnotation) {
+        id moveDocument = optionsAnnotation[@"LSMoveDocumentOnOpen"];
+        if (moveDocument) {
+            moveDocOnOpen = [moveDocument boolValue];
+        }
+    }
+    BOOL openInPlace = NO;
+    id optionsOpenInPlace = options[UIApplicationOpenURLOptionsOpenInPlaceKey];
+    if (optionsOpenInPlace) {
+        openInPlace = [optionsOpenInPlace boolValue];
+    }
+    BOOL isMusicMemos = NO;
+    id optionsSourceApp = options[UIApplicationOpenURLOptionsSourceApplicationKey];
+    if (optionsSourceApp) {
+        NSLog(@"optionsSourceApp %@",optionsSourceApp);
+        if ([optionsSourceApp isEqualToString:@"com.apple.musicmemos"]) {
+            NSLog(@"MusicMemos %@",[url lastPathComponent]);
+            isMusicMemos = YES;
+        }
+    }
+
+    
+    NSURL *resultURL = [[JWFileController sharedInstance] processInBoxItem:url options:options];
+
+    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+    UINavigationController *navigationController = [splitViewController.viewControllers firstObject];
+//    UIViewController *vc = [navigationController topViewController];
+    MasterViewController *master = [[navigationController viewControllers] firstObject];
+    
+//    if (resultURL && isMusicMemos) {
+//        
+//        [master performNewJamTrack:resultURL];
+//    }
+
+    if (resultURL) {
+        
+        [master performNewJamTrack:resultURL];
+    } else {
+        
+        
+        NSString *message;
+        if (resultURL)
+            message = [NSString stringWithFormat:@"Successfully Copied file %@",[url lastPathComponent]];
+        else
+            message = [NSString stringWithFormat:@"There was a problem copying file %@",[url lastPathComponent]];
+        
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"File Import" message:message
+                                                                          preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        }];
+        
+        [alertController addAction:okAction];
+        [splitViewController presentViewController:alertController animated:YES completion:nil];
+    }
+    
+    return (resultURL != nil);
+}
+
+/*
+ 
+ AIRDROP from mac
+-[AppDelegate application:openURL:options:] file:///private/var/mobile/Containers/Data/Application/6BABD702-3B1E-42F3-8C6D-2532196EDC05/Documents/Inbox/trimmedMP3_B01D917D-5253-4D23-AA05-E39C5FB93A72.m4a {
+UIApplicationOpenURLOptionsAnnotationKey =     {
+    LSMoveDocumentOnOpen = 1;
+};
+UIApplicationOpenURLOptionsOpenInPlaceKey = 0;
+}
+ 
+ AIRDROP FROM app MusicMemos
+2016-01-29 22:16:31.445 JamWDev[2035:868086] -[AppDelegate application:openURL:options:] file:///private/var/mobile/Containers/Data/Application/6BABD702-3B1E-42F3-8C6D-2532196EDC05/Documents/Inbox/My%20Idea%207.m4a {
+UIApplicationOpenURLOptionsAnnotationKey =     {
+};
+UIApplicationOpenURLOptionsOpenInPlaceKey = 0;
+UIApplicationOpenURLOptionsSourceApplicationKey = "com.apple.musicmemos";
+}
+ 
+ */
 
 
 - (void)applicationWillResignActive:(UIApplication *)application {

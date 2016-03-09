@@ -86,7 +86,11 @@
     [_knobTimeText setString:[self knobTimeString]];
     NSLog(@"NEW STRING %@", [self knobTimeString]);
     //[_knobTimeText setString:[NSString stringWithFormat:@"%f", _knobTime]];
+
+    [CATransaction begin];
+    [CATransaction setAnimationDuration:0.05];
     [self setPosition:CGPointMake((_lower == YES) ? _referenceObjectPosition.x - LABEL_CENTER_OFFSET : _referenceObjectPosition.x + LABEL_CENTER_OFFSET, _referenceObjectPosition.y - LENGTH_FROM_KNOB - 10)];
+        [CATransaction commit];
     
 }
 

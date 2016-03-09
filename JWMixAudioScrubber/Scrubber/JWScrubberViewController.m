@@ -105,7 +105,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     _seeksToPositionOnEdit = NO;
     _editTrack = 0;
     _recordingTrack = 0;
-    _uiPointsPerSecondLength = 84.0; // 80 width per second
+    _uiPointsPerSecondLength = 90.0; // 80 width per second
 //    _uiPointsPerSecondLength = 102.0; // 80 width per second
 //    _uiPointsPerSecondLength = 320.0; // 80 width per second
     _vTrackLength = 0.0;
@@ -3164,7 +3164,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 
-
 //    NSLog(@"%s %@",__func__,NSStringFromCGSize(size));
 
 // NSLog(@"%s %@",__func__,NSStringFromCGRect(fr));
@@ -3273,7 +3272,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
 }
 
-
 -(void) bouncePlayhead {
     
     CATransform3D scaleTrans = CATransform3DMakeScale(1.1, 1.0, 1.0);
@@ -3321,7 +3319,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
     });
 }
-
 
 - (IBAction)didTap:(id)sender {
     
@@ -3645,13 +3642,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 
 @end
-
-
-
-
-
-
-
 
 
 

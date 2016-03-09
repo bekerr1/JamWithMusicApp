@@ -119,7 +119,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 
-#pragma mark -
+#pragma mark - TABLE VIEW INDEX PATH
 
 // indexPath for tableView
 
@@ -791,6 +791,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
         
     } else if ([segue.identifier isEqualToString:@"JWYoutubeSearch"]) {
         
+        // SELECTION Requires OS9
         JWYTSearchTypingViewController *controller = (JWYTSearchTypingViewController*)segue.destinationViewController;
         controller.delegate = self;
         controller.searchTerm = _lastSearchTerm;
@@ -1319,6 +1320,62 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 
+-(BOOL)addTrackNodeToNewJamTrack:(NSURL*)fileURL {
+
+    BOOL result = NO;
+
+    id jamTrack = [self newJamTrackObjectWithFileURL:fileURL audioFileKey:nil];
+
+//    id jamTrack = [self newJamTrackObjectWithFileURL:fileURL];
+    
+    NSLog(@"%s",__func__);
+    
+    NSUInteger insertSection = [self indexOfSectionOfType:JWHomeSectionTypeAudioFiles];
+    NSMutableArray *jamTracks = _homeControllerSections[insertSection][@"trackobjectset"];
+    if (jamTracks) {
+
+        jamTrack[@"title"] = [[fileURL lastPathComponent] stringByDeletingPathExtension];
+        [jamTracks insertObject:jamTrack atIndex:0];
+        [self saveHomeMenuLists];
+        result = YES;
+        
+    }
+    
+    return result;
+}
+
+
+-(void)performNewJamTrack:(NSURL*)fileURL {
+
+    BOOL result = [self addTrackNodeToNewJamTrack:fileURL];
+    
+    if (result) {
+        NSUInteger insertSection = [self indexOfSectionOfType:JWHomeSectionTypeAudioFiles];
+        NSUInteger nBaseRows = 1; // for JWHomeSectionTypeAudioFiles
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:nBaseRows inSection:insertSection];
+        
+        BOOL needsPop = ([[self.navigationController viewControllers] count] > 1);
+        
+        if (needsPop) {
+            [self.navigationController popToRootViewControllerAnimated:NO];
+            [self.tableView reloadData];
+            [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
+            [self performSegueWithIdentifier:@"showDetail" sender:self];
+        } else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.tableView beginUpdates];
+                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic ];
+                [self.tableView endUpdates];
+                [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
+                [self performSegueWithIdentifier:@"showDetail" sender:self];
+            });
+        }
+    }
+
+    
+}
+
+
 
 #pragma mark - DetailViewController delegate methods
 
@@ -1760,6 +1817,22 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     return result;
 }
 
+//    NSUInteger section = indexPath.section;
+//    NSUInteger count = 0;
+//    // Compute base rows for section
+//    if (section < [_homeControllerSections count]) {
+//        JWHomeSectionType sectionType = [self typeForSection:section];
+//        if (sectionType == JWHomeSectionTypeAudioFiles) {
+//            count ++;
+//        } else if (sectionType == JWHomeSectionTypeYoutube) {
+//            count ++;
+//            count ++;
+//        } else if (sectionType == JWHomeSectionTypeOther) {
+//            count ++;
+//        }
+//    }
+
+
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if (editingStyle == UITableViewCellEditingStyleDelete) {
@@ -1905,6 +1978,26 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 //    [self saveUserOrderedList];
 }
 
+
+//            JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
+//            if (sectionType == JWHomeSectionTypeAudioFiles) {
+//                if (indexPath.row > 0) {
+//                    virtualRow--;
+//                } else {
+//                    isTrackItem = NO;
+//                }
+//            }
+//            else if (sectionType == JWHomeSectionTypeYoutube) {
+//                if (indexPath.row > 1) {
+//                    virtualRow--;
+//                    virtualRow--;
+//                } else {
+//                    isTrackItem = NO;
+//                }
+//            }
+
+
+
 // Override to support conditional rearranging of the table view.
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
     
@@ -2028,7 +2121,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 -(void)serializeOutJamTrackNode:(id)jamTrackNode {
     id furl = jamTrackNode[@"fileURL"];
     if (furl) {
-        jamTrackNode[@"fileRelativePath"] = [(NSURL*)furl relativeString];
+        jamTrackNode[@"fileRelativePath"] = [(NSURL*)furl relativePath];
         [jamTrackNode removeObjectForKey:@"fileURL"];
      } else {
 //        NSLog(@"%s NO FURL %@",__func__,[jamTrackNode description]);

@@ -379,6 +379,8 @@
                                                               NULL,(CFStringRef)text,
                                                               NULL,(CFStringRef)@"!*'();:@&=+$,/?%#[]",
                                                               kCFStringEncodingUTF8 ));
+    //NSCharacterSet *unallowedChars = [NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"];
+    //NSString *modifiedString = [text stringByAddingPercentEncodingWithAllowedCharacters:!unallowedChars];
   
     [self.youTubeData initWebDataKeyWithSearchString:modifiedString newSearch:_newSearchResults];
     

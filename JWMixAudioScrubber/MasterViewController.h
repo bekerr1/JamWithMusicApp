@@ -14,6 +14,8 @@
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 
+-(void)performNewJamTrack:(NSURL*)fileURL;
+
 
 @end
 

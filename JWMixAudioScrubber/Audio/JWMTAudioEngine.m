@@ -16,10 +16,9 @@
 @interface JWMTAudioEngine () {
     NSURL* _finalRecordingOutputURL;
     AVAudioFile* _finalRecordingOutputFile;
-    BOOL _suspendPlayAlll;
     dispatch_queue_t _bufferReceivedQueue;
     BOOL _isRecordingOnly;
-    
+    BOOL _suspendPlayAlll;
 }
 @property (nonatomic) NSURL *trimmedURL;
 @property (nonatomic) NSURL *fiveSecondURL;
@@ -818,7 +817,7 @@
         }
     }
     
-    NSLog(@"mixer inputs %i", [mainMixer numberOfInputs]);
+    NSLog(@"mixer inputs %lu", (unsigned long)[mainMixer numberOfInputs]);
     self.needMakeConnections = NO;
 }
 
@@ -839,11 +838,11 @@
  match that of the source node's output bus. */
 
 #pragma mark -
-// deprecate
+// TODO: deprecate
 -(void)playMicRecordedFile { }
 -(void)setMicPlayerFramePosition:(AVAudioFramePosition)micPlayerFramePosition { }
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress { }
-// deprecate to here
+// TODO: deprecate to here
 
 
 //=======================
@@ -2181,9 +2180,8 @@
     return [pn currentPositionInSecondsOfAudioFile];
 }
 -(NSString*)processingFormatStrForPlayerAtIndex:(NSUInteger)index {
-//    JWPlayerNode *pn = [self playerForNodeAtIndex:index];
-//    return [pn processingFormatStr];
-    return nil;
+    JWPlayerNode *pn = [self playerForNodeAtIndex:index];
+    return [pn processingFormatStrOfAudioFile];
 }
 
 #pragma mark - Scrubber support

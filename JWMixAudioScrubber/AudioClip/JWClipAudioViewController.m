@@ -953,39 +953,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
 @end
 
 
-/*
- return;  // <== returns
- 
- // REST IS EFFECTS
- static int toggle = 1;  //
- CGFloat maxToggles = 5;
- if (toggle > maxToggles)
- toggle = 1;
- CGFloat alpha = toggle/maxToggles * 0.6f;
- self.view.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.2 + alpha];
- toggle++;
- if (toggle <3){
- CGFloat alpha = toggle/maxToggles * 0.5f;
- 
- dispatch_async(dispatch_get_main_queue(), ^{
- self.ampImageView.layer.borderColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha].CGColor;
- self.secondLeft.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha];
- self.secondRight.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha];
- //        self.jamButton.backgroundColor = [_viewStartColor colorWithAlphaComponent:0.50 + alpha];
- });
- }
- }
- */
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        self.ampImageView.layer.borderColor = [_viewStartColor colorWithAlphaComponent:0.8].CGColor;
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        self.ampImageView.layer.borderColor = [_viewStartColor colorWithAlphaComponent:0.2].CGColor;
-
-//NSLog(@"Slider : max %.3f min %.3f  curr %.3f",
-//      _currentTrackStartTime.maximumValue,_currentTrackStartTime.minimumValue,
-//      _currentTrackStartTime.value);
-
-
 //        UIViewController * viewController = [[UIStoryboard storyboardWithName:@"MixPanel" bundle:nil] instantiateInitialViewController];
 //        dispatch_async(dispatch_get_main_queue(), ^{
 //            [self presentViewController:viewController animated:YES completion:nil];
