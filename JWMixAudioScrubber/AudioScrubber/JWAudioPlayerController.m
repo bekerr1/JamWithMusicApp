@@ -381,6 +381,8 @@ JWMixEditDelegate
     
     [self.audioEngine stopAllActivePlayerNodes];
     
+    // joker
+    
     NSString *selectedTrackID = _sc.selectedTrack;
     
     if ([effect isEqualToString:@"reverb"]) {
