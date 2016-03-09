@@ -141,7 +141,9 @@
 
     for (int frameSampleIndex = 0; frameSampleIndex < sampleSize; frameSampleIndex++) {
         frameIndexes1[frameSampleIndex] = (frameSampleIndex + 1) / (float)sampleSize  * buffer.frameLength;
-        NSLog(@"%u", frameIndexes1[frameSampleIndex]);
+        
+//        NSLog(@"%u", frameIndexes1[frameSampleIndex]);
+        
         frameIndexes2[frameSampleIndex] = frameIndexes1[frameSampleIndex];
         loudestSamples1[frameSampleIndex] = 0.0f;
         loudestSamples2[frameSampleIndex] = 0.0f;
