@@ -399,14 +399,14 @@
         <scene sceneID="HIc-SO-uBH">
             <objects>
                 <tableViewController title="Tracks" id="Zio-cm-z3a" customClass="JWTrackSetsViewController" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="54" sectionHeaderHeight="28" sectionFooterHeight="28" id="uwu-TI-lV2">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="65" sectionHeaderHeight="28" sectionFooterHeight="28" id="uwu-TI-lV2">
                         <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="0.0" green="0.50196081400000003" blue="0.50196081400000003" alpha="1" colorSpace="calibratedRGB"/>
                         <color key="separatorColor" red="0.50196081400000003" green="0.50196081400000003" blue="0.50196081400000003" alpha="1" colorSpace="calibratedRGB"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="JWTracksetCell" textLabel="0jh-j2-QaB" detailTextLabel="eeT-5T-iTg" style="IBUITableViewCellStyleSubtitle" id="VdX-2D-NiN">
-                                <rect key="frame" x="0.0" y="28" width="600" height="54"/>
+                                <rect key="frame" x="0.0" y="28" width="600" height="65"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="VdX-2D-NiN" id="pwT-Km-hIp">
                                     <rect key="frame" x="0.0" y="0.0" width="567" height="53"/>
@@ -435,7 +435,7 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="JWSectionTrack" textLabel="hdu-nr-w1u" detailTextLabel="8LP-5G-4cS" style="IBUITableViewCellStyleSubtitle" id="8m9-LA-E4J">
-                                <rect key="frame" x="0.0" y="82" width="600" height="54"/>
+                                <rect key="frame" x="0.0" y="93" width="600" height="65"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="8m9-LA-E4J" id="KPe-o2-wgt">
                                     <rect key="frame" x="0.0" y="0.0" width="600" height="53"/>
@@ -2530,8 +2530,8 @@
         <image name="jwjustscreensandlogos - 2.png" width="1072" height="774"/>
     </resources>
     <inferredMetricsTieBreakers>
+        <segue reference="gzQ-fA-mHN"/>
         <segue reference="Qjb-bz-KQS"/>
-        <segue reference="nmG-Kh-JWU"/>
     </inferredMetricsTieBreakers>
     <color key="tintColor" red="1" green="1" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
 </document>
