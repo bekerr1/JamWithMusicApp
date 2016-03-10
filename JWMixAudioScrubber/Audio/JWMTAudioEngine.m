@@ -1530,7 +1530,7 @@
         JWMixerNodeTypes nodeType = [pn[@"type"] integerValue];
         NSString *fileString = pn[@"fileURLString"];
         
-        if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
+        if (nodeType == JWMixerNodeTypePlayerRecorder) {
             
             if (!fileString) {
                 //This is the top most recorder node with no fileURL
