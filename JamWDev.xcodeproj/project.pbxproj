@@ -94,6 +94,7 @@
 		F48AEC051C711D6A0044ACE8 /* JWCustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC031C711D6A0044ACE8 /* JWCustomCellBackground.m */; };
 		F48AEC081C711D870044ACE8 /* JWAudioPlayerCameraController.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC071C711D870044ACE8 /* JWAudioPlayerCameraController.m */; };
 		F48AEC0C1C711DAE0044ACE8 /* JWCameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC0B1C711DAE0044ACE8 /* JWCameraViewController.m */; };
+		F4F2D51E1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -292,6 +293,8 @@
 		F48AEC071C711D870044ACE8 /* JWAudioPlayerCameraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWAudioPlayerCameraController.m; path = ../AudioScrubber/JWAudioPlayerCameraController.m; sourceTree = "<group>"; };
 		F48AEC0A1C711DAE0044ACE8 /* JWCameraViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWCameraViewController.h; sourceTree = "<group>"; };
 		F48AEC0B1C711DAE0044ACE8 /* JWCameraViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWCameraViewController.m; sourceTree = "<group>"; };
+		F4F2D51C1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWEffectPresetsTableViewController.h; sourceTree = "<group>"; };
+		F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWEffectPresetsTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -476,6 +479,8 @@
 				5525FEFF1C37298B0081FB23 /* JWSliderTableViewCell.m */,
 				5525FF001C37298B0081FB23 /* JWTableHeaderView.h */,
 				5525FF011C37298B0081FB23 /* JWTableHeaderView.m */,
+				F4F2D51C1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.h */,
+				F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */,
 			);
 			name = Mixedit;
 			sourceTree = "<group>";
@@ -865,6 +870,7 @@
 				F40D64261C574AC5000C1E8E /* JWClipAudioHelperViewController.m in Sources */,
 				55CD126D1C3F6D71001662CF /* JWURLManip.m in Sources */,
 				55CD12721C3F6D71001662CF /* JWYTSearchTypingViewController.m in Sources */,
+				F4F2D51E1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m in Sources */,
 				55CD126F1C3F6D71001662CF /* JWYoutubeMP3ViewController.m in Sources */,
 				5525FEF31C37295C0081FB23 /* JWVisualAudioBufferView.m in Sources */,
 				5525FED71C3729130081FB23 /* JWPlayerControlsViewController.m in Sources */,

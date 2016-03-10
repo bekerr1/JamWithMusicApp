@@ -10,4 +10,7 @@
 
 @interface JWEffectPresetsTableViewController : UITableViewController
 
+@property (nonatomic) NSMutableArray *presetsArray;
+@property (nonatomic) NSMutableArray *presetsGrouping;
+
 @end

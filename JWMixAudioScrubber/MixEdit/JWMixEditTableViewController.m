@@ -25,8 +25,11 @@
     BOOL _sectionEnabledMixer;
     NSUInteger _mixerSection;
     NSUInteger _scrubberSection;
+    JWEffectNodeTypes _currentSelectedEffectType;
 }
+
 @property (strong, nonatomic) NSMutableArray *playerNodeList;
+
 @end
 
 
@@ -206,6 +209,14 @@
     return count;
 }
 
+//#define NEW_TABLE_MODEL
+#ifdef NEW_TABLE_MODEL
+
+
+
+
+#else
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
     NSInteger count = 0;
@@ -265,6 +276,9 @@
     return count;
 }
 
+
+
+#endif
 
 -(NSUInteger)numberOfBaseRowsForNodeAtIndex:(NSUInteger)index
 {
@@ -734,7 +748,7 @@
         
     }
     
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.selectionStyle = UITableViewCellSelectionStyleGray;//UITableViewCellSelectionStyleNone;
     
     if (![cell.selectedBackgroundView isKindOfClass:[JWCustomCellBackground class]]) {
         cell.selectedBackgroundView = [[JWCustomCellBackground alloc] init];
@@ -879,6 +893,17 @@
     // Return NO if you do not want the item to be re-orderable.
     return NO;
 }
+
+
+#pragma mark - Prepare for Segue
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
+    if ([segue.identifier isEqualToString:@"PresetSegue"]) {
+        
+    }
+}
+
 
 
 @end
