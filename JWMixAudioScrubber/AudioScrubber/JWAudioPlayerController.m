@@ -393,8 +393,8 @@ JWMixEditDelegate
         [self.audioEngine addEffect:JWEffectNodeTypeEQ toPlayerNodeID:selectedTrackID];
     }
     [_metvc refresh];
-    self.state = JWPlayerStatePlayFromBeg;
     
+    //self.state = JWPlayerStatePlayFromBeg;
     
 }
 
