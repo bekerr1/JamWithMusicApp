@@ -647,16 +647,22 @@
             JWSliderAndSwitchTableViewCell *sliderAndSwitchCell =
             [tableView dequeueReusableCellWithIdentifier:@"JWSliderAndSwitchCell" forIndexPath:indexPath];
             
+            // Slider
             [sliderAndSwitchCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
             sliderAndSwitchCell.slider.minimumValue = 0;
             sliderAndSwitchCell.slider.maximumValue = 100;  // wet dry is percent 0 to 100
             sliderAndSwitchCell.slider.value = [node floatValue1];
-            
+
+            [sliderAndSwitchCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
+
+            // Switch
+            [sliderAndSwitchCell.switchControl removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
+
             sliderAndSwitchCell.switchControl.on = [node boolValue1];
             
-            [sliderAndSwitchCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
             [sliderAndSwitchCell.switchControl addTarget:node action:@selector(adjustBoolValue1WithSwitch:) forControlEvents:UIControlEventValueChanged];
-            
+
+            // Name and titles
             sliderAndSwitchCell.sliderLabel.text = @"Wet/Dry";
             sliderAndSwitchCell.nodeTitleLabel.text = effectTitle;
             
@@ -689,6 +695,14 @@
             [paramCell.effectParameter3 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
             paramCell.effectParameter3.hidden = YES;
             
+            // Switch
+            [paramCell.switchControl removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
+            
+            paramCell.switchControl.on = [node boolValue1];
+            
+            [paramCell.switchControl addTarget:node action:@selector(adjustBoolValue1WithSwitch:) forControlEvents:UIControlEventValueChanged];
+            
+            // Name and title
             paramCell.nodeTitleLabel.text = effectTitle;
             
             cell = paramCell;
@@ -724,8 +738,16 @@
             paramCell.effectParameter3.value = [node floatValue3];
             [paramCell.effectParameter3 addTarget:node action:@selector(adjustFloatValue3WithSlider:) forControlEvents:UIControlEventValueChanged];
             
-            paramCell.nodeTitleLabel.text = effectTitle;
+            
+            // Switch
+            [paramCell.switchControl removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
+            
+            paramCell.switchControl.on = [node boolValue1];
+            
+            [paramCell.switchControl addTarget:node action:@selector(adjustBoolValue1WithSwitch:) forControlEvents:UIControlEventValueChanged];
 
+            // Name and title
+            paramCell.nodeTitleLabel.text = effectTitle;
             
             cell = paramCell;
             

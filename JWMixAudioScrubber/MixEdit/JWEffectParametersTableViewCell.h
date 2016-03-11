@@ -16,4 +16,5 @@
 @property (strong, nonatomic) IBOutlet UILabel *parameterLabel2;
 @property (strong, nonatomic) IBOutlet UILabel *parameterLabel3;
 @property (strong, nonatomic) IBOutlet UILabel *nodeTitleLabel;
+@property (weak, nonatomic) IBOutlet UISwitch *switchControl;
 @end
