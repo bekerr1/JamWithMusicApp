@@ -232,6 +232,7 @@
 }
 
 //SCRUBBER CONTROLLER EMBEDED IN SCTV
+
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
 
     if ([segue.identifier isEqualToString:@"JWScrubberView"]) {
@@ -429,6 +430,16 @@
     }
 }
 
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+
+    NSLog(@"%s %@ %@",__func__,nodeKey,[effects description]);
+
+    if ([_delegate respondsToSelector:@selector(effectsChanged:inNodeWithKey:)])
+        [_delegate effectsChanged:effects inNodeWithKey:nodeKey];
+}
+
+
+
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key {
 //}
 //-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key {
@@ -464,7 +475,11 @@
     }
 }
 
+
+// clipActions: ClipLeft, ClipRight, StartPosition
+
 -(void)clipActions {
+    
     UIAlertController* actionController =
     [UIAlertController alertControllerWithTitle:@"Clip" message:@"Select Action" preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction* clipLeftTrack =
@@ -501,7 +516,10 @@
     [self presentViewController:actionController animated:NO completion:nil];
 }
 
+// clipActionsEditing: SaveClipEdit, CancelClipEdit, Dismss
+
 -(void)clipActionsEditing {
+
     UIAlertController* actionController =
     [UIAlertController alertControllerWithTitle:@"Clip Edit" message:@"Save or Cancel Changes" preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction* saveClipEdit =
@@ -532,7 +550,10 @@
 }
 
 
+// addEffectAction: Reverb, Delay, Distortion, EQ
+
 -(void)addEffectAction {
+    
     NSLog(@"%s", __func__);
     
     //TODO: specify in message which node they are adding the effect to
@@ -570,9 +591,11 @@
 
 #pragma mark -
 
-//When User wants to add an effect node or a recorder node
+// When User wants to add an effect node or a recorder node
+
 - (IBAction)addAction:(id)sender {
     
+    // TESTING
 //    [self activityAction];
 //    return;
 //    [self clipActions];
@@ -619,6 +642,7 @@
     
     if (addEffectAction)
         [alertController addAction:addEffectAction];
+    
     [alertController addAction:addNodeAction];
     [alertController addAction:clipAction];
     [alertController addAction:activityAction];
@@ -666,12 +690,16 @@
     [self presentViewController:addNodeOrEffect animated:YES completion:nil];
 }
 
+
+// Button effects
+
 - (IBAction)effectsAction:(id)sender {
 
     if (self.editing) {
         [self clipActionsEditing];
 
     } else {
+        
         self.mixeditContainerView.hidden =! self.mixeditContainerView.hidden;
         
         // HIDDEN IS OFF
@@ -696,49 +724,43 @@
             // EFFECTS OFF
             [self toolbar1];
             [self.playerController deSelectTrack];
+            
+            [self.playerController effectsCurrentSettings];
+            
         }
     }
 }
 
 - (IBAction)exportAction:(id)sender {
-    NSLog(@"%s",__func__);
+    
+    NSLog(@"%s NOT IMPLEMENTED",__func__);
 }
 
 
 
-#pragma mark -
-
+#pragma mark - Share Action
 
 -(void)activityAction {
     
-//    [self activityActionDocument];
-//    return;
-    
     NSURL *fileURL;
+    
     if ([self.trackItems count] > 0) {
         id item = _trackItems[0];
         fileURL = item[@"fileURL"];
     }
-    fileURL = [NSURL fileURLWithPath:[fileURL path]];
     
-//    UIActivityViewController *avc =
-//    [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
-//                                      applicationActivities:nil];
+    fileURL = [NSURL fileURLWithPath:[fileURL path]];
     
     JWActivityItemProvider *activityItemProvider = [[JWActivityItemProvider alloc] initWithPlaceholderItem:fileURL];
     activityItemProvider.fileURL = fileURL;
     
     JWFileTransferActivity *ftActivity = [JWFileTransferActivity new];
-//    ftActivity.fileURL = fileURL;
     ftActivity.view = self.view;
     
     UIActivityViewController *avc =
     [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
                                       applicationActivities:@[ftActivity]];
 
-//    ftActivity.activityVC = avc;
-
-    //    UIActivityTypeMail UIActivityTypeMessage
     NSArray *excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
                                     UIActivityTypePostToWeibo,
                                     UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
@@ -784,10 +806,17 @@
     [self presentViewController:avc animated:YES completion:^{
         
     }];
-    
 
 }
 
+
+@end
+
+
+
+//
+//
+//
 ////    NSData *fdata = [[fileURL lastPathComponent] dataUsingEncoding:NSASCIIStringEncoding];
 //NSData *fdata = [NSData new];
 //
@@ -804,63 +833,53 @@
 
 //    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
 //                                      applicationActivities:nil];
-
 //    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider2]
 //                                    applicationActivities:nil];
-
-
 //    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider2]
 //                                      applicationActivities:@[ftActivity]];
-
 //   [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
 //                                      applicationActivities:nil];
-
 //    [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
 //                                      applicationActivities:@[ftActivity]];
-
 // Uploads with airdrop
 //    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
 //                                      applicationActivities:nil];
 
-
-#pragma mark -
-
 /*
+ 
+ - (void)documentInteractionController:(UIDocumentInteractionController *)controller
+ didEndSendingToApplication:(NSString *)application {
+ NSLog(@"%s %@",__func__,application);
+ }
+ - (void)documentInteractionController:(UIDocumentInteractionController *)controller
+ willBeginSendingToApplication:(nullable NSString *)application {
+ NSLog(@"%s %@",__func__,application);
+ }
+ 
+ - (UIDocumentInteractionController *) setupControllerWithURL: (NSURL*) fileURL
+ usingDelegate: (id <UIDocumentInteractionControllerDelegate>) interactionDelegate {
+ UIDocumentInteractionController *interactionController =
+ [UIDocumentInteractionController interactionControllerWithURL: fileURL];
+ interactionController.delegate = interactionDelegate;
+ return interactionController;
+ }
+ 
+ -(void)activityActionDocument {
+ NSURL *fileURL;
+ if ([self.trackItems count] > 0) {
+ id item = _trackItems[0];
+ fileURL = item[@"fileURL"];
+ }
+ UIDocumentInteractionController *interactionController = [self setupControllerWithURL:fileURL usingDelegate:self];
+ interactionController.UTI = @"public.audio";
+ //    interactionController.annotation = @{@"url":fileURL};
+ interactionController.name = [fileURL lastPathComponent];
+ //    [interactionController presentOpenInMenuFromRect:self.view.bounds inView:self.view animated:YES];
+ [interactionController presentOptionsMenuFromRect:self.view.bounds inView:self.view animated:YES];
+ //    [interactionController presentPreviewAnimated:YES];
+ }
+ 
+ */
 
-- (void)documentInteractionController:(UIDocumentInteractionController *)controller
-           didEndSendingToApplication:(NSString *)application {
-    NSLog(@"%s %@",__func__,application);
-}
-- (void)documentInteractionController:(UIDocumentInteractionController *)controller
-        willBeginSendingToApplication:(nullable NSString *)application {
-    NSLog(@"%s %@",__func__,application);
-}
-
-- (UIDocumentInteractionController *) setupControllerWithURL: (NSURL*) fileURL
-                                               usingDelegate: (id <UIDocumentInteractionControllerDelegate>) interactionDelegate {
-    UIDocumentInteractionController *interactionController =
-    [UIDocumentInteractionController interactionControllerWithURL: fileURL];
-    interactionController.delegate = interactionDelegate;
-    return interactionController;
-}
-
--(void)activityActionDocument {
-    NSURL *fileURL;
-    if ([self.trackItems count] > 0) {
-        id item = _trackItems[0];
-        fileURL = item[@"fileURL"];
-    }
-    UIDocumentInteractionController *interactionController = [self setupControllerWithURL:fileURL usingDelegate:self];
-    interactionController.UTI = @"public.audio";
-    //    interactionController.annotation = @{@"url":fileURL};
-    interactionController.name = [fileURL lastPathComponent];
-    //    [interactionController presentOpenInMenuFromRect:self.view.bounds inView:self.view animated:YES];
-    [interactionController presentOptionsMenuFromRect:self.view.bounds inView:self.view animated:YES];
-    //    [interactionController presentPreviewAnimated:YES];
-}
-
-*/
-
-@end
 
 

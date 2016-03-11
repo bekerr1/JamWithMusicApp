@@ -419,6 +419,11 @@
 
 #pragma mark public setters getters
 
+-(void)setEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
+    _engineDelegate = engineDelegate;
+    self.delegate = _engineDelegate;
+}
+
 -(void)setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
     _engineDelegate = engineDelegate;
     self.delegate = _engineDelegate;
@@ -1530,7 +1535,7 @@
         JWMixerNodeTypes nodeType = [pn[@"type"] integerValue];
         NSString *fileString = pn[@"fileURLString"];
         
-        if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
+        if (nodeType == JWMixerNodeTypePlayerRecorder) {
             
             if (!fileString) {
                 //This is the top most recorder node with no fileURL

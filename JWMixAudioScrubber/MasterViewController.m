@@ -237,7 +237,9 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     UIAlertAction* addNode =
     [UIAlertAction actionWithTitle:@"Add Recorder Node" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
         id jamTrackKey = object[@"key"];
+        
         [self addTrackNode:nil toJamTrackWithKey:jamTrackKey];
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.tableView beginUpdates];
             [self.tableView reloadRowsAtIndexPaths:@[_selectedDetailIndexPath]
@@ -254,6 +256,9 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
             
             id trackNodes = object[@"trackobjectset"];
             if (trackNodes) {
+                
+                // Find the indexes to delete
+                
                 NSMutableIndexSet *deleteIndexes = [NSMutableIndexSet new];
                 NSUInteger index = 0;
                 for (id trackNode in trackNodes) {
@@ -268,6 +273,9 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
                     }
                     index++;
                 }
+                
+                // Delete the found indexes
+                
                 if ([deleteIndexes count] > 0){
                     
                     __block NSUInteger deleteCount = 0;
@@ -275,13 +283,17 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
                         [trackNodes removeObjectAtIndex:idx - deleteCount];
                         deleteCount++;
                     }];
-                    
+
+                    [self saveHomeMenuLists];
+
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [self.tableView beginUpdates];
                         [self.tableView reloadRowsAtIndexPaths:@[_selectedDetailIndexPath]
                                               withRowAnimation:UITableViewRowAnimationNone];
                         [self.tableView endUpdates];
                     });
+                    
+                    
                     
                 }
             }
@@ -1107,7 +1119,27 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 //-(void)finishedTrim:(JWYTSearchTypingViewController *)controller title:(NSString*)title withDBKey:(NSString*)key {
 
+
+
+
 #pragma mark -
+
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+
+    NSLog(@"%s %@ %@",__func__,nodeKey,[effects description]);
+
+    id nodeInJamTrack = [self jamTrackNodeObjectForKey:nodeKey];
+    if (nodeInJamTrack) {
+        
+        NSLog(@"%s\nnodeInJamTrack %@ \n %@ %@",__func__,[nodeInJamTrack description],nodeKey,[effects description]);
+        
+        [(NSMutableDictionary*)nodeInJamTrack setObject:effects forKey:@"effects"];
+        
+        [self saveHomeMenuLists];
+    }
+}
+
+
 
 -(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid {
     
@@ -1336,9 +1368,10 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
         jamTrack[@"title"] = [[fileURL lastPathComponent] stringByDeletingPathExtension];
         [jamTracks insertObject:jamTrack atIndex:0];
-        [self saveHomeMenuLists];
+
         result = YES;
-        
+
+        [self saveHomeMenuLists];
     }
     
     return result;

@@ -1,4 +1,4 @@
- //
+//
 //  JWAudioPlayerController.m
 //  JWAudioScrubber
 //
@@ -6,41 +6,8 @@
 //  Copyright © 2015 b3k3r. All rights reserved.
 //
 
-
-/*
- SAMPLE EFFECTS CONFIG
- @{@"type" : @(JWEffectNodeTypeReverb),
- @"title" : @"Reverb",
- @"factorypreset" : @(AVAudioUnitReverbPresetMediumRoom),
- },
- @{@"type" : @(JWEffectNodeTypeDelay),
- @"title" : @"Delay",
- @"feedback" : @(0.0),
- @"lowpasscutoff" : @(15000.0)
- },
- @"delaytime" : @(0.0)
- @"lowpasscutoff" : @(15000.0),
- @{@"type" : @(JWEffectNodeTypeReverb),
- @"title" : @"Reverb",
- @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
- },
- @{@"type" : @(JWEffectNodeTypeDelay),
- @"title" : @"Delay",
- @"feedback" : @(0.0),
- @"lowpasscutoff" : @(0.0),
- @"delaytime" : @(0.0)
- },
- @{@"type" : @(JWEffectNodeTypeDistortion),
- @"title" : @"Distortion",
- @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
- @"pregain" : @(0.0)
- }
- */
-
-
 #import "JWAudioPlayerController.h"
 #import "JWScrubber.h"
-
 #import "JWMixEditTableViewController.h"
 #import "JWMixNodes.h"
 #import "UIColor+JW.h"
@@ -49,6 +16,7 @@
 <
 JWScrubberControllerDelegate,
 JWMTAudioEngineDelgegate,
+JWMTEffectsAudioEngineDelegate,
 JWScrubberInfoDelegate,
 JWMixEditDelegate
 >
@@ -65,7 +33,6 @@ JWMixEditDelegate
     CGFloat _momentDefaultTime;
 }
 
-
 @property (nonatomic) JWMixEditTableViewController *metvc;
 @property (strong, nonatomic) NSDictionary *scrubberTrackColors;
 @property (strong, nonatomic) NSDictionary *scrubberColors;
@@ -78,7 +45,6 @@ JWMixEditDelegate
 @property (nonatomic, readwrite) PlayerControllerState state;
 @property (nonatomic) CGFloat backLightValue;;
 @property (nonatomic) NSString *previewMomentId;
-
 @end
 
 
@@ -110,7 +76,9 @@ JWMixEditDelegate
     [self startupInits];
     //INITIALIZE ENGINE AND COMPONENTS
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
-    self.audioEngine.engineDelegate = self;
+//    self.audioEngine.engineDelegate = self;
+    self.audioEngine.engineEffectsDelegate = self;
+
     self.metvc = me;
     self.metvc.delegateMixEdit = self;
     self.metvc.effectsHandler = self.audioEngine;
@@ -145,7 +113,9 @@ JWMixEditDelegate
     //INITIALIZE ENGINE IN BACKGROUND
     dispatch_async (dispatch_get_global_queue( QOS_CLASS_USER_INITIATED,0),^{
         self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
-        self.audioEngine.engineDelegate = self;
+//        self.audioEngine.engineDelegate = self;
+        self.audioEngine.engineEffectsDelegate = self;
+
         self.metvc.delegateMixEdit = self;
         self.metvc.effectsHandler = self.audioEngine;
         self.pcvc.delegate = self;
@@ -172,6 +142,7 @@ JWMixEditDelegate
 
 /*
  stop and kill to shutdown the player controller
+ used when backing out of detail
  */
 -(void)stop {
     _listenToPositionChanges = NO;
@@ -180,6 +151,8 @@ JWMixEditDelegate
     [[NSUserDefaults standardUserDefaults] setValue:@(_sc.backlightValue) forKey:@"backlightvalue"];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     NSLog(@"%s STOP player controller",__func__);
+    
+    [self effectsCurrentSettings];
 }
 
 -(void)stopKill {
@@ -196,6 +169,8 @@ JWMixEditDelegate
     NSLog(@"%s",__func__);
     _wasPlaying = [_sc isPlaying];
     [_sc stopPlaying:nil rewind:NO];
+    
+    [self effectsCurrentSettings];
 }
 
 -(void)appWillForeground:(id)noti {
@@ -211,7 +186,9 @@ JWMixEditDelegate
     NSLog(@"%s",__func__);
     _trackItems = trackSet;
     if (_trackItems) {
+        
         _state = JWPlayerStateSetToBeg;
+        
         [self rebuildPlayerNodeListAndPlayIfAutoplay];
     }
 }
@@ -234,7 +211,12 @@ JWMixEditDelegate
             [nodeList addObject:playerNode];
     }
 
+    
+    NSLog(@"%s\nnodeList %@",__func__,[nodeList description]);
+    
+    
     _audioEngine.playerNodeList = nodeList;
+    
     _hasFiveSecondClip = [_audioEngine addFiveSecondNodeToListForKey:keyToIdFiveSecondNode];
     
     [_audioEngine initializeAudioConfig];
@@ -250,6 +232,7 @@ JWMixEditDelegate
     }
 }
 
+
 - (NSMutableDictionary*) newEnginePlayerNodeForTrackSetItem:(NSDictionary*)item {
     
     NSMutableDictionary *playerNode;
@@ -257,34 +240,39 @@ JWMixEditDelegate
     NSURL *fileURL = item[@"fileURL"];
     
     
-//    NSMutableDictionary * fileReference =
-//    [@{@"duration":@(0),
-//       @"startinset":@(1.0),
-//       @"endinset":@(0.0),
-//       } mutableCopy];
-    
     JWMixerNodeTypes  nodeType = JWMixerNodeTypeNone;
     id typeValue = item[@"type"];
     if (typeValue) {
         nodeType = [typeValue unsignedIntegerValue];
         if (nodeType == JWMixerNodeTypePlayer) {
+            
             playerNode =
             [@{@"title":@"playernode1",
                @"type":@(JWMixerNodeTypePlayer),
                } mutableCopy];
+            
         } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
             
             playerNode =
             [@{@"title":@"playerrecordernode1",
                @"type":@(JWMixerNodeTypePlayerRecorder),
                @"nodekey":item[@"key"],
-               
-//               @"referencefile": fileReference,
-
                } mutableCopy];
         }
+        
+
+        // Add effects array if provided to player nodes
+        
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
+            id effects = item[@"effects"];
+            if (effects) {
+                playerNode[@"effects"] = effects;
+            }
+        }
+        
         if (fileURL)
             playerNode[@"fileURLString"] = [fileURL path];
+        
         
     } else { // NO TYPE VALUE
         NSLog(@"%s No Type SHOULD NEVER HAPPEN Value in node config",__func__);
@@ -320,28 +308,6 @@ JWMixEditDelegate
     if (referenceFileItem)
         playerNode[@"referencefile"] = referenceFileItem;
     
-    id effects = item[@"effects"];
-//#warning auto effcts
-//    effects = [NSNull null];
-    
-    if (effects) {
-        NSArray *effectsArray =
-        @[
-          @{@"type" : @(JWEffectNodeTypeReverb),
-            @"title" : @"Reverb",
-            @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
-            },
-          
-          @{@"type" : @(JWEffectNodeTypeDistortion),
-            @"title" : @"Distortion",
-            @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
-            @"pregain" : @(0.0)
-            }
-          ];
-        
-        playerNode[@"effects"] = effectsArray;
-    }
-    
     id confignode = item[@"config"];
     if (confignode)
         playerNode[@"config"] = confignode; //  slider values
@@ -360,22 +326,21 @@ JWMixEditDelegate
     NSLog(@"%s NO LONGER USED use trackSet",__func__);
     _trackItems = trackItems;
 }
-
-
 -(void)setTrackItem:(id)trackItem {
     _trackItem = trackItem;
     if (trackItem) {
         self.trackItems = @[_trackItem];  // 1 trackItem
     } else {
         NSLog(@"%s NO LONGER USED use trackSet",__func__);
+    }
 }
-}
-
 - (NSMutableDictionary*) newEnginePlayerNodeForItem:(NSDictionary*)item {
     NSLog(@"%s NO LONGER USED use trackSet",__func__);
     NSMutableDictionary *playerNode;
     return playerNode;
 }
+
+#pragma mark -
 
 -(void)addEffectToEngineNodelist:(NSString *)effect {
     
@@ -392,12 +357,112 @@ JWMixEditDelegate
     } else if ([effect isEqualToString:@"eq"]) {
         [self.audioEngine addEffect:JWEffectNodeTypeEQ toPlayerNodeID:selectedTrackID];
     }
-    [_metvc refresh];
-    //self.state = JWPlayerStatePlayFromBeg;
     
+    [_metvc refresh];
+    
+    //  self.state = JWPlayerStatePlayFromBeg;
     
 }
 
+-(void)effectsCurrentSettings {
+    
+    NSUInteger index = 0;
+    NSArray *playerNodeList = [self.audioEngine playerNodeList];
+    
+    for (NSDictionary *item in playerNodeList) {
+        
+        JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
+        
+        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
+            
+            NSMutableArray *effectsArray = [NSMutableArray new];
+
+            id effects = item[@"effects"];
+            if (effects && [effects count]) {
+                NSUInteger count = [effects count];
+                for (NSUInteger edex = 0; edex < count; edex++) {
+                    
+                    JWEffectNodeTypes effectKind = 0;
+                    id typeValue = effects[edex][@"type"];
+                    if (typeValue)
+                        effectKind = [typeValue unsignedIntegerValue];
+                    
+                    NSMutableDictionary *anEffect;
+
+                    id effectsModify = [_audioEngine effectNodeAtIndex:edex forPlayerNodeAtIndex:index];
+                    if (effectsModify) {
+                        if (effectKind == JWEffectNodeTypeReverb) {
+                            
+                            // TODO: obtain correct factory preset
+                            
+                            anEffect = [@{@"title" : @"Reverb",
+                                          @"factorypreset" : @(AVAudioUnitReverbPresetMediumHall)
+                                          } mutableCopy];
+                            
+                            anEffect[@"type"] = @(effectKind); //JWEffectType
+                            anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
+                            
+                        } else if (effectKind == JWEffectNodeTypeDistortion) {
+                            
+                            // TODO: obtain correct factory preset
+
+                            anEffect = [@{@"title" : @"Distortion",
+                                          @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
+                                          } mutableCopy];
+                            
+                            anEffect[@"type"] = @(effectKind); //JWEffectType
+                            anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
+                            anEffect[@"pregain"] = @([effectsModify floatValue1]);
+
+                        } else if (effectKind == JWEffectNodeTypeDelay) {
+                            
+                            // TODO: obtain correct factory preset
+                            
+                            anEffect = [@{@"title" : @"Delay",
+                                          @"delaytime" : @(1), //from 0 to 2 seconds
+                                          } mutableCopy];
+                            
+                            anEffect[@"type"] = @(effectKind); //JWEffectType
+                            anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
+                            anEffect[@"feedback"] = @([effectsModify floatValue2]);
+                            anEffect[@"lowpasscutoff"] = @([effectsModify floatValue3]);
+                            
+                        } else if (effectKind == JWEffectNodeTypeEQ) {
+                            
+                        } else {
+                            
+                        }
+                        
+                    }
+                    
+                    if (anEffect) {
+                        [effectsArray addObject:anEffect];
+                    }
+                    
+                }  // for effects
+                
+                NSString *nodeKey = [self nodeKeyAtIndex:index];
+
+//                id nodeKey = item[@"key"];
+                if (nodeKey) {
+                    
+                    // Pass it up the chain
+                    if ([_delegate respondsToSelector:@selector(effectsChanged:inNodeWithKey:)])
+                        [_delegate effectsChanged:[NSArray arrayWithArray:effectsArray] inNodeWithKey:nodeKey];
+                    
+                } else {
+                    NSLog(@"ERROR no Node Key");
+                }
+                
+            }
+            
+        } // player
+        
+        index++;
+        
+    } // for players
+    
+}
 
 #pragma mark - Controller
 
@@ -472,7 +537,6 @@ JWMixEditDelegate
              };
 }
 
-
 -(BOOL)recordingWithoutPlayers {
     
     BOOL result = NO;
@@ -491,7 +555,6 @@ JWMixEditDelegate
     }
     return result;
 }
-
 
 #pragma mark - BUTTON PRESSED PROTOCOL
 
@@ -533,8 +596,6 @@ JWMixEditDelegate
 }
 
 
-
-
 -(void)timerFireMethod:(NSTimer *)timer {
     
     NSLog(@"%s increase volume: %f",__func__, [_audioEngine mixerVolume]);
@@ -553,8 +614,6 @@ JWMixEditDelegate
     }
     
 }
-
-
 
 
 -(BOOL) canRecordAudio {
@@ -760,8 +819,52 @@ JWMixEditDelegate
         [_delegate userAudioObtainedAtIndex:index recordingId:rid];
 }
 
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+    // Pass it up the chain
+    if ([_delegate respondsToSelector:@selector(effectsChanged:inNodeWithKey:)])
+        [_delegate effectsChanged:effects inNodeWithKey:nodeKey];
+}
 
-#pragma mark - CONDIFURE SCRUBBER
+-(void)effectsChanged:(NSArray*)effects inNodeAtIndex:(NSUInteger)nodeIndex {
+
+    NSString *nodeKey = [self nodeKeyAtIndex:nodeIndex];
+    
+    if (nodeKey) {
+        // Pass it up the chain
+        if ([_delegate respondsToSelector:@selector(effectsChanged:inNodeWithKey:)])
+            [_delegate effectsChanged:effects inNodeWithKey:nodeKey];
+    } else {
+        NSLog(@"ERROR no Node Key");
+ 
+    }
+    
+}
+
+-(NSString*)nodeKeyAtIndex:(NSUInteger)index {
+
+    NSString *result = nil;
+    
+    if (index < [_trackItems count]) {
+
+        id item = _trackItems[index];
+        
+        id nodeKey = item[@"key"];
+        if (nodeKey) {
+            result = nodeKey;
+        }
+        
+
+    } else {
+        NSLog(@"ERROR index beyond Trackitems count");
+    }
+    
+    
+    return result;
+    
+}
+
+
+#pragma mark - CONFIFURE SCRUBBER
 
 -(void)configureScrubbers:(BOOL)tap {
     
@@ -911,22 +1014,6 @@ JWMixEditDelegate
 }
 
 
-// blue motif
-//colors:@{
-//         JWColorScrubberTopPeak : [ [UIColor iosSkyColor] colorWithAlphaComponent:1.0],
-//         JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.9],
-//         JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.9],
-//         JWColorScrubberBottomPeak : [ [UIColor iosAquaColor] colorWithAlphaComponent:1.0],
-//         }
-
-// black motif
-//colors:@{
-//JWColorScrubberTopPeak : [[UIColor blackColor] colorWithAlphaComponent:0.88],
-//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
-//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
-//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
-//}
-
 
 -(void)scrubberConfigurePlayerRecorder:(id)playerNode atIndex:(NSUInteger)index withFileURL:(NSURL*)fileURL playerOnly:(BOOL)playerOnly {
     
@@ -998,28 +1085,6 @@ JWMixEditDelegate
     }
 }
 
-// strawberry
-//colors:@{
-//JWColorScrubberTopPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.8],
-//JWColorScrubberTopAvg : [[UIColor iosSilverColor] colorWithAlphaComponent:0.8],
-//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-//JWColorScrubberBottomPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.6],
-//}
-
-// whites
-//    colors:@{
-//             JWColorScrubberTopPeak : [[UIColor iosMercuryColor] colorWithAlphaComponent:0.6],
-//             JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.8],
-//             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.8],
-//             JWColorScrubberBottomPeak : [[UIColor iosAluminumColor] colorWithAlphaComponent:0.9],
-//             }
-
-//colors:@{
-//JWColorScrubberTopPeak : [[UIColor iosSteelColor] colorWithAlphaComponent:0.6],
-//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
-//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
-//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
-//}
 
 
 
@@ -1359,29 +1424,6 @@ JWMixEditDelegate
     }
 }
 
-//NSLog(@"PREVIEW MOMENT mom");
-//        _listenToPositionChanges = YES;
-//        NSTimeInterval playPos = _lastPlayPosition;
-//[self positionChanged:nil positionSeconds:playPos force:YES];
-//        self.positionChangeUpdateTimeStamp = [NSDate date];
-//        _momentTime = _momentPreviewTime;
-//        self.state = JWPlayerStateScrubbAudioPreviewMoment;
-//            _listenToPositionChanges = NO;
-//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime ) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//            [_sc readyForScrub];
-//            if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
-//                self.state = JWPlayerStateSetPlayToPos;
-//                self.positionChangeUpdateTimeStamp= nil;
-//            }
-//        });
-
-//                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                    [_sc readyForScrub];
-//                    if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
-//                        self.state = JWPlayerStateSetPlayToPos;
-//                    }
-//                });
-
 
 
 -(NSURL*)recordingFileURL:(JWScrubberController*)controller {
@@ -1443,6 +1485,7 @@ JWMixEditDelegate
         
         if ([trackInfo isKindOfClass:[NSDictionary class]]) {
             NSInteger index = [self playerNodeIndexForTrackId:sid];
+            
             if (index != NSNotFound) {
                 id trackItem = _trackItems[index];
                 if (trackItem) {
@@ -1562,6 +1605,67 @@ JWMixEditDelegate
 
 
 
+/*
+ SAMPLE EFFECTS CONFIG
+ @{@"type" : @(JWEffectNodeTypeReverb),
+ @"title" : @"Reverb",
+ @"factorypreset" : @(AVAudioUnitReverbPresetMediumRoom),
+ },
+ @{@"type" : @(JWEffectNodeTypeDelay),
+ @"title" : @"Delay",
+ @"feedback" : @(0.0),
+ @"lowpasscutoff" : @(15000.0)
+ },
+ @"delaytime" : @(0.0)
+ @"lowpasscutoff" : @(15000.0),
+ @{@"type" : @(JWEffectNodeTypeReverb),
+ @"title" : @"Reverb",
+ @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
+ },
+ @{@"type" : @(JWEffectNodeTypeDelay),
+ @"title" : @"Delay",
+ @"feedback" : @(0.0),
+ @"lowpasscutoff" : @(0.0),
+ @"delaytime" : @(0.0)
+ },
+ @{@"type" : @(JWEffectNodeTypeDistortion),
+ @"title" : @"Distortion",
+ @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
+ @"pregain" : @(0.0)
+ }
+ */
+
+
+// TESTING add fileReference key @"referencefile"
+//    NSMutableDictionary * fileReference =
+//    [@{@"duration":@(0),
+//       @"startinset":@(1.0),
+//       @"endinset":@(0.0),
+//       } mutableCopy];
+//
+//               @"referencefile": fileReference,
+//
+
+// TEST setup hardcoded effects array
+//    id effects = item[@"effects"];
+//#warning auto effcts
+//    effects = [NSNull null];
+//    if (effects) {
+//        NSArray *effectsArray =
+//        @[
+//          @{@"type" : @(JWEffectNodeTypeReverb),
+//            @"title" : @"Reverb",
+//            @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
+//            },
+//
+//          @{@"type" : @(JWEffectNodeTypeDistortion),
+//            @"title" : @"Distortion",
+//            @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
+//            @"pregain" : @(0.0)
+//            }
+//          ];
+//        playerNode[@"effects"] = effectsArray;
+//    }
 
 //processingFormatStr
 
@@ -1600,6 +1704,66 @@ JWMixEditDelegate
 //    return title;
 
 
+// blue motif
+//colors:@{
+//         JWColorScrubberTopPeak : [ [UIColor iosSkyColor] colorWithAlphaComponent:1.0],
+//         JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.9],
+//         JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.9],
+//         JWColorScrubberBottomPeak : [ [UIColor iosAquaColor] colorWithAlphaComponent:1.0],
+//         }
 
+// black motif
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor blackColor] colorWithAlphaComponent:0.88],
+//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
+//}
+
+// strawberry
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.8],
+//JWColorScrubberTopAvg : [[UIColor iosSilverColor] colorWithAlphaComponent:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.6],
+//}
+
+// whites
+//    colors:@{
+//             JWColorScrubberTopPeak : [[UIColor iosMercuryColor] colorWithAlphaComponent:0.6],
+//             JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.8],
+//             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.8],
+//             JWColorScrubberBottomPeak : [[UIColor iosAluminumColor] colorWithAlphaComponent:0.9],
+//             }
+
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor iosSteelColor] colorWithAlphaComponent:0.6],
+//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
+//}
+
+//NSLog(@"PREVIEW MOMENT mom");
+//        _listenToPositionChanges = YES;
+//        NSTimeInterval playPos = _lastPlayPosition;
+//[self positionChanged:nil positionSeconds:playPos force:YES];
+//        self.positionChangeUpdateTimeStamp = [NSDate date];
+//        _momentTime = _momentPreviewTime;
+//        self.state = JWPlayerStateScrubbAudioPreviewMoment;
+//            _listenToPositionChanges = NO;
+//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime ) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//            [_sc readyForScrub];
+//            if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
+//                self.state = JWPlayerStateSetPlayToPos;
+//                self.positionChangeUpdateTimeStamp= nil;
+//            }
+//        });
+
+//                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                    [_sc readyForScrub];
+//                    if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
+//                        self.state = JWPlayerStateSetPlayToPos;
+//                    }
+//                });
 
 
