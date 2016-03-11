@@ -29,6 +29,7 @@
 }
 
 @property (strong, nonatomic) NSMutableArray *playerNodeList;
+@property (strong, nonatomic) NSMutableDictionary *playerNodeSelected;
 
 @end
 
@@ -215,13 +216,74 @@
     return count;
 }
 
-//#define NEW_TABLE_MODEL
-#ifdef NEW_TABLE_MODEL
+#define NEW_TABLEVIEW_MODEL
+#ifdef NEW_TABLEVIEW_MODEL
 
+/* 
+ Data source is the actual player node so can refer to it directly when creating
+    number of rows
+ keys: player, effectnodes, title, trackid, audiofile, type, audiobuffer, fileURLString
+ 
+ MixerSection = 1 if enabled and ScrubberSection = 2 if enabled
+ 
+ */
 
 
 
 #else
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    
+    //JWMixerNodeTypes playerNodeType = [self.playerNodeSelected[@"type"] integerValue];
+    NSDictionary *effectNodes = self.playerNodeSelected[@"effectnodes"];
+    NSUInteger effectNodesCount = effectNodes.count;
+    
+    NSUInteger count = 0;
+    NSUInteger playerNodeSection = 0;
+    NSUInteger bottomSections = 0;
+
+    if (_sectionEnabledMixer)
+    bottomSections++;
+    if (_sectionEnabledScrubber)
+    bottomSections++;
+    
+    if (bottomSections > 0  && section > playerNodeSection) {
+       
+        if (_mixerSection > 0 && section == _mixerSection) {
+            count = 2;
+        }
+        if (_scrubberSection > 0 && section == _scrubberSection) {
+            count = 1;
+        }
+    } else {
+        
+        count = [self numberOfBaseRowsForNode] + effectNodesCount;
+        
+//        if (playerNodeType == JWMixerNodeTypePlayer) {
+//            count = baseCount + effectNodesCount;
+//            
+//        } else if (playerNodeType == JWMixerNodeTypePlayerRecorder) {
+//            
+//            id fileURL = self.playerNodeSelected[@"fileURLString"];
+//            if (fileURL) {
+//                count = baseCount + effectNodesCount;
+//            } else {
+//                count = 1;
+//            }
+//        } else {
+//            count = 1;
+//        }
+    }
+
+    
+    
+    return count;
+    
+}
+
+#else
+
+
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
@@ -286,7 +348,8 @@
 
 #endif
 
--(NSUInteger)numberOfBaseRowsForNodeAtIndex:(NSUInteger)index
+
+-(NSUInteger)numberOfBaseRowsForNode
 {
     NSUInteger nBaseRowsForNode = 0;
     JWMixerNodeTypes nodeType = [self.playerNodeSelected[@"type"] integerValue];
