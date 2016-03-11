@@ -1,4 +1,4 @@
- //
+//
 //  JWAudioPlayerController.m
 //  JWAudioScrubber
 //
@@ -6,12 +6,8 @@
 //  Copyright © 2015 b3k3r. All rights reserved.
 //
 
-
-
-
 #import "JWAudioPlayerController.h"
 #import "JWScrubber.h"
-
 #import "JWMixEditTableViewController.h"
 #import "JWMixNodes.h"
 #import "UIColor+JW.h"
@@ -49,7 +45,6 @@ JWMixEditDelegate
 @property (nonatomic, readwrite) PlayerControllerState state;
 @property (nonatomic) CGFloat backLightValue;;
 @property (nonatomic) NSString *previewMomentId;
-
 @end
 
 
@@ -147,6 +142,7 @@ JWMixEditDelegate
 
 /*
  stop and kill to shutdown the player controller
+ used when backing out of detail
  */
 -(void)stop {
     _listenToPositionChanges = NO;
@@ -155,6 +151,8 @@ JWMixEditDelegate
     [[NSUserDefaults standardUserDefaults] setValue:@(_sc.backlightValue) forKey:@"backlightvalue"];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     NSLog(@"%s STOP player controller",__func__);
+    
+    [self effectsCurrentSettings];
 }
 
 -(void)stopKill {
@@ -171,6 +169,8 @@ JWMixEditDelegate
     NSLog(@"%s",__func__);
     _wasPlaying = [_sc isPlaying];
     [_sc stopPlaying:nil rewind:NO];
+    
+    [self effectsCurrentSettings];
 }
 
 -(void)appWillForeground:(id)noti {
@@ -231,17 +231,6 @@ JWMixEditDelegate
         });
     }
 }
-
-
-// TESTING add fileReference key @"referencefile"
-//    NSMutableDictionary * fileReference =
-//    [@{@"duration":@(0),
-//       @"startinset":@(1.0),
-//       @"endinset":@(0.0),
-//       } mutableCopy];
-//
-//               @"referencefile": fileReference,
-//
 
 
 - (NSMutableDictionary*) newEnginePlayerNodeForTrackSetItem:(NSDictionary*)item {
@@ -330,27 +319,6 @@ JWMixEditDelegate
     return playerNode;
 }
 
-// TEST setup hardcoded effects array
-//    id effects = item[@"effects"];
-//#warning auto effcts
-//    effects = [NSNull null];
-//    if (effects) {
-//        NSArray *effectsArray =
-//        @[
-//          @{@"type" : @(JWEffectNodeTypeReverb),
-//            @"title" : @"Reverb",
-//            @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
-//            },
-//
-//          @{@"type" : @(JWEffectNodeTypeDistortion),
-//            @"title" : @"Distortion",
-//            @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
-//            @"pregain" : @(0.0)
-//            }
-//          ];
-//        playerNode[@"effects"] = effectsArray;
-//    }
-
 
 #pragma mark  old setTracks
 // old track itesms Did not contain JWPlayerNodeType
@@ -395,7 +363,6 @@ JWMixEditDelegate
     //  self.state = JWPlayerStatePlayFromBeg;
     
 }
-
 
 -(void)effectsCurrentSettings {
     
@@ -497,8 +464,6 @@ JWMixEditDelegate
     
 }
 
-
-
 #pragma mark - Controller
 
 -(void)deSelectTrack
@@ -572,7 +537,6 @@ JWMixEditDelegate
              };
 }
 
-
 -(BOOL)recordingWithoutPlayers {
     
     BOOL result = NO;
@@ -591,7 +555,6 @@ JWMixEditDelegate
     }
     return result;
 }
-
 
 #pragma mark - BUTTON PRESSED PROTOCOL
 
@@ -1051,22 +1014,6 @@ JWMixEditDelegate
 }
 
 
-// blue motif
-//colors:@{
-//         JWColorScrubberTopPeak : [ [UIColor iosSkyColor] colorWithAlphaComponent:1.0],
-//         JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.9],
-//         JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.9],
-//         JWColorScrubberBottomPeak : [ [UIColor iosAquaColor] colorWithAlphaComponent:1.0],
-//         }
-
-// black motif
-//colors:@{
-//JWColorScrubberTopPeak : [[UIColor blackColor] colorWithAlphaComponent:0.88],
-//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
-//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
-//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
-//}
-
 
 -(void)scrubberConfigurePlayerRecorder:(id)playerNode atIndex:(NSUInteger)index withFileURL:(NSURL*)fileURL playerOnly:(BOOL)playerOnly {
     
@@ -1138,28 +1085,6 @@ JWMixEditDelegate
     }
 }
 
-// strawberry
-//colors:@{
-//JWColorScrubberTopPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.8],
-//JWColorScrubberTopAvg : [[UIColor iosSilverColor] colorWithAlphaComponent:0.8],
-//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
-//JWColorScrubberBottomPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.6],
-//}
-
-// whites
-//    colors:@{
-//             JWColorScrubberTopPeak : [[UIColor iosMercuryColor] colorWithAlphaComponent:0.6],
-//             JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.8],
-//             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.8],
-//             JWColorScrubberBottomPeak : [[UIColor iosAluminumColor] colorWithAlphaComponent:0.9],
-//             }
-
-//colors:@{
-//JWColorScrubberTopPeak : [[UIColor iosSteelColor] colorWithAlphaComponent:0.6],
-//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
-//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
-//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
-//}
 
 
 
@@ -1734,6 +1659,37 @@ JWMixEditDelegate
  */
 
 
+// TESTING add fileReference key @"referencefile"
+//    NSMutableDictionary * fileReference =
+//    [@{@"duration":@(0),
+//       @"startinset":@(1.0),
+//       @"endinset":@(0.0),
+//       } mutableCopy];
+//
+//               @"referencefile": fileReference,
+//
+
+// TEST setup hardcoded effects array
+//    id effects = item[@"effects"];
+//#warning auto effcts
+//    effects = [NSNull null];
+//    if (effects) {
+//        NSArray *effectsArray =
+//        @[
+//          @{@"type" : @(JWEffectNodeTypeReverb),
+//            @"title" : @"Reverb",
+//            @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
+//            },
+//
+//          @{@"type" : @(JWEffectNodeTypeDistortion),
+//            @"title" : @"Distortion",
+//            @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
+//            @"pregain" : @(0.0)
+//            }
+//          ];
+//        playerNode[@"effects"] = effectsArray;
+//    }
+
 //processingFormatStr
 
 //    NSUInteger index = 0;
@@ -1771,6 +1727,42 @@ JWMixEditDelegate
 //    return title;
 
 
+// blue motif
+//colors:@{
+//         JWColorScrubberTopPeak : [ [UIColor iosSkyColor] colorWithAlphaComponent:1.0],
+//         JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.9],
+//         JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.9],
+//         JWColorScrubberBottomPeak : [ [UIColor iosAquaColor] colorWithAlphaComponent:1.0],
+//         }
 
+// black motif
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor blackColor] colorWithAlphaComponent:0.88],
+//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
+//}
 
+// strawberry
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.8],
+//JWColorScrubberTopAvg : [[UIColor iosSilverColor] colorWithAlphaComponent:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.88 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosStrawberryColor] colorWithAlphaComponent:0.6],
+//}
+
+// whites
+//    colors:@{
+//             JWColorScrubberTopPeak : [[UIColor iosMercuryColor] colorWithAlphaComponent:0.6],
+//             JWColorScrubberTopAvg : [UIColor colorWithWhite:0.92 alpha:0.8],
+//             JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.82 alpha:0.8],
+//             JWColorScrubberBottomPeak : [[UIColor iosAluminumColor] colorWithAlphaComponent:0.9],
+//             }
+
+//colors:@{
+//JWColorScrubberTopPeak : [[UIColor iosSteelColor] colorWithAlphaComponent:0.6],
+//JWColorScrubberTopAvg : [UIColor colorWithWhite:0.12 alpha:0.8],
+//JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
+//JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
+//}
 
