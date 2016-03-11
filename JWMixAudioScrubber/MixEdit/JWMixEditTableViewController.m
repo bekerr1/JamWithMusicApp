@@ -20,13 +20,14 @@
 #import "UIColor+JW.h"
 
 
-@interface JWMixEditTableViewController ()
+@interface JWMixEditTableViewController () <JWPresetProtocol>
 {
     BOOL _sectionEnabledScrubber;
     BOOL _sectionEnabledMixer;
     NSUInteger _mixerSection;
     NSUInteger _scrubberSection;
     JWEffectNodeTypes _currentSelectedEffectType;
+    NSUInteger _lastSelectedEffectRow;
 }
 
 @property (strong, nonatomic) NSMutableArray *playerNodeList;
@@ -989,7 +990,9 @@
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     
     NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-    _currentSelectedEffectType = [self effectNodeTypeForNodeAtIndex:selected.section effectIndex:selected.row - [self numberOfBaseRowsForNode]];
+    _lastSelectedEffectRow = selected.row - [self numberOfBaseRowsForNode];
+    _currentSelectedEffectType = [self effectNodeTypeForNodeAtIndex:selected.section effectIndex:_lastSelectedEffectRow];
+    
     
     JWEffectPresetsTableViewController *prvc = [segue destinationViewController];
     
@@ -997,36 +1000,38 @@
         if (_currentSelectedEffectType == JWEffectNodeTypeEQ) {
             
         } else if (_currentSelectedEffectType == JWEffectNodeTypeReverb) {
-            
             NSArray *stringReverbPresets = [_effectsHandler stringRepresentedReverbPreset];
             [prvc setSystemDefinedpresets:stringReverbPresets];
             
         } else if (_currentSelectedEffectType == JWEffectNodeTypeDistortion) {
-            
             NSArray *stringDistortionPresets = [_effectsHandler stringRepresentedDistortionPresets];
             [prvc setSystemDefinedpresets:stringDistortionPresets];
             
         } else if (_currentSelectedEffectType == JWEffectNodeTypeDelay) {
-            
             NSDictionary *usrp = self.playerNodeList[_selectedNodeIndex][@"userpresets"];
             NSMutableArray *presetStrings = [[NSMutableArray alloc] init];
             for (NSString *preset in usrp[@"presetname"]) {
                 [presetStrings addObject:preset];
             }
-            
             [prvc setUserDefinedPresets:presetStrings];
             
         }
-        
         if (_currentSelectedEffectType == JWEffectNodeTypeDistortion || _currentSelectedEffectType == JWEffectNodeTypeReverb) {
             NSArray *ef = self.playerNodeSelected[@"effects"];
             if (ef.count > 0) {
                 NSDictionary *currentEF = ef[selected.row - [self numberOfBaseRowsForNode]];
-                [prvc setSelectedEffectIndex:[currentEF[@"factorypreset"] integerValue]];
+                [prvc setSelectedPresetIndex:[currentEF[@"factorypreset"] integerValue]];
             }
-        }                
-        
+        }
+        [prvc setDelegate:self];
     }
+}
+
+#pragma mark - Preset Protocol
+
+-(void)previewSelectedPresetAtIndex:(NSInteger)enumValue {
+    
+    [_delegateMixEdit previewSelectedPresetAtIndex:enumValue effectAtIndex:_lastSelectedEffectRow playerNodeIndex:_selectedNodeIndex];
 }
 
 

@@ -556,6 +556,12 @@ JWMixEditDelegate
     return result;
 }
 
+-(void)previewPreset {
+    
+    [self rewind];
+    [self play];
+}
+
 #pragma mark - BUTTON PRESSED PROTOCOL
 
 -(void)play
@@ -1536,6 +1542,41 @@ JWMixEditDelegate
 - (void)recordAtNodeIndex:(NSUInteger)index {
     NSLog(@"%s NOT IMPLEMENTED %ld", __func__,(unsigned long)index);
 }
+
+//Preview factory presets.  load the preset and
+-(void)previewSelectedPresetAtIndex:(NSInteger)enumValue effectAtIndex:(NSUInteger)effect playerNodeIndex:(NSUInteger)pn {
+    
+    NSArray *pnl = [_audioEngine configPlayerNodeList];
+    AVAudioUnitEffect *effectNode = pnl[pn][@"effectnodes"][effect];
+    
+    if ([effectNode isKindOfClass:[AVAudioUnitReverb class]]) {
+        AVAudioUnitReverb *reverb = (AVAudioUnitReverb *)effectNode;
+        [reverb loadFactoryPreset:enumValue];
+        
+    } else if ([effectNode isKindOfClass:[AVAudioUnitDelay class]]) {
+        //doesnt have load factory preset but will soon have "load user preset" so should be
+        //able to preview
+        AVAudioUnitDelay *delay = (AVAudioUnitDelay *)effectNode;
+    } else if ([effectNode isKindOfClass:[AVAudioUnitDistortion class]]) {
+        AVAudioUnitDistortion *distortion = (AVAudioUnitDistortion *)effectNode;
+        [distortion loadFactoryPreset:enumValue];
+        
+    } else if ([effectNode isKindOfClass:[AVAudioUnitEQ class]]) {
+        //doesnt have load factory preset but will soon have "load user preset" so should be
+        //able to preview
+        AVAudioUnitEQ *eq = (AVAudioUnitEQ *)effectNode;
+    }
+    
+    pnl[pn][@"effects"][effect][@"factorypreset"] = @(enumValue);
+    
+    
+    //[self previewPreset];
+}
+
+//-(void)stopAudioForPresets {
+//    
+//    [self rewind];
+//}
 
 
 #pragma mark helper

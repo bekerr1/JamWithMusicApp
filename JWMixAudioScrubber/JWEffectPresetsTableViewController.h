@@ -7,12 +7,22 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "JWMixEditTableViewController.h"
+
+@protocol JWPresetProtocol;
 
 @interface JWEffectPresetsTableViewController : UITableViewController
 
 @property (nonatomic) NSArray *systemDefinedpresets;
 @property (nonatomic) NSMutableArray *userDefinedPresets;
 @property (nonatomic) NSMutableArray *presetsGrouping;
-@property (nonatomic) NSUInteger selectedEffectIndex;
+@property (nonatomic) NSUInteger selectedPresetIndex;
+@property (nonatomic) id <JWPresetProtocol> delegate;
+
+@end
+
+@protocol JWPresetProtocol <NSObject>
+
+-(void)previewSelectedPresetAtIndex:(NSInteger)enumValue;
 
 @end
