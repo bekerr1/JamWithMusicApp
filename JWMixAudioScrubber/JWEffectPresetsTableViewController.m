@@ -8,7 +8,10 @@
 
 #import "JWEffectPresetsTableViewController.h"
 
-@interface JWEffectPresetsTableViewController ()
+@interface JWEffectPresetsTableViewController () {
+        NSIndexPath *_currentPresetIndex;
+}
+
 
 @end
 
@@ -16,12 +19,12 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
-    
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.presetsGrouping = [[NSMutableArray alloc] init];
+    self.presetsGrouping = [NSMutableArray arrayWithObjects:self.systemDefinedpresets, self.userDefinedPresets, nil];
+    //_currentPresetIndex = [NSIndexPath indexPathForRow:_selectedEffectIndex inSection:0];
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -33,25 +36,58 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 
-    return self.presetsGrouping.count;
+    return (self.presetsGrouping.count == 0) ? 1 : self.presetsGrouping.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    NSMutableArray *presetSection = self.presetsGrouping[section];
+    NSMutableArray *presetSection;
 
-    return presetSection.count;
+    if (self.presetsGrouping.count > 0) {
+        presetSection = self.presetsGrouping[section];
+    } else {
+        return 1;
+    }
+
+    return (presetSection.count == 0) ? 1 : presetSection.count;
 }
 
-/*
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:; forIndexPath:indexPath];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Preset" forIndexPath:indexPath];
     
-    // Configure the cell...
+    if (self.presetsGrouping.count > 0) {
+        cell.textLabel.text = self.presetsGrouping[indexPath.section][indexPath.row];
+    } else {
+        cell.textLabel.text = @"No Presets.";
+    }
     
     return cell;
 }
-*/
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (indexPath.row == _selectedEffectIndex) {
+        cell.accessoryType = UITableViewCellAccessoryCheckmark;
+    } else {
+        cell.accessoryType = UITableViewCellAccessoryNone;
+    }
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:_selectedEffectIndex inSection:0]];
+    cell.accessoryType = UITableViewCellAccessoryNone;
+    
+    _selectedEffectIndex = indexPath.row;
+
+    [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+    
+    
+    
+}
+
 
 /*
 // Override to support conditional editing of the table view.

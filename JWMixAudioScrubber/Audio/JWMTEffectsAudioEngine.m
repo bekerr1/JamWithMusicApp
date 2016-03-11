@@ -17,8 +17,8 @@
 @interface JWMTEffectsAudioEngine() <JWEffectsHandler>
 @property (strong, nonatomic) NSArray *effectnodesList; // an item for each player, another array stack of effects
 @property (strong, nonatomic) NSMutableArray *effectnodes; // holds objects AudioNodes
-@property (nonatomic) NSMutableDictionary *userDelayPresets;
-@property (nonatomic) NSMutableDictionary *userEQPresets;
+//@property (nonatomic) NSMutableDictionary *userDelayPresets;
+//@property (nonatomic) NSMutableDictionary *userEQPresets;
 @end
 
 
@@ -193,6 +193,38 @@
     return distortion;
     
 }
+
+#pragma mark - User defined presets (part of effects handler)
+
+
+-(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(JWEffectNodeTypes)et withPresetName:(NSString *)preset {
+    
+    NSDictionary *effectAtIndex = self.playerNodeList[selected][@"effects"][eff];
+    NSDictionary *userPreset = [[NSMutableDictionary alloc] init];
+    
+    if (et == JWEffectNodeTypeDelay) {
+        
+        NSUInteger feedback = [effectAtIndex[@"feedback"] integerValue];
+        NSUInteger delaytime = [effectAtIndex[@"delaytime"] integerValue];
+        NSUInteger lowpasscutoff = [effectAtIndex[@"lowpasscutoff"] integerValue];
+        
+        userPreset = [@{
+                        @"effecttype" : @(JWEffectNodeTypeDelay),
+                        @"feedback" : @(feedback), //from -100 to 100 percent
+                        @"delaytime" : @(delaytime), //from 0 to 2 seconds
+                        @"lowpasscutoff" : @(lowpasscutoff), //from 10 hz to sampleRate / 2
+                        @"presetname" : preset
+                        } copy];
+        
+    } else if (et == JWEffectNodeTypeEQ) {
+        
+        
+    }
+    
+    self.playerNodeList[selected][@"userpresets"] = userPreset;
+}
+
+
 
 
 
@@ -448,7 +480,7 @@
     int trackIndex = 0;
     for (int i = 0; i < [self.playerNodeList count]; i++) {
         
-        NSMutableDictionary *dictAtPn = self.playerNodeList[i];
+        NSDictionary *dictAtPn = self.playerNodeList[i];
         NSString *trackID = dictAtPn[@"trackid"];
         
         if ([trackID isEqualToString:selectedTrackID]) {
@@ -457,7 +489,6 @@
         }
     }
     
-    //TODO: not sure if this is supposed to be mutable or not
     NSMutableDictionary *newEffect;
     
     switch (effect) {
@@ -516,6 +547,7 @@
     
     return YES;
 }
+
 
 
 #pragma mark -

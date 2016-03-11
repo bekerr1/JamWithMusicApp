@@ -10,7 +10,9 @@
 
 @interface JWEffectPresetsTableViewController : UITableViewController
 
-@property (nonatomic) NSMutableArray *presetsArray;
+@property (nonatomic) NSArray *systemDefinedpresets;
+@property (nonatomic) NSMutableArray *userDefinedPresets;
 @property (nonatomic) NSMutableArray *presetsGrouping;
+@property (nonatomic) NSUInteger selectedEffectIndex;
 
 @end

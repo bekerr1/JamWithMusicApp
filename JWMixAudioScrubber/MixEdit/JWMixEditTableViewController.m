@@ -7,6 +7,7 @@
 //
 
 #import "JWMixEditTableViewController.h"
+#import "JWEffectPresetsTableViewController.h"
 // Effect slider Cell Types
 #import "JWSliderTableViewCell.h"
 #import "JWRecorderTableViewCell.h"
@@ -43,6 +44,7 @@
     
     _sectionEnabledScrubber = YES;
     _sectionEnabledMixer = YES;
+    _currentSelectedEffectType = 20;
     self.clearsSelectionOnViewWillAppear = NO;  // preserve selection between presentations.
     
     CGRect fr = self.tableView.tableHeaderView.frame;
@@ -964,7 +966,43 @@
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     
+    NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
+    _currentSelectedEffectType = [self effectNodeTypeForNodeAtIndex:selected.section effectIndex:selected.row - [self numberOfBaseRowsForNode]];
+    
+    JWEffectPresetsTableViewController *prvc = [segue destinationViewController];
+    
     if ([segue.identifier isEqualToString:@"PresetSegue"]) {
+        if (_currentSelectedEffectType == JWEffectNodeTypeEQ) {
+            
+        } else if (_currentSelectedEffectType == JWEffectNodeTypeReverb) {
+            
+            NSArray *stringReverbPresets = [_effectsHandler stringRepresentedReverbPreset];
+            [prvc setSystemDefinedpresets:stringReverbPresets];
+            
+        } else if (_currentSelectedEffectType == JWEffectNodeTypeDistortion) {
+            
+            NSArray *stringDistortionPresets = [_effectsHandler stringRepresentedDistortionPresets];
+            [prvc setSystemDefinedpresets:stringDistortionPresets];
+            
+        } else if (_currentSelectedEffectType == JWEffectNodeTypeDelay) {
+            
+            NSDictionary *usrp = self.playerNodeList[_selectedNodeIndex][@"userpresets"];
+            NSMutableArray *presetStrings = [[NSMutableArray alloc] init];
+            for (NSString *preset in usrp[@"presetname"]) {
+                [presetStrings addObject:preset];
+            }
+            
+            [prvc setUserDefinedPresets:presetStrings];
+            
+        }
+        
+        if (_currentSelectedEffectType == JWEffectNodeTypeDistortion || _currentSelectedEffectType == JWEffectNodeTypeReverb) {
+            NSArray *ef = self.playerNodeSelected[@"effects"];
+            if (ef.count > 0) {
+                NSDictionary *currentEF = ef[selected.row - [self numberOfBaseRowsForNode]];
+                [prvc setSelectedEffectIndex:[currentEF[@"factorypreset"] integerValue]];
+            }
+        }                
         
     }
 }
