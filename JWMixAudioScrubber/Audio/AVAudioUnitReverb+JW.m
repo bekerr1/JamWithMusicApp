@@ -20,10 +20,12 @@
     NSLog(@"%s not used, ignored",__func__);
     return 0.0;
 }
+
 -(float)floatValue3 {
     NSLog(@"%s not used, ignored",__func__);
     return 0.0;
 }
+
 -(float)floatValue4 {
     NSLog(@"%s not used, ignored",__func__);
     return 0.0;
@@ -33,6 +35,8 @@
     NSLog(@"%s get bypass %@",__func__,@(self.bypass));
     return self.bypass;
 }
+
+#pragma mark -
 
 -(BOOL)adjustFloatValue1:(float)value{
 //    NSLog(@"%s adjusting wetdrymix %.2f to %.2f",__func__,self.wetDryMix,value);
@@ -55,12 +59,13 @@
     return NO;
 }
 
-
 -(BOOL)adjustBoolValue1:(BOOL)value {
     NSLog(@"%s adjusting bypass %@",__func__,@(value));
     self.bypass = value;
     return YES;
 }
+
+#pragma mark -
 
 -(NSTimeInterval)timeInterval1 {
     NSLog(@"%s not used, ignored",__func__);
@@ -72,15 +77,21 @@
     return NO;
 }
 
+#pragma mark -
+
 -(NSArray*)optionPresets {
     NSLog(@"%s not used, ignored",__func__);
     return nil;
-    
 }
+
 -(BOOL)adjustOptionPreset:(NSUInteger)value {
     NSLog(@"%s not used, ignored",__func__);
     return NO;
 }
+
+#pragma mark -
+
+// UI Control actions
 
 -(void)adjustFloatValue1WithSlider:(id)sender {
     [self adjustFloatValue1:[(UISlider*)sender value]];
@@ -100,6 +111,5 @@
 -(void)adjustBoolValue1WithSwitch:(id)sender {
     [self adjustBoolValue1:[(UISwitch*)sender isOn]];
 }
-
 
 @end

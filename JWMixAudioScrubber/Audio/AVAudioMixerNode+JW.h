@@ -7,7 +7,6 @@
 //
 
 #import <AVFoundation/AVFoundation.h>
-
 #import "JWEffectsModifyingProtocol.h"
 
 @interface AVAudioMixerNode (JW) <JWEffectsModifyingProtocol>
