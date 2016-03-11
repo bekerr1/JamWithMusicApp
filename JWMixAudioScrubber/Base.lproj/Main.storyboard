@@ -795,7 +795,7 @@
         <scene sceneID="hGj-vF-j8E">
             <objects>
                 <tableViewController useStoryboardIdentifierAsRestorationIdentifier="YES" id="L8l-WD-inX" customClass="JWMixEditTableViewController" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" allowsSelection="NO" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="eKj-OR-rrN">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="eKj-OR-rrN">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="322"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -952,6 +952,7 @@
                                     <outlet property="parameterLabel1" destination="saP-qk-cnC" id="wpn-ku-UKH"/>
                                     <outlet property="parameterLabel2" destination="i0z-oW-ExV" id="Tia-Ai-33a"/>
                                     <outlet property="parameterLabel3" destination="axI-Wp-WQh" id="9Ge-I3-sJD"/>
+                                    <segue destination="c4p-01-UHh" kind="show" identifier="PresetSegue" id="43O-Fw-3iD"/>
                                 </connections>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="JWSliderAndSwitchCell" rowHeight="120" id="caj-Zq-UWR" customClass="JWSliderAndSwitchTableViewCell">
@@ -1024,6 +1025,7 @@
                                     <outlet property="slider" destination="bp9-62-eIc" id="KC9-QW-Khg"/>
                                     <outlet property="sliderLabel" destination="hRK-6V-mxW" id="uKd-b6-A7T"/>
                                     <outlet property="switchControl" destination="6pg-8A-bDM" id="MZJ-Rx-VUJ"/>
+                                    <segue destination="c4p-01-UHh" kind="show" identifier="PresetSegue" id="DvC-iG-uPY"/>
                                 </connections>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="JWRecorderCell" id="q0b-fN-yIw" customClass="JWRecorderTableViewCell">
@@ -1186,6 +1188,35 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="igu-QZ-hKv" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1843" y="196"/>
+        </scene>
+        <!--Table View Controller-->
+        <scene sceneID="OMU-RN-13Y">
+            <objects>
+                <tableViewController id="c4p-01-UHh" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="lrD-3H-k69">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="322"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="Jmv-f9-L2w">
+                                <rect key="frame" x="0.0" y="28" width="600" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Jmv-f9-L2w" id="gfk-5J-lQs">
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="43"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="c4p-01-UHh" id="Mrb-aM-SST"/>
+                            <outlet property="delegate" destination="c4p-01-UHh" id="7PI-X7-OZF"/>
+                        </connections>
+                    </tableView>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="sAQ-j5-G7c" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2634" y="163"/>
         </scene>
         <!--MP3 Files-->
         <scene sceneID="FIj-V7-X2j">
@@ -2532,6 +2563,7 @@
     <inferredMetricsTieBreakers>
         <segue reference="gzQ-fA-mHN"/>
         <segue reference="Qjb-bz-KQS"/>
+        <segue reference="DvC-iG-uPY"/>
     </inferredMetricsTieBreakers>
     <color key="tintColor" red="1" green="1" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
 </document>

@@ -17,6 +17,8 @@
 @interface JWMTEffectsAudioEngine() <JWEffectsHandler>
 @property (strong, nonatomic) NSArray *effectnodesList; // an item for each player, another array stack of effects
 @property (strong, nonatomic) NSMutableArray *effectnodes; // holds objects AudioNodes
+@property (nonatomic) NSMutableDictionary *userDelayPresets;
+@property (nonatomic) NSMutableDictionary *userEQPresets;
 @end
 
 
@@ -181,6 +183,22 @@
 
     return result;
 }
+
+-(NSArray *)stringRepresentedReverbPreset {
+    
+    NSArray *reverb = [NSArray arrayWithObjects:@"Small Room", @"Medium Room", @"Large Room", @"Medium Hall", @"Large Hall", @"Plate", @"Medium Chamber", @"Large Chamber", @"Cathedral", @"Large Room 2", @"Medium Hall 2", @"Medium Hall 3", @"Large Hall 2", nil];
+    
+    return reverb;
+}
+
+-(NSArray *)stringRepresentedDistortionPresets {
+    
+    NSArray *distortion = [NSArray arrayWithObjects:@"Drums Bit Brush", @"Drums Buffer Beats", @"Drums LoFi", @"Broken Speaker", @"Cellphone", @"Decimated 1", @"Decimated 2", @"Decimated 3", @"Decimated 4", @"Distorted Funk", @"Distorted^3", @"Distorted^2", @"Echo 1", @"Echo 2", @"Echo Tight 1", @"Echo Tight 2", @"Everything Is Broken", @"Alien Chatter", @"Cosmic Interface", @"Golden π", @"Radio Tower", @"Waves", nil];
+    
+    return distortion;
+    
+}
+
 
 
 #pragma mark -
