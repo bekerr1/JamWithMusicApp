@@ -17,9 +17,7 @@
 @end
 
 @protocol AudioHelperDelegate <NSObject>
-
 -(void)seekToPositionInSeconds:(NSUInteger)seconds;
 -(void)inchLeftPressed;
 -(void)inchRightPressed;
-
 @end

@@ -42,7 +42,9 @@
     [self dowloadFileWithURL:targetURL];
 }
 
--(void)dowloadFileWithURL:(NSURL *)targetURL onProgress:(JWFileDowloadProgressHandler)progress onCompletion:(JWFileDowloadCompletionHandler)completion {
+-(void)dowloadFileWithURL:(NSURL *)targetURL onProgress:(JWFileDowloadProgressHandler)progress
+             onCompletion:(JWFileDowloadCompletionHandler)completion {
+    
     completionBlock = completion;
     progressBlock = progress;
     [self dowloadFileWithURL:targetURL];

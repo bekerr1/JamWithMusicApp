@@ -9,21 +9,18 @@
 #import "JWClipAudioHelperViewController.h"
 
 @interface JWClipAudioHelperViewController () <UITextFieldDelegate>
-
 @property (strong, nonatomic) IBOutlet UIButton *inchLeft;
 @property (strong, nonatomic) IBOutlet UIButton *inchRight;
 @property (strong, nonatomic) IBOutlet UITextField *minuteSeeker;
 @property (strong, nonatomic) IBOutlet UITextField *secondSeeker;
 @property (nonatomic) NSUInteger minuteInt;
 @property (nonatomic) NSUInteger secondInt;
-
-
-
 @end
+
 
 @implementation JWClipAudioHelperViewController
 
-- (void)viewDidLoad {
+-(void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
@@ -76,12 +73,14 @@
     NSLog(@"%s", __func__);
     return YES;
 }
+
 -(BOOL)textFieldShouldReturn:(UITextField *)textField {
     NSLog(@"%s", __func__);
     return YES;
 }
 
 //Delegate
+
 -(void)seekToPositionComplete {
     NSLog(@"Time to get the position to seek to.");
     NSUInteger userEnteredSeconds = self.minuteInt * 60 + self.secondInt;
@@ -89,37 +88,22 @@
     
 }
 
-
-- (IBAction)inchLeft:(id)sender {
+-(IBAction)inchLeft:(id)sender {
     [_delegate inchLeftPressed];
 }
 
-- (IBAction)inchRight:(id)sender {
+-(IBAction)inchRight:(id)sender {
     [_delegate inchRightPressed];
 }
 
-
-
-- (IBAction)textFieldActive:(UITextField *)sender {
+-(IBAction)textFieldActive:(UITextField *)sender {
     
     
 }
 
-
-
-- (void)didReceiveMemoryWarning {
+-(void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

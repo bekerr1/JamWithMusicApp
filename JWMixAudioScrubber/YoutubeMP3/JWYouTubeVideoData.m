@@ -27,6 +27,7 @@ const NSString *JWDbKeyYoutubeDataDescription = @"ytdescription";
 const NSString *JWDbKeyYoutubeDataLocalized = @"ytlocalized";
 const NSString *JWDbKeyYoutubeDataTitle = @"yttitle";
 
+
 @implementation JWYouTubeVideoData
 
 -(id)initWithVideoId:(NSString*)youTubeVideoId {

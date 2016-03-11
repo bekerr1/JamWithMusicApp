@@ -9,8 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "JWScrubber.h"
 
-
-
 @interface JWVisualAudioBufferView : UIView {
     @public
     CGFloat loudest;

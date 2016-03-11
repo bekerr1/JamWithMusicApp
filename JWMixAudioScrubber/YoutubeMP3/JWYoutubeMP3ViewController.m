@@ -128,8 +128,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     
 }
 
-
--(void)viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated {
 
     [super viewWillAppear:animated];
 
@@ -159,7 +158,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }
 }
 
--(void)viewWillDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
     if (self.isMovingFromParentViewController) {
@@ -178,8 +177,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [super didReceiveMemoryWarning];
 }
 
-
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     
     if ([segue.identifier isEqualToString:@"AVPlayerView"]) {
         self.avPlayerViewController = (AVPlayerViewController*)segue.destinationViewController;
@@ -216,9 +214,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - JWCLipAudioViewDelegate
 
-
 // passes the new key for the trimmed files
--(void)finishedTrim:(JWClipAudioViewController *)controller withDBKey:(NSString*)key {
+- (void)finishedTrim:(JWClipAudioViewController *)controller withDBKey:(NSString*)key {
     
     id mp3DataRecord = _mp3FilesInfo[_currentCacheItem];
     if (mp3DataRecord) {
@@ -252,7 +249,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         [self effectsBackgroundError];
 }
 
--(void)proceedForwardAction:(NSString *)dbkey {
+- (void)proceedForwardAction:(NSString *)dbkey {
 
     if (_tapToJam) {
         [self performSegueWithIdentifier:@"JWMP3DownloadToClipEngineSegue" sender:self];
@@ -262,30 +259,29 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }
 }
 
-- (IBAction)didSwipeLeft:(id)sender
-{
+- (IBAction)didSwipeLeft:(id)sender {
     [self performSegueWithIdentifier:@"JWFileList" sender:self];
 }
 
 #pragma mark -
 
--(void)setUrlSessionYoutubeString:(NSString *)youtubeString videoId:(NSString *)videoId andVideoTitle:(NSString *)videoTitle {
+- (void)setUrlSessionYoutubeString:(NSString *)youtubeString videoId:(NSString *)videoId andVideoTitle:(NSString *)videoTitle {
     NSLog(@"%s %@ %@ %@",__func__,youtubeString,videoId,videoTitle );
     _youtubeVideoId = videoId;
     _youtubeString = youtubeString;
     _videoTitle = videoTitle;
 }
 
--(void)setUrlSessionYoutubeString:(NSString *)youtubeString andVideoTitle:(NSString *)videoTitle {
+- (void)setUrlSessionYoutubeString:(NSString *)youtubeString andVideoTitle:(NSString *)videoTitle {
     [self setUrlSessionYoutubeString:youtubeString videoId:nil andVideoTitle:videoTitle];
 }
 
--(void) newSessionWithLinkURLString:(NSString*)linkURLStr {
+- (void) newSessionWithLinkURLString:(NSString*)linkURLStr {
     NSLog(@"%s %@",__func__,linkURLStr);
     [self newSessionWithLinkURLString:linkURLStr andVideoTitle:nil];
 }
 
--(void) newSessionWithLinkURLString:(NSString*)linkURLStr andVideoTitle:(NSString *)videoTitle {
+- (void) newSessionWithLinkURLString:(NSString*)linkURLStr andVideoTitle:(NSString *)videoTitle {
     NSLog(@"%s %@",__func__,linkURLStr);
     if (!linkURLStr)
         return;
@@ -441,7 +437,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 }
 
 
--(void)setBestImageForDbKey:(NSString*)dbkey {
+- (void)setBestImageForDbKey:(NSString*)dbkey {
     
     id mp3DataRecord = _mp3FilesInfo[dbkey];
     if (mp3DataRecord) {
@@ -459,7 +455,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }
 }
 
--(NSURL*)bestImageURLForMP3Record:(NSDictionary*)mp3DataRecord {
+- (NSURL*)bestImageURLForMP3Record:(NSDictionary*)mp3DataRecord {
     if (mp3DataRecord == nil) {
         return nil;
     }
@@ -488,7 +484,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - retrieveYoutubeData methods
 
--(void) retrieveYoutubeDataDoesDownload:(NSString*)dbkey videoId:(NSString*)videoId downloadLinkURL:(NSURL*)downLoadLinkURL{
+- (void)retrieveYoutubeDataDoesDownload:(NSString*)dbkey videoId:(NSString*)videoId downloadLinkURL:(NSURL*)downLoadLinkURL{
 
     NSLog(@"%s %@ [%@]",__func__,videoId,dbkey);
     
@@ -513,8 +509,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }];
 }
 
-
--(void) retrieveYoutubeDataDoesFile:(NSString*)dbkey videoId:(NSString*)videoId{
+- (void)retrieveYoutubeDataDoesFile:(NSString*)dbkey videoId:(NSString*)videoId{
     
     NSLog(@"%s %@ [%@]",__func__,videoId,dbkey);
     
@@ -549,8 +544,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     
 }
 
-
--(void) retrieveYoutubeDataDoesConvert:(NSString*)dbkey videoId:(NSString*)videoId linkURLString:(NSString*)linkURLStr andTitle:(NSString*)videoTitle {
+- (void)retrieveYoutubeDataDoesConvert:(NSString*)dbkey videoId:(NSString*)videoId
+                         linkURLString:(NSString*)linkURLStr andTitle:(NSString*)videoTitle {
     
     NSLog(@"%s %@ [%@]",__func__,videoId,dbkey);
     
@@ -603,8 +598,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 // helper to Retrieve Methods
 
--(void)processTheYoutubeDataRecord:(NSDictionary*)youtubeDataRecord forDbKey:(NSString*)dbkey
-{
+- (void)processTheYoutubeDataRecord:(NSDictionary*)youtubeDataRecord forDbKey:(NSString*)dbkey {
     // BRINGS THE YOUTUBE DATA INTO OUR DB
     // ADDS YTDATA TO MP3INFO AND STRIPS THE DESCRIPTIONS AND PLACES IN DESCRIPTION TABLE
 
@@ -667,7 +661,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - mp3Converter controler delegate
 
--(void)didInitiateWebView:(JWYoutubeMP3ConvertController *)controller{
+- (void)didInitiateWebView:(JWYoutubeMP3ConvertController *)controller{
     
     NSLog(@"%s", __func__);
 
@@ -680,7 +674,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     });
 }
 
--(void)didInitiateWebView2:(JWYoutubeMP3ConvertController *)controller {
+- (void)didInitiateWebView2:(JWYoutubeMP3ConvertController *)controller {
     // just submitted the replaceURL ... and the process has started
     // the end of nitialization
 
@@ -694,20 +688,20 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     // things are going
 }
 
--(void)conversionProgress:(JWYoutubeMP3ConvertController *)controller progress:(float)progress {
+- (void)conversionProgress:(JWYoutubeMP3ConvertController *)controller progress:(float)progress {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.progressView setProgress:progress animated:YES];
     });
 }
 
--(void)conversionProgress1:(JWYoutubeMP3ConvertController *)controller  {
+- (void)conversionProgress1:(JWYoutubeMP3ConvertController *)controller  {
     float totalProgress = _convertProgressOfTotal * .15f;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.progressView setProgress:totalProgress animated:YES];
     });
 }
 
--(void)conversionProgress2:(JWYoutubeMP3ConvertController *)controller  {
+- (void)conversionProgress2:(JWYoutubeMP3ConvertController *)controller  {
     float totalProgress = _convertProgressOfTotal * .25f;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.progressView setProgress:totalProgress animated:YES];
@@ -716,7 +710,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [self simulateProgress];
 }
 
--(void)simulateProgress {
+- (void)simulateProgress {
     // simulate progress
     float maxP = .80;
     float minP = .30;
@@ -733,19 +727,18 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }
 }
 
--(void)foundLinkInWebView {
+- (void)foundLinkInWebView {
     float totalProgress = _convertProgressOfTotal * .90f;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.progressView setProgress:totalProgress animated:YES];
     });
 }
 
--(void)webViewDidFinishFirstLoad
-{
+- (void)webViewDidFinishFirstLoad {
     self.webviewHeightConstraint.constant = 128; // shows converted
 }
 
--(void)didSaveFileDataForDbKey:(NSString*)dbkey {
+- (void)didSaveFileDataForDbKey:(NSString*)dbkey {
     
     NSURL *fileUrl = [self fileURLForCacheItem:dbkey];
     
@@ -767,13 +760,11 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - db
 
-- (NSString *)cacheItemForLinkStr:(NSString*)linkURLStr
-{
+- (NSString *)cacheItemForLinkStr:(NSString*)linkURLStr {
     return [self cacheItemForLinkStr:linkURLStr andVideoTitle:nil];
 }
 
-- (NSString *)cacheItemForLinkStr:(NSString*)linkURLStr andVideoTitle:(NSString *)videoTitle
-{
+- (NSString *)cacheItemForLinkStr:(NSString*)linkURLStr andVideoTitle:(NSString *)videoTitle {
     NSString *linkKey = linkURLStr?linkURLStr:@"NULL";
 
     id linkRecord = _linksDirector[linkKey];
@@ -826,8 +817,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - URLManip delegate
 
--(void)didRetrieveFile:(JWYoutubeMP3ConvertController *)controller
-{
+- (void)didRetrieveFile:(JWYoutubeMP3ConvertController *)controller {
     if (_showsYoutubeMP3)
         self.webView.hidden = YES;
     
@@ -842,7 +832,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }
 }
 
--(void)didObtainLink:(JWYoutubeMP3ConvertController *)controller linkToMP3String:(NSString*)linkStr {
+- (void)didObtainLink:(JWYoutubeMP3ConvertController *)controller linkToMP3String:(NSString*)linkStr {
     
     // We are done converting
 
@@ -880,8 +870,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [self downloadTask:[NSURL URLWithString:linkStr]  dbKey:controller.dbkey];
 }
 
-
--(void)downloadTask:(NSURL*)linkURL dbKey:(NSString*)dbkey{
+- (void)downloadTask:(NSURL*)linkURL dbKey:(NSString*)dbkey{
     
     self.downloadController = [JWFileDowloadController new];
 
@@ -911,8 +900,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }];
 }
 
-
--(void)didDownloadFile:(NSURL*)fileURL dbKey:(NSString*)dbkey {
+- (void)didDownloadFile:(NSURL*)fileURL dbKey:(NSString*)dbkey {
 
     NSLog(@"%s%@",__func__,dbkey);
 
@@ -970,8 +958,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [self.activity stopAnimating];
 }
 
-
--(void)finalStatusMessage:(NSString*)dbkey {
+- (void)finalStatusMessage:(NSString*)dbkey {
     NSString *statusTitle;
     if (dbkey) {
         id mp3DataRecord = _mp3FilesInfo[dbkey];
@@ -991,10 +978,9 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     });
 }
 
-
 #pragma mark - File Name and Save methods
 
--(NSURL *)fileURLForCacheItem:(NSString*)dbkey {
+- (NSURL *)fileURLForCacheItem:(NSString*)dbkey {
     NSURL *result;
     NSString *thisfName = @"mp3file";
     NSString *thisName = [NSString stringWithFormat:@"%@_%@.mp3",thisfName,dbkey?dbkey:@""];
@@ -1007,7 +993,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     
     return result;
 }
--(NSString*)documentsDirectoryPath{
+- (NSString*)documentsDirectoryPath{
     NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     return [searchPaths objectAtIndex:0];
 }
@@ -1024,11 +1010,11 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 // possibly a new controller object with a method:Playfile using
 // ------------------------------------------------------------
 
--(void)playFile
-{
+- (void)playFile {
     [self playFileUsingAVPlayer];
     return;
 }
+
 // Some other play options
 //    self.avPlayerView.hidden = NO;
 //    [self playFileUsingAVPlayerController];
@@ -1040,7 +1026,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 //    [self playFileInEngine];
 //    return;
 
--(void)playFileUsingAVPlayer{
+- (void)playFileUsingAVPlayer{
     AVPlayer *myPlayer = [AVPlayer playerWithURL:self.currentMP3FileURL];
     AVPlayerViewController *playerViewController = [[AVPlayerViewController alloc] init];
     playerViewController.player = myPlayer;
@@ -1050,7 +1036,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     }];
     NSLog(@"%s \n%@\n%@",__func__,[_mp3FilesInfo description],[_linksDirector description]);
 }
--(void)playFileUsingAVPlayerController{
+- (void)playFileUsingAVPlayerController{
     // uses iVar avPlayerViewController possibly from sb
     AVPlayer *myPlayer = [AVPlayer playerWithURL:self.currentMP3FileURL];
     self.avPlayerViewController.player = myPlayer;
@@ -1058,8 +1044,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     NSLog(@"%s \n%@\n%@",__func__,[_mp3FilesInfo description],[_linksDirector description]);
 }
 
--(void)playFileUsingAudioPlayer
-{
+- (void)playFileUsingAudioPlayer {
     // Plays in AVAudioPlayer either using data or from file
 
     NSError *error;
@@ -1075,8 +1060,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [_audioPlayer play];
 }
 
--(void)playFileInEngine
-{
+- (void)playFileInEngine {
     _engine = [AVAudioEngine new];
     AVAudioPlayerNode *player = [AVAudioPlayerNode new];
 
@@ -1094,8 +1078,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
     [player play];
 }
 
--(void)playBufferedFileInEngine
-{
+- (void)playBufferedFileInEngine {
     [self initAVAudioSession];
     
     _engine = [AVAudioEngine new];
@@ -1146,8 +1129,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - AVAudioSession
 
-- (void)initAVAudioSession
-{
+- (void)initAVAudioSession {
     // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
     // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
     
@@ -1171,11 +1153,12 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - save retrieve metadata
 
--(void)saveDescriptions {
+- (void)saveDescriptions {
     [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
     NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
 }
--(void)readDescriptions {
+
+- (void)readDescriptions {
     _mp3FilesDescriptions = [[NSMutableDictionary alloc] initWithContentsOfURL:
                              [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
     NSLog(@"%sMP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
@@ -1183,7 +1166,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 #pragma mark - effects background
 
--(void)effectsBackgroundError {
+- (void)effectsBackgroundError {
     UIColor *cb = self.view.backgroundColor;
     dispatch_async(dispatch_get_main_queue(), ^{
         self.view.backgroundColor =[[UIColor redColor] colorWithAlphaComponent:0.4];
@@ -1193,7 +1176,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         self.view.backgroundColor =cb;
     });
 }
--(void)effectsBackgroundSuccess {
+
+- (void)effectsBackgroundSuccess {
     UIColor *cb = self.view.backgroundColor;
     dispatch_async(dispatch_get_main_queue(), ^{
         self.view.backgroundColor =[[UIColor blueColor] colorWithAlphaComponent:0.4];
@@ -1206,8 +1190,8 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
 
 
 #pragma mark - extra gestures and paste
-- (IBAction)didSwipeDown:(id)sender
-{
+
+- (IBAction)didSwipeDown:(id)sender {
     if (_useSwipeDownToReConvert)
         [_mp3ConvertController reconvert];
 }
@@ -1222,6 +1206,7 @@ const NSString *JWDbKeyYoutubeThumbnailMaxres = @"ytdataimageurlmax";
         }
     }
 }
+
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
     BOOL retValue = NO;
     if (_useLongPressToPaste) {

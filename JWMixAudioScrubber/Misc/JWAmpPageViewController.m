@@ -42,7 +42,7 @@
     [super didReceiveMemoryWarning];
 }
 
--(void)viewWillDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [JWCurrentWorkItem sharedInstance].currentAmpImageIndex = selectedPageIndex;
 }
@@ -107,8 +107,7 @@
 
 #pragma mark -
 
--(void)viewDidLayoutSubviews
-{
+- (void)viewDidLayoutSubviews {
     BOOL addTo = NO;
     if (_gradient == nil) {
         addTo = YES;
@@ -122,7 +121,7 @@
 
 #pragma mark helper
 
--(CAGradientLayer*) gradientForView {
+- (CAGradientLayer*)gradientForView {
     CAGradientLayer* gradient = [CAGradientLayer new];
     CGRect gradientFrame = self.view.frame;
     
@@ -135,7 +134,6 @@
     gradient.endPoint = CGPointMake(0.5, 0.75);
     return gradient;
 }
-
 
 // jwframesandscreens - 1 jwfullamps - 3 jwjustscreensandlogos - 2
 

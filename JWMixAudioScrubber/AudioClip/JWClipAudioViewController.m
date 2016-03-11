@@ -66,7 +66,7 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
 
 #pragma mark - View and Navigation
 
-- (void)viewDidLoad {
+-(void)viewDidLoad {
     
     _viewStartColor = self.view.backgroundColor;
     
@@ -128,7 +128,7 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     NSLog(@"%s",__func__);
 }
 
-- (void)didReceiveMemoryWarning {
+-(void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
 
@@ -177,7 +177,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     [self.playerTimer invalidate];
     
 }
-
 
 
 
@@ -275,7 +274,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     
 }
 
-
 -(void)longPress:(id)sender {
     
     UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer*)sender;
@@ -335,7 +333,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
 }
 
 
-
 #pragma make -
 
 -(void)effectsBackgroundLight {
@@ -346,6 +343,7 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
         self.view.backgroundColor =cb;
     });
 }
+
 -(void)effectsBackgroundDark {
     UIColor *cb = self.view.backgroundColor;
     self.view.backgroundColor =[UIColor colorWithWhite:0.00f alpha:1.0f];
@@ -354,7 +352,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
         self.view.backgroundColor =cb;
     });
 }
-
 
 -(BOOL)resumeTimer {
     BOOL result = NO;
@@ -382,7 +379,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     return result;
 }
 
-
 -(NSString *)testMP3FileURL {
     
     if (!_testMP3FileURL) {
@@ -397,9 +393,7 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     return _testMP3FileURL;
 }
 
-
--(void)addNotifications
-{
+-(void)addNotifications {
 //    [self.currentTrackStartTime addTarget:self action:@selector(sliderValueMoved:) forControlEvents:UIControlEventValueChanged];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
@@ -627,7 +621,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     [self sliderMoved:self.rangeSlider];
 }
 
-
 - (IBAction)snapToPosition:(id)sender {
     
     float progress = [_audioClipper trackProgress];
@@ -638,8 +631,6 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
     [self sliderMoved:self.rangeSlider];
     
 }
-
-
 
 - (void)syncScrubber:(UISlider *)sliderValue {
     
@@ -926,6 +917,7 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
 }
 
 #pragma mark - AVAudioSession
+
 - (void)initAVAudioSession {
     // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
     // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
@@ -952,9 +944,4 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
 
 @end
 
-
-//        UIViewController * viewController = [[UIStoryboard storyboardWithName:@"MixPanel" bundle:nil] instantiateInitialViewController];
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [self presentViewController:viewController animated:YES completion:nil];
-//        });
 

@@ -40,7 +40,7 @@ static void * XItemStatusContext = &XItemStatusContext;
 
 #pragma mark - public api
 
--(void)initializeAudioController {
+- (void)initializeAudioController {
     
     if (!_trackName) {
         _trackName = @"Unknown Track Name";
@@ -62,8 +62,7 @@ static void * XItemStatusContext = &XItemStatusContext;
 }
 
 
-- (void)dealloc
-{
+- (void)dealloc {
     if (self.playerObserver) {
         NSLog(@"%s removeTimeObserver",__func__);
         [self.player removeTimeObserver:self.playerObserver];
@@ -86,20 +85,18 @@ static void * XItemStatusContext = &XItemStatusContext;
    self.playerObserver = nil;
 }
 
--(void)setVolume:(float)volume {
+- (void)setVolume:(float)volume {
     _volume = volume;
     if (_player) {
         _player.volume = _volume;
     }
 }
 
-- (void)ummmStopPlaying
-{
+- (void)ummmStopPlaying {
     [_player pause];
 }
 
-- (void)ummmStartPlaying
-{
+- (void)ummmStartPlaying {
     [_player play];
 }
 
@@ -192,13 +189,11 @@ static void * XItemStatusContext = &XItemStatusContext;
 //            //self.trackD = CMTimeGetSeconds([[[[[self.playerItem tracks] objectAtIndex:0] assetTrack] asset] duration]);
 
 
-- (void)seekToTime:(float)seconds
-{
+-(void)seekToTime:(float)seconds {
     [self.player seekToTime:CMTimeMakeWithSeconds(seconds,NSEC_PER_SEC)];
 }
 
-- (void)prepareToClipAudio
-{
+-(void)prepareToClipAudio {
     [self.player pause];
     NSLog(@"%s removeTimeObserver",__func__);
     [self.player removeTimeObserver:self.playerObserver];
@@ -206,8 +201,7 @@ static void * XItemStatusContext = &XItemStatusContext;
     self.playerObserver = nil;
 }
 
--(void)goAgain
-{
+-(void)goAgain {
     [self playWithObserver];
 }
 

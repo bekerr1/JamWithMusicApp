@@ -37,8 +37,7 @@
     return self;
 }
 
--(void) dealloc
-{
+-(void) dealloc {
 //    NSLog(@"%s",__func__);
     if (_notifString)
     {
@@ -70,8 +69,7 @@
 //    });
 }
 
--(void)setNotifString:(NSString *)notifString
-{
+-(void)setNotifString:(NSString *)notifString {
     if (_notifString)
     {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:_notifString object:nil];
@@ -82,8 +80,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notif:) name:_notifString object:nil];
 }
 
--(void)notif:(NSNotification*)noti
-{
+-(void)notif:(NSNotification*)noti {
     id obj;
     obj = noti.userInfo[@"alpha"];
     if (obj) {
@@ -202,8 +199,6 @@
     [self configureColors];
 }
 
-
-
 -(void)configureColors {
     
     if (self.colorForBottomPeak == nil) {
@@ -231,37 +226,6 @@
     _colorBottomAvg = _colorForBottomAvg.CGColor;
     _colorBottomNoAvg = _colorForBottomNoAvg.CGColor;
 }
-
-
-//    if (self.colorForTopPeak == nil){
-//        _colorForTopPeak = _darkBackGround ?
-//        [UIColor colorWithWhite:1.0 alpha:0.8] :
-//        [[UIColor blueColor] colorWithAlphaComponent:1.0f];
-//    }
-//    if (self.colorForTopAvg == nil){
-//        if (self.recording) {
-//            self.colorForTopAvg = _darkBackGround ?
-//            [UIColor colorWithWhite:1.0 alpha:0.50] :
-//            [[UIColor blueColor] colorWithAlphaComponent:1.0f];
-//        } else {
-//            self.colorForTopAvg = _darkBackGround ?
-//            [UIColor colorWithWhite:1.0 alpha:0.50] :
-//            [[UIColor blueColor] colorWithAlphaComponent:1.0f];
-//        }
-//    }
-//    if (self.colorForTopNoAvg == nil) {
-//        // no color set
-//        if (_layoutOptions | ~VABLayoutOptionShowAverageSamples) {
-//            // Show averages not set use topPeak
-//            self.colorForTopNoAvg = _colorForTopPeak;
-//        } else {
-//            // default
-//            self.colorForTopNoAvg = _darkBackGround ?
-//            [UIColor colorWithWhite:1.0 alpha:0.95] :
-//            [[UIColor blueColor] colorWithAlphaComponent:1.0f];
-//        }
-//    }
-
 
 // Only override drawRect: if you perform custom drawing.
 // An empty implementation adversely affects performance during animation.
@@ -948,6 +912,36 @@
 }
 
 @end
+
+
+//    if (self.colorForTopPeak == nil){
+//        _colorForTopPeak = _darkBackGround ?
+//        [UIColor colorWithWhite:1.0 alpha:0.8] :
+//        [[UIColor blueColor] colorWithAlphaComponent:1.0f];
+//    }
+//    if (self.colorForTopAvg == nil){
+//        if (self.recording) {
+//            self.colorForTopAvg = _darkBackGround ?
+//            [UIColor colorWithWhite:1.0 alpha:0.50] :
+//            [[UIColor blueColor] colorWithAlphaComponent:1.0f];
+//        } else {
+//            self.colorForTopAvg = _darkBackGround ?
+//            [UIColor colorWithWhite:1.0 alpha:0.50] :
+//            [[UIColor blueColor] colorWithAlphaComponent:1.0f];
+//        }
+//    }
+//    if (self.colorForTopNoAvg == nil) {
+//        // no color set
+//        if (_layoutOptions | ~VABLayoutOptionShowAverageSamples) {
+//            // Show averages not set use topPeak
+//            self.colorForTopNoAvg = _colorForTopPeak;
+//        } else {
+//            // default
+//            self.colorForTopNoAvg = _darkBackGround ?
+//            [UIColor colorWithWhite:1.0 alpha:0.95] :
+//            [[UIColor blueColor] colorWithAlphaComponent:1.0f];
+//        }
+//    }
 
 
 // ------------------------------------
