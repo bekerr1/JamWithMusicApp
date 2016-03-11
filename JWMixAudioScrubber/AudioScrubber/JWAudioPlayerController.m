@@ -7,35 +7,6 @@
 //
 
 
-/*
- SAMPLE EFFECTS CONFIG
- @{@"type" : @(JWEffectNodeTypeReverb),
- @"title" : @"Reverb",
- @"factorypreset" : @(AVAudioUnitReverbPresetMediumRoom),
- },
- @{@"type" : @(JWEffectNodeTypeDelay),
- @"title" : @"Delay",
- @"feedback" : @(0.0),
- @"lowpasscutoff" : @(15000.0)
- },
- @"delaytime" : @(0.0)
- @"lowpasscutoff" : @(15000.0),
- @{@"type" : @(JWEffectNodeTypeReverb),
- @"title" : @"Reverb",
- @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
- },
- @{@"type" : @(JWEffectNodeTypeDelay),
- @"title" : @"Delay",
- @"feedback" : @(0.0),
- @"lowpasscutoff" : @(0.0),
- @"delaytime" : @(0.0)
- },
- @{@"type" : @(JWEffectNodeTypeDistortion),
- @"title" : @"Distortion",
- @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
- @"pregain" : @(0.0)
- }
- */
 
 
 #import "JWAudioPlayerController.h"
@@ -65,7 +36,6 @@ JWMixEditDelegate
     CGFloat _momentPreviewTime;
     CGFloat _momentDefaultTime;
 }
-
 
 @property (nonatomic) JWMixEditTableViewController *metvc;
 @property (strong, nonatomic) NSDictionary *scrubberTrackColors;
@@ -419,6 +389,7 @@ JWMixEditDelegate
     } else if ([effect isEqualToString:@"eq"]) {
         [self.audioEngine addEffect:JWEffectNodeTypeEQ toPlayerNodeID:selectedTrackID];
     }
+    
     [_metvc refresh];
     
     //  self.state = JWPlayerStatePlayFromBeg;
@@ -457,65 +428,39 @@ JWMixEditDelegate
                             
                             // TODO: obtain correct factory preset
                             
-                            anEffect = [@{
-                                           @"title" : @"Reverb",
-                                           @"factorypreset" : @(AVAudioUnitReverbPresetMediumHall)
-                                           } mutableCopy];
+                            anEffect = [@{@"title" : @"Reverb",
+                                          @"factorypreset" : @(AVAudioUnitReverbPresetMediumHall)
+                                          } mutableCopy];
                             
                             anEffect[@"type"] = @(effectKind); //JWEffectType
                             anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
-
-//                            sliderAndSwitchCell.slider.value = [node floatValue1];
-//                            sliderAndSwitchCell.switchControl.on = [node boolValue1];
                             
                         } else if (effectKind == JWEffectNodeTypeDistortion) {
                             
                             // TODO: obtain correct factory preset
 
-                            anEffect = [@{
-                                           @"title" : @"Distortion",
-                                           @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
-                                           } mutableCopy];
+                            anEffect = [@{@"title" : @"Distortion",
+                                          @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
+                                          } mutableCopy];
                             
                             anEffect[@"type"] = @(effectKind); //JWEffectType
                             anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
                             anEffect[@"pregain"] = @([effectsModify floatValue1]);
 
-//                            paramCell.parameterLabel1.text = @"Wet/Dry";
-//                            paramCell.effectParameter1.value = [node floatValue1];
-//                            paramCell.parameterLabel2.text = @"Pre-Gain";
-//                            paramCell.effectParameter2.value = [node floatValue2];
-//                            paramCell.nodeTitleLabel.text = effectTitle;
-                            
                         } else if (effectKind == JWEffectNodeTypeDelay) {
                             
                             // TODO: obtain correct factory preset
                             
-                            anEffect = [@{
-                                           @"title" : @"Delay",
-                                           @"delaytime" : @(1), //from 0 to 2 seconds
-                                           } mutableCopy];
+                            anEffect = [@{@"title" : @"Delay",
+                                          @"delaytime" : @(1), //from 0 to 2 seconds
+                                          } mutableCopy];
                             
                             anEffect[@"type"] = @(effectKind); //JWEffectType
                             anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
                             anEffect[@"feedback"] = @([effectsModify floatValue2]);
                             anEffect[@"lowpasscutoff"] = @([effectsModify floatValue3]);
-
-//                            paramCell.parameterLabel1.text = @"Wet/Dry";
-//                            paramCell.effectParameter1.value = [node floatValue1];
-//                            paramCell.parameterLabel2.text = @"Feedback";
-//                            paramCell.effectParameter2.value = [node floatValue2];
-//                            paramCell.parameterLabel3.text = @"LowPass\nCutoff";
-//                            paramCell.effectParameter3.value = [node floatValue3];
                             
                         } else if (effectKind == JWEffectNodeTypeEQ) {
-                            
-//                            paramCell.effectParameter1.value = [node timeInterval1];
-//                            paramCell.parameterLabel2.text = @"parm2";
-//                            paramCell.effectParameter2.value = [node floatValue1];
-//                            paramCell.parameterLabel3.text = @"parm3";
-//                            paramCell.effectParameter3.value = [node floatValue1];
-//                            paramCell.nodeTitleLabel.text = effectTitle;
                             
                         } else {
                             
@@ -688,8 +633,6 @@ JWMixEditDelegate
 }
 
 
-
-
 -(void)timerFireMethod:(NSTimer *)timer {
     
     NSLog(@"%s increase volume: %f",__func__, [_audioEngine mixerVolume]);
@@ -708,8 +651,6 @@ JWMixEditDelegate
     }
     
 }
-
-
 
 
 -(BOOL) canRecordAudio {
@@ -1761,6 +1702,36 @@ JWMixEditDelegate
 @end
 
 
+
+/*
+ SAMPLE EFFECTS CONFIG
+ @{@"type" : @(JWEffectNodeTypeReverb),
+ @"title" : @"Reverb",
+ @"factorypreset" : @(AVAudioUnitReverbPresetMediumRoom),
+ },
+ @{@"type" : @(JWEffectNodeTypeDelay),
+ @"title" : @"Delay",
+ @"feedback" : @(0.0),
+ @"lowpasscutoff" : @(15000.0)
+ },
+ @"delaytime" : @(0.0)
+ @"lowpasscutoff" : @(15000.0),
+ @{@"type" : @(JWEffectNodeTypeReverb),
+ @"title" : @"Reverb",
+ @"factorypreset" : @(AVAudioUnitReverbPresetSmallRoom),
+ },
+ @{@"type" : @(JWEffectNodeTypeDelay),
+ @"title" : @"Delay",
+ @"feedback" : @(0.0),
+ @"lowpasscutoff" : @(0.0),
+ @"delaytime" : @(0.0)
+ },
+ @{@"type" : @(JWEffectNodeTypeDistortion),
+ @"title" : @"Distortion",
+ @"factorypreset" : @(AVAudioUnitDistortionPresetMultiDistortedFunk),
+ @"pregain" : @(0.0)
+ }
+ */
 
 
 //processingFormatStr
