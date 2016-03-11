@@ -554,8 +554,6 @@
 
 -(void)addEffectAction {
     
-    NSLog(@"%s", __func__);
-    
     //TODO: specify in message which node they are adding the effect to
     UIAlertController *addEffect = [UIAlertController alertControllerWithTitle:@"Add An Effect" message:@"Choose From These Effects" preferredStyle:UIAlertControllerStyleAlert];
     
@@ -590,6 +588,8 @@
 }
 
 #pragma mark -
+
+// MAIN ACTION
 
 // When User wants to add an effect node or a recorder node
 
@@ -638,7 +638,6 @@
             [self configureView];
         }
     }];
-    
     
     if (addEffectAction)
         [alertController addAction:addEffectAction];
@@ -730,6 +729,8 @@
         }
     }
 }
+
+// Buttomn Export
 
 - (IBAction)exportAction:(id)sender {
     
