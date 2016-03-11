@@ -93,6 +93,7 @@
     }
     
     [self revealScrubber];
+    
     double delayInSecs = 0.80;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [_scrubberActivity stopAnimating];
@@ -397,7 +398,6 @@
         self.editing = NO;
         [self editingButtons];
     }
-//    [self configureView];
 
 }
 
@@ -438,12 +438,6 @@
         [_delegate effectsChanged:effects inNodeWithKey:nodeKey];
 }
 
-
-
-//-(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key {
-//}
-//-(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key {
-//}
 
 -(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controller {
     
@@ -650,6 +644,7 @@
 }
 
 //When User wants to add an effect node or a recorder node
+
 - (IBAction)addNodeOrEffectAction:(id)sender {
     
     NSString *title;
@@ -812,75 +807,5 @@
 
 
 @end
-
-
-
-//
-//
-//
-////    NSData *fdata = [[fileURL lastPathComponent] dataUsingEncoding:NSASCIIStringEncoding];
-//NSData *fdata = [NSData new];
-//
-//JWActivityItemProvider *activityItemProvider = [[JWActivityItemProvider alloc] initWithPlaceholderItem:fdata];
-//activityItemProvider.fileURL = fileURL;
-//
-//JWActivityItemProvider *activityItemProvider2 = [[JWActivityItemProvider alloc] initWithPlaceholderItem:fileURL];
-//activityItemProvider2.fileURL = fileURL;
-//
-//JWFileTransferActivity *ftActivity = [JWFileTransferActivity new];
-//ftActivity.fileURL = fileURL;
-//ftActivity.view = self.view;
-//
-
-//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
-//                                      applicationActivities:nil];
-//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider2]
-//                                    applicationActivities:nil];
-//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider2]
-//                                      applicationActivities:@[ftActivity]];
-//   [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
-//                                      applicationActivities:nil];
-//    [[UIActivityViewController alloc] initWithActivityItems:@[fileURL]
-//                                      applicationActivities:@[ftActivity]];
-// Uploads with airdrop
-//    [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider]
-//                                      applicationActivities:nil];
-
-/*
- 
- - (void)documentInteractionController:(UIDocumentInteractionController *)controller
- didEndSendingToApplication:(NSString *)application {
- NSLog(@"%s %@",__func__,application);
- }
- - (void)documentInteractionController:(UIDocumentInteractionController *)controller
- willBeginSendingToApplication:(nullable NSString *)application {
- NSLog(@"%s %@",__func__,application);
- }
- 
- - (UIDocumentInteractionController *) setupControllerWithURL: (NSURL*) fileURL
- usingDelegate: (id <UIDocumentInteractionControllerDelegate>) interactionDelegate {
- UIDocumentInteractionController *interactionController =
- [UIDocumentInteractionController interactionControllerWithURL: fileURL];
- interactionController.delegate = interactionDelegate;
- return interactionController;
- }
- 
- -(void)activityActionDocument {
- NSURL *fileURL;
- if ([self.trackItems count] > 0) {
- id item = _trackItems[0];
- fileURL = item[@"fileURL"];
- }
- UIDocumentInteractionController *interactionController = [self setupControllerWithURL:fileURL usingDelegate:self];
- interactionController.UTI = @"public.audio";
- //    interactionController.annotation = @{@"url":fileURL};
- interactionController.name = [fileURL lastPathComponent];
- //    [interactionController presentOpenInMenuFromRect:self.view.bounds inView:self.view animated:YES];
- [interactionController presentOptionsMenuFromRect:self.view.bounds inView:self.view animated:YES];
- //    [interactionController presentPreviewAnimated:YES];
- }
- 
- */
-
 
 

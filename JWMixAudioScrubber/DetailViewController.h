@@ -22,13 +22,9 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
 
 
 @interface DetailViewController : UIViewController
-
 @property (strong, nonatomic) id detailItem;
-@property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
 @property (weak, nonatomic) id <JWDetailDelegate> delegate;
-
 -(void)stopPlaying;
-
 @end
 
 
@@ -41,23 +37,14 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
 
 -(void)save:(DetailViewController*)controller cachKey:(NSString*)key;
 -(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid;
-
 -(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey;
-
 @optional
 // METhods used by test apps when detail changed items like scrubber color
 -(void)itemChanged:(DetailViewController*)controller;
 -(void)itemChanged:(DetailViewController*)controller cachKey:(NSString*)key;
 -(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key;
-
 -(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key;
-
-// deprecated use JamTrackKey
--(NSArray*)tracks:(DetailViewController*)controller cachKey:(NSString*)key;
 @end
 
 
-@protocol JWAudioControlsDelegate <NSObject>
-
-@end
 
