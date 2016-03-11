@@ -378,6 +378,7 @@
     NSTimeInterval delayTime = 0.0;
     float feedback = 0.0;
     float lpc = 0.0;
+    float wetdry = 0.0;
     
     id delayValue = params[@"delaytime"];
     if (delayValue)
@@ -390,11 +391,17 @@
     id lowpasscut = params[@"lowpasscutoff"];
     if (lowpasscut)
         lpc = [lowpasscut floatValue];
+
+    id wetdryValue = params[@"wetdry"];
+    if (wetdryValue)
+        wetdry = [wetdryValue floatValue];
+
     
     AVAudioUnitDelay *delay = [AVAudioUnitDelay new];
     delay.delayTime = delayTime;
     delay.feedback = feedback;
     delay.lowPassCutoff = lpc;
+    delay.wetDryMix = wetdry;
     
     return delay;
 }
