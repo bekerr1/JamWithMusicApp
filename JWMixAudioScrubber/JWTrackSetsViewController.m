@@ -66,6 +66,7 @@
  _jamTracks[indexPath.section][@"key"];  The jamTrack is also given to DetailViewController
 
  */
+
 -(void)setTrackSet:(id)trackSet {
     
     NSLog(@"%s",__func__);
@@ -242,6 +243,17 @@
     // perhaps update this record for this view controller
     // prefer to have delegate do it and we ask for an update
 }
+
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+    
+    NSLog(@"%s %@ %@",__func__,nodeKey,[effects description]);
+    
+    if ([_delegate respondsToSelector:@selector(effectsChanged:inNodeWithKey:)])
+        [_delegate effectsChanged:effects inNodeWithKey:nodeKey];
+
+
+}
+
 
 -(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key {
 

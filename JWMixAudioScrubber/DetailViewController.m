@@ -279,7 +279,7 @@
 
 -(void)presentCountDownValue {
     
-    self.countDownLabel.text = [NSString stringWithFormat:@"%i", _countDownLabelValue];
+    self.countDownLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)_countDownLabelValue];
     
     CATransform3D scaleTrans = CATransform3DMakeScale(3.2, 3.2, 1.0);
     _countDownLabel.alpha = 1.0;

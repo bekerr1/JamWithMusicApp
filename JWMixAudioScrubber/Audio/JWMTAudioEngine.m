@@ -1033,15 +1033,15 @@
         AVAudioFrameCount durationFrameCount = duration * processingFormat.sampleRate;
         if (duration > 0) {
             remainingFrameCount = durationFrameCount;
-            NSLog(@"AE USE_DURATION: dfrc %lld %.3f secs, rfrc %u,  %.3f scndsin %ld nds idx %ld",
-                  (long long)durationFrameCount,duration,remainingFrameCount,secondsIn,[_playerNodeList count],index);
+            NSLog(@"AE USE_DURATION: dfrc %lld %.3f secs, rfrc %u,  %.3f scndsin %lu nds idx %ld",
+                  (long long)durationFrameCount,duration,remainingFrameCount,secondsIn,(unsigned long)[_playerNodeList count],index);
         } else {
             if (fileReference)
                 remainingFrameCount =  fileReference.remainingInTrack * processingFormat.sampleRate;
             else
                 remainingFrameCount =  (AVAudioFrameCount)(fileLength - readPosition);
 
-            NSLog(@"AE TO_THE_END: rfrc %u,  %.3f scndsin %ld nds idx %ld",remainingFrameCount,secondsIn,[_playerNodeList count],index);
+            NSLog(@"AE TO_THE_END: rfrc %u,  %.3f scndsin %ld nds idx %lu",remainingFrameCount,secondsIn,(unsigned long)[_playerNodeList count],index);
         }
 
 
@@ -1346,7 +1346,7 @@
     // Build the completion handler
     
     void (^playerCompletion)(void) = ^{
-        NSLog(@"Audio Completed for playerAtIndex %ld",index);
+        NSLog(@"Audio Completed for playerAtIndex %lu",(unsigned long)index);
         dispatch_sync(dispatch_get_main_queue(), ^() {
             if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
                 [_engineDelegate completedPlayingAtPlayerIndex:index];
@@ -1355,7 +1355,7 @@
     };
     
     void (^playerCompletionMixRecording)(void) = ^{
-        NSLog(@"Audio Completed for playerAtIndex %ld",index);
+        NSLog(@"Audio Completed for playerAtIndex %lu",(unsigned long)index);
         AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
         [mainMixer removeTapOnBus:0];
         dispatch_sync(dispatch_get_main_queue(), ^() {

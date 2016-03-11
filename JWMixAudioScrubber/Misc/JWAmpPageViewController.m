@@ -145,7 +145,7 @@
     
     [avc.view setNeedsLayout];
     
-    avc.ampImageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"jwfullamps - %u",index+1]];
+    avc.ampImageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"jwfullamps - %lu",index+1]];
     avc.pageIndex = index;
     result = avc;
     return result;

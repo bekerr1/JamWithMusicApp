@@ -24,6 +24,7 @@
 -(NSString*)trackSets:(JWTrackSetsViewController*)controller titleForJamTrackKey:(NSString*)key;
 -(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key;
 -(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid;
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey;
 
 @optional
 

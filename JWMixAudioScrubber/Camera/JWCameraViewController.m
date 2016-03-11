@@ -396,11 +396,31 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 //}
 
 
-#pragma mark - DELEGATE
+
+#pragma mark - FILE MANAGER
+
+-(NSString*)documentsDirectoryPath {
+    NSString *result = nil;
+    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    result = [searchPaths objectAtIndex:0];
+    return result;
+}
+
+
+/*
+ #pragma mark - Navigation
+ 
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationJWCameraViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
+
+
+#pragma mark - AudioPlayerController delegate
 
 -(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller {
-    
-    
     
     CGFloat tracksz = 50.0f;
     NSUInteger nTracks = controller.numberOfTracksWithAudio;
@@ -422,32 +442,46 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     return scrubber;
 }
 
-
-
 -(void)playTillEnd {
-    
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
 }
 
-#pragma mark - FILE MANAGER
-
--(NSString*)documentsDirectoryPath {
-    NSString *result = nil;
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    result = [searchPaths objectAtIndex:0];
-    return result;
+-(void)save:(JWAudioPlayerController *)controller {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
 }
 
+-(void)noTrackSelected:(JWAudioPlayerController *)controller {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
+}
 
+-(void)trackSelected:(JWAudioPlayerController *)controller {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
+}
 
+-(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
+}
 
-/*
- #pragma mark - Navigation
- 
- // In a storyboard-based application, you will often want to do a little preparation before navigation
- - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
- // Get the new view controller using [segue destinationJWCameraViewController].
- // Pass the selected object to the new view controller.
- }
- */
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
+}
+
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
+}
+
+-(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controllerkey {
+    // TODO: not implemented
+    NSLog(@"%s not implemented",__func__);
+    return nil;
+}
+
 
 @end

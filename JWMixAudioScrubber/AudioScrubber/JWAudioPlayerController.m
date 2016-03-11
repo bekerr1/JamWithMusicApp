@@ -312,7 +312,7 @@ JWMixEditDelegate
     if (confignode)
         playerNode[@"config"] = confignode; //  slider values
 
-    NSLog(@"node type %lu title %@  fname %@  ",[playerNode[@"type"] unsignedIntegerValue],
+    NSLog(@"node type %lu title %@  fname %@  ",(unsigned long)[playerNode[@"type"] unsignedIntegerValue],
           titleValue?titleValue:@"notitle",
           fileURL?[fileURL lastPathComponent]:@"nofilurl");
     
@@ -754,10 +754,11 @@ JWMixEditDelegate
         case JWPlayerStatePlayFiveSecondAudio:
             
             [_audioEngine setMixerVolume:0.0];
-            
-            self.fiveSecondTimer =
-            [NSTimer scheduledTimerWithTimeInterval:1.0 target:[_delegate countDownTarget] selector:@selector(countdownTimerFireMethod:)
-                                           userInfo:nil repeats:YES];
+
+            // Not used yet comment for warnings
+//            self.fiveSecondTimer =
+//            [NSTimer scheduledTimerWithTimeInterval:1.0 target:[_delegate countDownTarget] selector:@selector(countdownTimerFireMethod:)
+//                                           userInfo:nil repeats:YES];
             
             self.mixerValueFadeTimer =
             [NSTimer scheduledTimerWithTimeInterval:0.10 target:self selector:@selector(timerFireMethod:)
@@ -916,7 +917,7 @@ JWMixEditDelegate
                 
             } else {
                 // no file URL for player
-                NSLog(@"%s NO file url for Player Node at index %ld",__func__,index);
+                NSLog(@"%s NO file url for Player Node at index %lu",__func__,(unsigned long)index);
             }
             
         } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
@@ -1033,7 +1034,7 @@ JWMixEditDelegate
     if (fileURL == nil)
         usePlayerScrubber = NO; // USE recorder There is no file, no audio
     
-    NSLog(@"usePlayerScrubber for recorderplayer %@ at index %lu",usePlayerScrubber?@"YES":@"NO",index);
+    NSLog(@"usePlayerScrubber for recorderplayer %@ at index %lu",usePlayerScrubber?@"YES":@"NO",(unsigned long)index);
     //If recorder has audio file, dont need to listen to it, should just play its audio
     if (usePlayerScrubber) {
         
@@ -1377,7 +1378,7 @@ JWMixEditDelegate
 
 -(void)scrubberPlayHeadTapped:(JWScrubberController*)controller {
     
-    NSLog(@"%s %ld",__func__,self.state );
+    NSLog(@"%s %ld",__func__,(long)self.state );
     
     if (self.state == JWPlayerStateScrubbAudioFromPosMoment) {
         
@@ -1533,7 +1534,7 @@ JWMixEditDelegate
 }
 
 - (void)recordAtNodeIndex:(NSUInteger)index {
-    NSLog(@"%s NOT IMPLEMENTED %ld", __func__,index);
+    NSLog(@"%s NOT IMPLEMENTED %ld", __func__,(unsigned long)index);
 }
 
 
@@ -1743,27 +1744,6 @@ JWMixEditDelegate
 //JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
 //}
 
-//NSLog(@"PREVIEW MOMENT mom");
-//        _listenToPositionChanges = YES;
-//        NSTimeInterval playPos = _lastPlayPosition;
-//[self positionChanged:nil positionSeconds:playPos force:YES];
-//        self.positionChangeUpdateTimeStamp = [NSDate date];
-//        _momentTime = _momentPreviewTime;
-//        self.state = JWPlayerStateScrubbAudioPreviewMoment;
-//            _listenToPositionChanges = NO;
-//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime ) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//            [_sc readyForScrub];
-//            if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
-//                self.state = JWPlayerStateSetPlayToPos;
-//                self.positionChangeUpdateTimeStamp= nil;
-//            }
-//        });
 
-//                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                    [_sc readyForScrub];
-//                    if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
-//                        self.state = JWPlayerStateSetPlayToPos;
-//                    }
-//                });
 
 

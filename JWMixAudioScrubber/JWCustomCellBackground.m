@@ -56,10 +56,13 @@
 //}
 
 -(void)adjustGOffsetVolume:(UISlider *)sender {
+
+    // UNUSED warnings
+//    float sliderMin = sender.minimumValue;
+//    float sliderMax = sender.maximumValue;
     
-    float sliderMin = sender.minimumValue;
-    float sliderMax = sender.maximumValue;
     [_glayer setOpacity:1.0];
+    
     //[self setGradientOffset:sender.value];
     //[self setNeedsDisplay];
     //NSLog(@"Slider value change called from custom. %f, %f", sliderMin, sliderMax);
@@ -73,7 +76,7 @@
     UIColor * blackColor = [[UIColor blackColor] colorWithAlphaComponent:0.0];
     UIColor * lightGrayColor = [UIColor colorWithRed:230.0/255.0 green:230.0/255.0 blue:230.0/255.0 alpha:0.2];
     
-    CGRect paperRect = self.bounds;
+    // UNUSED CGRect paperRect = self.bounds;
     //NSLog(@"Rect Size %@", NSStringFromCGRect(paperRect));
     
     //drawLinearGradient(context, paperRect, blackColor.CGColor, lightGrayColor.CGColor, _gradientOffset);
@@ -101,7 +104,7 @@
     
     NSArray *colors = @[(__bridge id)[[UIColor blackColor] colorWithAlphaComponent:0.0].CGColor, (__bridge id) [UIColor colorWithRed:230.0/255.0 green:230.0/255.0 blue:230.0/255.0 alpha:_gradientOffset].CGColor];
     
-    NSArray *locations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0 - _gradientOffset], nil];
+// UNUSED    NSArray *locations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0 - _gradientOffset], nil];
     
     CATransform3D transfrom = CATransform3DMakeRotation(80.0 + (-_gradientOffset) * 50 / 180.0 * M_PI/3, 0.0, 0.0, 1.0);
     

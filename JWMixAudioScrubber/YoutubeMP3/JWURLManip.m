@@ -285,6 +285,7 @@ WebViewTimeline timeLine;
     // create the connection with the request
     // and start loading the data
     NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:theRequest delegate:self];
+    
     if (!theConnection) {
         // Release the receivedData object.
         self.mp3Data = nil;

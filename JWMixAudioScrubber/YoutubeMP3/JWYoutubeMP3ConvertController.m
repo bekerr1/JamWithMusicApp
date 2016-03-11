@@ -146,7 +146,7 @@
         
     } else if (_hasLink == NO) {
         
-        NSLog(@"%s %ld ",__func__,_loadCount);
+        NSLog(@"%s %lu ",__func__,(unsigned long)_loadCount);
      }
     
     if (!_hasLink && [self.urlSession downloadLinkWithContentsOfWebView:self.webView]) {

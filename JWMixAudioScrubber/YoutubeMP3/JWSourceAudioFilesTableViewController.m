@@ -266,13 +266,13 @@ const NSString *JWDbKeyUserOrderedListFileName = @"userlist.dat";
         NSString *fileSizeStr=@"";
         NSNumber *fileSz = fileInfo[@"fsize"];
         if (fileSz) {
-            NSUInteger byteSize = [fileSz unsignedLongLongValue];
+            NSUInteger byteSize = [fileSz unsignedLongValue];
             if (byteSize > (1024 * 1024))
                 fileSizeStr = [NSString stringWithFormat:@"%.2f mb",byteSize/(1024.0f * 1024.0f)];
             else if (byteSize > 1024)
                 fileSizeStr = [NSString stringWithFormat:@"%.2f kb",byteSize/1024.0f];
             else
-                fileSizeStr = [NSString stringWithFormat:@"%ld bytes",byteSize];
+                fileSizeStr = [NSString stringWithFormat:@"%ld bytes",(unsigned long)byteSize];
         }
         fileExtension = [furl pathExtension];
 

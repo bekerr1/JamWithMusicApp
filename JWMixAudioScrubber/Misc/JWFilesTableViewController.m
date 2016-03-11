@@ -11,7 +11,6 @@
 @import AVKit;
 @import AVFoundation;
 
-
 @interface JWFilesTableViewController (){
     AVAudioEngine *_audioEngine;
     AVAudioPlayerNode *_playerNode;
@@ -35,12 +34,12 @@
     self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
--(void)viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self loadData];
 }
 
--(void)viewWillDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [_playerNode stop];
 }
@@ -152,14 +151,14 @@
     NSString *fileSizeStr;
     NSNumber *fileSz = _filesData[indexPath.section][indexPath.row][@"fsize"];
     if (fileSz) {
-        NSUInteger byteSize = [fileSz unsignedLongLongValue];
+        NSUInteger byteSize = [fileSz unsignedLongValue];
         
         if (byteSize > (1024 * 1024))
             fileSizeStr = [NSString stringWithFormat:@"%.2f mb",byteSize/(1024.0f * 1024.0f)];
         else if (byteSize > 1024)
             fileSizeStr = [NSString stringWithFormat:@"%.2f kb",byteSize/1024.0f];
         else
-            fileSizeStr = [NSString stringWithFormat:@"%ld bytes",byteSize];
+            fileSizeStr = [NSString stringWithFormat:@"%lu bytes",(unsigned long)byteSize];
         
     } else {
         fileSizeStr = @"";
@@ -253,8 +252,7 @@
 
 #pragma mark - Play audiofile and AVAudioSession
 
--(void)playFileUsingAVPlayer:(NSURL*)audioFile
-{
+- (void)playFileUsingAVPlayer:(NSURL*)audioFile {
     NSLog(@"%s %@",__func__,[audioFile lastPathComponent]);
     
     AVPlayer *myPlayer = [AVPlayer playerWithURL:audioFile];
@@ -268,9 +266,7 @@
     }];
 }
 
-
--(BOOL)playFileInEngine:(NSURL*)audioFile
-{
+- (BOOL)playFileInEngine:(NSURL*)audioFile {
     BOOL result;
     NSError *error;
     AVAudioFile *file = [[AVAudioFile alloc] initForReading:audioFile error:&error];
@@ -298,9 +294,7 @@
 
 }
 
-
-- (void)initAVAudioSession
-{
+- (void)initAVAudioSession {
     // For complete details regarding the use of AVAudioSession see the AVAudioSession Programming Guide
     // https://developer.apple.com/library/ios/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/Introduction/Introduction.html
     AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];

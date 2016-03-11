@@ -1273,7 +1273,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         bufferView.layoutOptions = layoutOptions;
         bufferView.kindOptions = typeOptions;
         bufferView.recording = recording;
-        bufferView.notifString = [NSString stringWithFormat:@"track%ldnotification",track];
+        bufferView.notifString = [NSString stringWithFormat:@"track%lunotification",(unsigned long)track];
         dispatch_async(dispatch_get_main_queue(), ^{
             bufferView.backgroundColor = [UIColor clearColor];
         });
@@ -1353,7 +1353,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         bufferView.recording = NO;
         bufferView.backgroundColor = [UIColor clearColor];
         bufferView.darkBackGround = _darkBackground;
-        bufferView.notifString = [NSString stringWithFormat:@"edittrack%ldnotification",track];
+        bufferView.notifString = [NSString stringWithFormat:@"edittrack%lunotification",(unsigned long)track];
         
         // USE BUFFER MIRROR FOR CLIP LEFT / CLIP RIGHT
         BOOL useBufferMirror = (_editType == ScrubberEditLeft || _editType == ScrubberEditRight );
@@ -1372,7 +1372,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             bufferViewMirror.recording = NO;
             bufferViewMirror.backgroundColor = [UIColor clearColor];
             bufferViewMirror.darkBackGround = _darkBackground;
-            bufferViewMirror.notifString = [NSString stringWithFormat:@"mirrortrack%ldnotification",track];
+            bufferViewMirror.notifString = [NSString stringWithFormat:@"mirrortrack%lunotification",(unsigned long)track];
 
             // EDITING COLORS (INACTIVE)
             [self configureColors:@{JWColorScrubberTopPeak : [[UIColor whiteColor] colorWithAlphaComponent:0.7],
@@ -1476,9 +1476,9 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
         
         
         if (avCount < finalValue) {
-            NSLog(@"NOT FINSIHED track %ld, avCount %ld",track,avCount );
+            NSLog(@"NOT FINSIHED track %ld, avCount %lu",(unsigned long)track,avCount );
         } else {
-            NSLog(@"FINSIHED track %ld, avCount %ld",track,avCount );
+            NSLog(@"FINSIHED track %ld, avCount %lu",(unsigned long)track,avCount );
             _audioViewBufferCounts[0] = 0;
 //            [self revealInEditMode];
         }
@@ -1687,7 +1687,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     _editTrack = track;
 
     // Removes the ActiveTrack Duration and delay
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"remove":@(0.40),
                                                                                @"removeDelay":@(0.10)}];
     _startPositions[track] = 0.000f;
@@ -1875,14 +1875,18 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 -(void)stopEditingTrackCancel:(NSUInteger)track {
     
     _trackingEdit = NO;
+    
     // Removes the editingTrack
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"edittrack%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"alpha":@(0.5)}];
     CGFloat delay = .50;
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
-//                                                        object:self userInfo:@{@"remove":@(0.25)}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"edittrack%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"remove":@(delay/2),
                                                                                @"removeDelay":@(delay/2)}];
+
+    //                                                        object:self userInfo:@{@"remove":@(0.25)}];
 
     if (_seeksToPositionOnEdit) {
         if (_editType == ScrubberEditLeft )
@@ -1925,19 +1929,22 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 }
 
 -(id)stopEditingTrackSave:(NSUInteger)track completion:(void (^)(id fileRef))completion {
+    
     _trackingEdit = NO;
+    
     // Removes the editingTrack
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"edittrack%ldnotification",(unsigned long)track]
                                                         object:self userInfo:@{@"alpha":@(0.75)}];
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"edittrack%ldnotification",track]
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"edittrack%ldnotification",(unsigned long)track]
                                                         object:self userInfo:@{@"remove":@(0.25)}];
-//                                                            object:self userInfo:@{@"remove":@(0.25),
-//                                                                                   @"removeDelay":@(2.5)}];
     
+    //                                                            object:self userInfo:@{@"remove":@(0.25),
+    //                                                                                   @"removeDelay":@(2.5)}];
     
-//    mirrortrack%ldnotification
-//    [self stopEditingTrackDidSave:track];
-//    return _editFileReference;
     
     [self stopEditingTrackDidSave:track animated:YES completion:^{
         if (completion)
@@ -2604,28 +2611,32 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 #pragma mark - modify track
 
 -(void)modifyTrack:(NSUInteger)track alpha:(CGFloat)alpha {
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"alpha":@(alpha)}];
 }
 
 -(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors {
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"colors":trackColors}];
 }
 
 -(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors alpha:(CGFloat)alpha {
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"colors":trackColors,@"alpha":@(alpha)}];
 }
 
 -(void)modifyTrack:(NSUInteger)track pan:(CGFloat)panValue {
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:
+     [NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"pan":@(panValue)}];
 }
 
 -(void)modifyTrack:(NSUInteger)track volume:(CGFloat)volumeValue {
     _outputValue = volumeValue;
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%ldnotification",track]
+    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
                                                         object:self userInfo:@{@"volume":@(volumeValue)}];
 }
 
@@ -2634,7 +2645,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             layout:(VABLayoutOptions)layoutOptions
               kind:(VABKindOptions)kindOptions
 {
-    NSString *notifString = [NSString stringWithFormat:@"track%ldnotification",track];
+    NSString *notifString = [NSString stringWithFormat:@"track%lunotification",(unsigned long)track];
     [[NSNotificationCenter defaultCenter] postNotificationName:notifString object:self
                                                       userInfo:
      @{@"colors":trackColors,
@@ -2649,7 +2660,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
             layout:(VABLayoutOptions)layoutOptions
               kind:(VABKindOptions)kindOptions
 {
-    NSString *notifString = [NSString stringWithFormat:@"track%ldnotification",track];
+    NSString *notifString = [NSString stringWithFormat:@"track%ldnotification",(unsigned long)track];
     [[NSNotificationCenter defaultCenter] postNotificationName:notifString object:self
                                                       userInfo:
      @{@"colors":trackColors,
@@ -3414,7 +3425,6 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     NSLog(@"%s",__func__);
     UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
     CGPoint touchPoint = [longPress locationInView:self.view];
-//    CGSize size = [_delegate viewSize];
     CGSize size = self.view.bounds.size;
 
     size.height = self.topLayoutScrollViewConstraint.constant;
@@ -3424,38 +3434,19 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     if (CGRectContainsPoint(statusFrame, touchPoint))
         isStatusFrameTouch = YES;
     
-    CGFloat padding = .25;
-    CGFloat virtualX = touchPoint.x;
     CGFloat progress = 0.0;
     if (isStatusFrameTouch) {
         progress = touchPoint.x/size.width;
-//        if (progress < padding) {
-//            progress = padding;
-//        }
     }
     
-//        if (progress > padding){
-//            virtualX = padding;
-//        } else if (virtualX > size.width - padding) {
-//            virtualX = size.width - padding;
-//        }
-//        
-//        virtualX -= padding;
-//        progress = virtualX / size.width - (2*padding);
-    
-
     if (longPress.state == UIGestureRecognizerStateBegan) {
         if (isStatusFrameTouch) {
             NSLog(@"%s SFT BEGAN progress %.3f",__func__,progress);
             _vTrackLength = [self largestTrackEndPosition];
-//            _listenToScrolling = YES;
             CGFloat pos = progress * ([self largestTrackEndPosition] -  self.scrollView.contentInset.left) / _uiPointsPerSecondLength;
             [self scrollViewTrackingAtPosition:pos];
             [self.scrubberProgressView setProgress:progress animated:NO];
             [self trackScrubberToPostion:pos timeAnimated:NO animated:YES];
-
-            //            _vTrackLength = [self largestTrackEndPosition];
-            //            [self trackScrubberToProgress:progress timeAnimated:NO];
         }
         
     } else if (longPress.state == UIGestureRecognizerStateEnded) {
@@ -3464,69 +3455,67 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     } else if (longPress.state == UIGestureRecognizerStateChanged) {
         
         if (isStatusFrameTouch) {
-//            CGFloat progress = touchPoint.x / size.width;
             CGFloat pos = progress * ([self largestTrackEndPosition] -  self.scrollView.contentInset.left) / _uiPointsPerSecondLength;
-//            [self scrollViewTrackingAtPosition:pos];
-//            [self.scrubberProgressView setProgress:progress animated:NO];
-//            [self trackScrubberToPostion:pos timeAnimated:NO];
             NSLog(@"%s SFT CHANGED  pos %.3f progress %.3f",__func__,pos,progress);
         }
         
     }
-
-    return;
-
-    if (_editType == ScrubberEditNone) {
-        UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
-        
-        if (longPress.state == UIGestureRecognizerStateBegan) {
-            NSLog(@"%s BEGAN",__func__);
-            CGPoint touchPoint = [longPress     locationInView:self.scrollView];
-            
-            CGSize size = [_delegate viewSize];
-            
-            NSUInteger touchTrack = 0;
-            for (int i = 0; i < _numberOfTracks; i++){
-                CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
-                if (CGRectContainsPoint(trackFrame, touchPoint)){
-                    touchTrack = i+1;
-                    break;
-                }
-            }
-            
-            if (touchTrack > 0) {
-                NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
-                //[self modifyTrack:touchTrack alpha:0.3];
-                if (_selectedTrack == touchTrack) {
-                    // DESELECT if SELECTED
-                    [self deSelectTrack];
-                    [_delegate trackNotSelected];
-                    
-                } else {
-                    // SELECT TRACK
-                    [self selectTrack:touchTrack];
-                    [_delegate trackSelected:_selectedTrack];
-                }
-                
-                [_delegate longPressOnTrack:touchTrack];
-                
-                
-            }
-            
-        } else if (longPress.state == UIGestureRecognizerStateEnded) {
-            NSLog(@"%s ENDED",__func__);
-        } else if (longPress.state == UIGestureRecognizerStateChanged) {
-            NSLog(@"%s CHANGED",__func__);
-        }
-        
-        NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([longPress locationInView:self.scrollView]),
-              NSStringFromCGPoint([longPress locationInView:self.view]));
-        
-    } else {
-        // EDITING
-    }
     
 }
+
+
+//    return;
+//
+//    if (_editType == ScrubberEditNone) {
+//        UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
+//
+//        if (longPress.state == UIGestureRecognizerStateBegan) {
+//            NSLog(@"%s BEGAN",__func__);
+//            CGPoint touchPoint = [longPress     locationInView:self.scrollView];
+//
+//            CGSize size = [_delegate viewSize];
+//
+//            NSUInteger touchTrack = 0;
+//            for (int i = 0; i < _numberOfTracks; i++){
+//                CGRect trackFrame = [self frameForTrack:i+1 allTracksHeight:size.height];
+//                if (CGRectContainsPoint(trackFrame, touchPoint)){
+//                    touchTrack = i+1;
+//                    break;
+//                }
+//            }
+//
+//            if (touchTrack > 0) {
+//                NSLog(@"%s TRACK %lu TOUCHED",__func__,(unsigned long)touchTrack);
+//                //[self modifyTrack:touchTrack alpha:0.3];
+//                if (_selectedTrack == touchTrack) {
+//                    // DESELECT if SELECTED
+//                    [self deSelectTrack];
+//                    [_delegate trackNotSelected];
+//
+//                } else {
+//                    // SELECT TRACK
+//                    [self selectTrack:touchTrack];
+//                    [_delegate trackSelected:_selectedTrack];
+//                }
+//
+//                [_delegate longPressOnTrack:touchTrack];
+//
+//
+//            }
+//
+//        } else if (longPress.state == UIGestureRecognizerStateEnded) {
+//            NSLog(@"%s ENDED",__func__);
+//        } else if (longPress.state == UIGestureRecognizerStateChanged) {
+//            NSLog(@"%s CHANGED",__func__);
+//        }
+//
+//        NSLog(@"%s scrollView %@  view %@",__func__,NSStringFromCGPoint([longPress locationInView:self.scrollView]),
+//              NSStringFromCGPoint([longPress locationInView:self.view]));
+//
+//    } else {
+//        // EDITING
+//    }
+
 
 - (IBAction)didDoubleTap:(id)sender {
     
@@ -3550,7 +3539,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     }
     
     if (touchTrack > 0) {
-        NSLog(@"%s TRACK %ld TOUCHED",__func__,touchTrack);
+        NSLog(@"%s TRACK %lu TOUCHED",__func__,(unsigned long)touchTrack);
 //        [self modifyTrack:touchTrack alpha:0.3];
     }
 

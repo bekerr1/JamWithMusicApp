@@ -11,9 +11,6 @@
 @import UIKit;  // for UIImage
 @import AVFoundation;  // for audio length
 
-//#define JWSampleFileName @"trimmedMP3-45"
-//#define JWSampleFileNameAndExtension @"trimmedMP3-45.m4a"
-
 @interface JWFileController () {
     dispatch_queue_t _imageRetrievalQueue;
     dispatch_queue_t _fileInfoRetrievalQueue;
@@ -32,6 +29,7 @@
 @property (nonatomic) NSMutableArray *trimmedFilesData;
 @property (nonatomic) NSMutableDictionary *dbMetaData;
 @end
+
 
 @implementation JWFileController
 
@@ -73,18 +71,18 @@
     [self loadAllData];
     
     NSLog(@"%s\
-          \n _recordingsFiles         %ld\
-          \n _clipsFiles              %ld\
-          \n _finalsFiles             %ld\
-          \n _trimmedFiles             %ld\
-          \n _downloadedJamTrackFiles %ld\
-          \n _jamTrackFiles           %ld",__func__,
-          [_recordingsFilesData count],
-          [_clipsFilesData count],
-          [_finalsFilesData count],
-          [_trimmedFilesData count],
-          [_downloadedJamTrackFiles count],
-          [_jamTrackFiles count]
+          \n _recordingsFiles         %lu\
+          \n _clipsFiles              %lu\
+          \n _finalsFiles             %lu\
+          \n _trimmedFiles            %lu\
+          \n _downloadedJamTrackFiles %lu\
+          \n _jamTrackFiles           %lu",__func__,
+          (unsigned long)[_recordingsFilesData count],
+          (unsigned long)[_clipsFilesData count],
+          (unsigned long)[_finalsFilesData count],
+          (unsigned long)[_trimmedFilesData count],
+          (unsigned long)[_downloadedJamTrackFiles count],
+          (unsigned long)[_jamTrackFiles count]
           );
 }
 
@@ -286,7 +284,7 @@
         NSUInteger fileNumber = 2;
         while (alreadyExists) {
             NSString *newFileName = [baseName stringByRemovingPercentEncoding];
-            newFileName = [[newFileName stringByAppendingFormat:@"-%ld",fileNumber] stringByAppendingPathExtension:[url pathExtension]];
+            newFileName = [[newFileName stringByAppendingFormat:@"-%lu",(unsigned long)fileNumber] stringByAppendingPathExtension:[url pathExtension]];
             pathString = [relativePath stringByAppendingPathComponent:newFileName];
             NSLog(@"newFileName %@",pathString);
 
@@ -713,47 +711,8 @@
         
         AVAudioFormat *fileFormat = [audioFile fileFormat];
         NSString *fileFormatIdStr;
-//        AVAudioFormat *processingFormat = [audioFile processingFormat];
-//        NSString *processingFormatIdStr;
-
-//        double durationSeconds = audioFile.length / processingFormat.sampleRate;
         fileFormatIdStr = [self formatStr:fileFormat.streamDescription];
         
-        
-//        {
-//            unsigned char bytes[4];
-//            unsigned long n = fileFormat.streamDescription->mFormatID;
-//            bytes[0] = (n >> 24) & 0xFF;
-//            bytes[1] = (n >> 16) & 0xFF;
-//            bytes[2] = (n >> 8) & 0xFF;
-//            bytes[3] = n & 0xFF;
-//            fileFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
-//        }
-//        
-//        {
-//            unsigned char bytes[4];
-//            unsigned long n = processingFormat.streamDescription->mFormatID;
-//            bytes[0] = (n >> 24) & 0xFF;
-//            bytes[1] = (n >> 16) & 0xFF;
-//            bytes[2] = (n >> 8) & 0xFF;
-//            bytes[3] = n & 0xFF;
-//            processingFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
-//        }
-        
-//        NSLog(@"%s FileFormat_______ : %@",__func__,[NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
-//                                                     fileFormatIdStr,
-//                                                     (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
-//                                                     fileFormat.streamDescription->mSampleRate,
-//                                                     fileFormat.streamDescription->mBitsPerChannel,
-//                                                     fileFormat.interleaved ? @"i" : @"ni"
-//                                                     ]);
-//        NSLog(@"%s ProcessingFormat_ : %@",__func__,[NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
-//                                                     processingFormatIdStr,
-//                                                     processingFormat.streamDescription->mChannelsPerFrame,
-//                                                     processingFormat.streamDescription->mSampleRate,
-//                                                     processingFormat.streamDescription->mBitsPerChannel,
-//                                                     processingFormat.interleaved ? @"i" : @"ni"
-//                                                     ]);
         
         result = [NSString stringWithFormat:@"%@ %d ch %.0f %u %@",
                   fileFormatIdStr,
@@ -762,9 +721,6 @@
                   (unsigned int)fileFormat.streamDescription->mBitsPerChannel,
                   fileFormat.interleaved ? @"i" : @"ni"
                   ];
-        
-        //        format.interleaved ? @"inter" : @"non-interleaved"
-        //        format.standard ? @"Fl32 std" : @"std NO  ",
         
     } else {
         NSLog(@"error in audio file %@",[fileURL lastPathComponent]);
@@ -779,52 +735,10 @@
     NSError *error = nil;
     AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:fileURL error:&error];
     if (audioFile && error == nil) {
-        //AVAudioFormat *processingFormat = [audioFile processingFormat];
-        
-//        AVAudioFormat *fileFormat = [audioFile fileFormat];
-//        NSString *fileFormatIdStr;
         AVAudioFormat *processingFormat = [audioFile processingFormat];
         NSString *processingFormatIdStr;
         
-//        double durationSeconds = audioFile.length / processingFormat.sampleRate;
-        
         processingFormatIdStr = [self formatStr:processingFormat.streamDescription];
-
-//        {
-//            unsigned char bytes[4];
-//            unsigned long n = fileFormat.streamDescription->mFormatID;
-//            bytes[0] = (n >> 24) & 0xFF;
-//            bytes[1] = (n >> 16) & 0xFF;
-//            bytes[2] = (n >> 8) & 0xFF;
-//            bytes[3] = n & 0xFF;
-//            fileFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
-//        }
-//        
-//        {
-//            unsigned char bytes[4];
-//            unsigned long n = processingFormat.streamDescription->mFormatID;
-//            bytes[0] = (n >> 24) & 0xFF;
-//            bytes[1] = (n >> 16) & 0xFF;
-//            bytes[2] = (n >> 8) & 0xFF;
-//            bytes[3] = n & 0xFF;
-//            processingFormatIdStr = [[NSString alloc] initWithBytes:bytes  length:4 encoding:NSASCIIStringEncoding];
-//        }
-        
-//        NSLog(@"%s FileFormat_______ : %@",__func__,[NSString stringWithFormat:@"%@ %d ch %.0f %ld %@",
-//                                                     fileFormatIdStr,
-//                                                     (unsigned int)fileFormat.streamDescription->mChannelsPerFrame,
-//                                                     fileFormat.streamDescription->mSampleRate,
-//                                                     fileFormat.streamDescription->mBitsPerChannel,
-//                                                     fileFormat.interleaved ? @"i" : @"ni"
-//                                                     ]);
-//        NSLog(@"%s ProcessingFormat_ : %@",__func__,[NSString stringWithFormat:@"%@ %ld ch %.0f %ld %@",
-//                                                     processingFormatIdStr,
-//                                                     processingFormat.streamDescription->mChannelsPerFrame,
-//                                                     processingFormat.streamDescription->mSampleRate,
-//                                                     processingFormat.streamDescription->mBitsPerChannel,
-//                                                     processingFormat.interleaved ? @"i" : @"ni"
-//                                                     ]);
-
         
         result = [NSString stringWithFormat:@"%@ %u ch %.0f %u %@",
                   processingFormatIdStr,
@@ -833,18 +747,6 @@
                   (unsigned int)processingFormat.streamDescription->mBitsPerChannel,
                   processingFormat.interleaved ? @"i" : @"ni"
                   ];
-
-        
-//        result = [NSString stringWithFormat:@"%@/%@ %ld ch(%.1f)%ld %@",
-//                  fileFormatIdStr,processingFormatIdStr,
-//                  processingFormat.streamDescription->mChannelsPerFrame,
-//                  processingFormat.streamDescription->mSampleRate/1000.0,
-//                  processingFormat.streamDescription->mBitsPerChannel,
-//                  processingFormat.interleaved ? @"i" : @"ni"
-//                  ];
-        
-        //        format.interleaved ? @"inter" : @"non-interleaved"
-        //        format.standard ? @"Fl32 std" : @"std NO  ",
         
     } else {
         NSLog(@"error in audio file %@",[fileURL lastPathComponent]);
@@ -1012,13 +914,13 @@
 -(NSString *)fileSizeStr:(NSNumber*) fileSzNumber{
     NSString *result = nil;
     
-    NSUInteger byteSize = [fileSzNumber unsignedLongLongValue];
+    NSUInteger byteSize = [fileSzNumber unsignedLongValue];
     if (byteSize > (1024 * 1024))
         result = [NSString stringWithFormat:@"%.2f mb",byteSize/(1024.0f * 1024.0f)];
     else if (byteSize > 1024)
         result = [NSString stringWithFormat:@"%.2f kb",byteSize/1024.0f];
     else
-        result = [NSString stringWithFormat:@"%ld bytes",byteSize];
+        result = [NSString stringWithFormat:@"%lu bytes",(unsigned long)byteSize];
     
     return result;
 }
@@ -1032,7 +934,7 @@
     
     [_mp3FilesInfo writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]] atomically:YES];
     
-    NSLog(@"%s LINKSCOUNT [%ld]  MP3INFOCOUNT [%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
+    NSLog(@"%s LINKSCOUNT [%ld]  MP3INFOCOUNT [%ld]",__func__,(unsigned long)[_linksDirector count],(unsigned long)[_mp3FilesInfo count]);
     //    NSLog(@"\n%s\nLINKS\n%@\nMP3INFO\n%@",__func__,[_linksDirector description],[_mp3FilesInfo description]);
 }
 -(void)readMetaData {
@@ -1049,17 +951,17 @@
     //    _mp3FilesInfo = [[NSMutableDictionary alloc] initWithContentsOfURL:
     //                     [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyMP3InfoFileName]]];
     
-    NSLog(@"%s LINKSCOUNT [%ld]  MP3INFOCOUNT [%ld]",__func__,[_linksDirector count],[_mp3FilesInfo count]);
+    NSLog(@"%s LINKSCOUNT [%lu]  MP3INFOCOUNT [%ld]",__func__,(unsigned long)[_linksDirector count],(unsigned long)[_mp3FilesInfo count]);
 }
 
 -(void)saveDescriptions {
     [_mp3FilesDescriptions writeToURL:[NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]] atomically:YES];
-    NSLog(@"%s MP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
+    NSLog(@"%s MP3DESCRIPCOUNT[%lu]",__func__,(unsigned long)[_mp3FilesDescriptions count]);
 }
 -(void)readDescriptions {
     _mp3FilesDescriptions = [[NSMutableDictionary alloc] initWithContentsOfURL:
                              [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:@"mp3descriptions.dat"]]];
-    NSLog(@"%s MP3DESCRIPCOUNT[%ld]",__func__,[_mp3FilesDescriptions count]);
+    NSLog(@"%s MP3DESCRIPCOUNT[%lu]",__func__,(unsigned long)[_mp3FilesDescriptions count]);
 }
 
 -(void)saveUserOrderedList {
@@ -1067,71 +969,13 @@
      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
                     atomically:YES];
     
-    NSLog(@"%s USERLISTCOUNT [%ld]",__func__,[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT [%lu]",__func__,(unsigned long)[_userOrderList count]);
 }
 -(void)readUserOrderedList {
     _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
                       [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
-    NSLog(@"%s USERLISTCOUNT [%ld]",__func__,[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT [%lu]",__func__,(unsigned long)[_userOrderList count]);
 }
 
 @end
-
-
-
-
-//
-//-(void)convertDescription:(NSString*)dbkey {
-//    // Remove the description from ytdata before adding to _mp3Info
-//    NSMutableDictionary *ytdata = [_mp3FilesInfo[dbkey][JWDbKeyYouTubeData] mutableCopy];
-//    if (ytdata) {
-//        //        NSLog(@"%s\nytdata record before\n%@",__func__,[ytdata description]);
-//        id ytdescription = ytdata[JWDbKeyYoutubeDataDescription];
-//        id ytlocalized = ytdata[JWDbKeyYoutubeDataLocalized];
-//        if (ytdescription || ytlocalized) {
-//            NSMutableDictionary *mp3DescriptionRecord = [@{} mutableCopy];
-//            if (ytdescription) {
-//                mp3DescriptionRecord[JWDbKeyYoutubeDataDescription] = ytdescription;
-//            }
-//            if (ytlocalized) {
-//                mp3DescriptionRecord[JWDbKeyYoutubeDataLocalized] = ytlocalized;
-//            }
-//            mp3DescriptionRecord[JWDbKeyYouTubeDataVideoId] = ytdata[JWDbKeyYouTubeDataVideoId];
-//            //            NSLog(@"%s\ndescription record\n%@",__func__,[mp3DescriptionRecord description]);
-//            NSString*descriptionKey = [[NSUUID UUID] UUIDString];
-//            _mp3FilesDescriptions[descriptionKey] = mp3DescriptionRecord;
-//            [ytdata removeObjectForKey:JWDbKeyYoutubeDataDescription];
-//            [ytdata removeObjectForKey:JWDbKeyYoutubeDataLocalized];
-//            // add the crossreference
-//            ytdata[@"ytdescriptionskey"] = descriptionKey;
-//            NSLog(@"%s\nytdata record after\n%@",__func__,[ytdata description]);
-//            //            NSLog(@"%s\ndescription accessed\n%@",__func__,[ytdata[descriptionKey] description]);
-//            _mp3FilesInfo[dbkey][JWDbKeyYouTubeData]=ytdata;
-//            //            NSLog(@"%s\ndescription accessed\n%@",__func__,[_mp3FilesDescriptions[descriptionKey] description]);
-//        } else {
-//            NSLog(@"%s NO DESCRIPTION DATA - RECORD GOOD",__func__);
-//        }
-//    } else {
-//        NSLog(@"%s NO YT DATA ",__func__);
-
-//    BOOL recentsFirst = YES;
-//    NSArray *sortedArray = [_mp3filesFilesData sortedArrayUsingComparator: ^(id obj1, id obj2) {
-//        NSDate *createDate1;
-//        NSDate *createDate2;
-//        NSError *error;
-//        [(NSURL *)obj1[@"furl"] getResourceValue:&createDate1 forKey:NSURLCreationDateKey error:&error];
-//        [(NSURL *)obj2[@"furl"] getResourceValue:&createDate2 forKey:NSURLCreationDateKey error:&error];
-//
-//        NSComparisonResult cresult = [createDate1 compare:createDate2];
-//        // simple date compare cause recents last
-//        if (recentsFirst) {
-//            // swap for Recent first
-//            if (cresult == NSOrderedAscending) {
-//                cresult = NSOrderedDescending;
-//            } else if (cresult == NSOrderedDescending) {
-//                cresult = NSOrderedAscending;
-//            }
-//        return cresult;
-//    }];
-//    _mp3filesFilesData = [sortedArray mutableCopy];
 

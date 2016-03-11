@@ -219,7 +219,6 @@ const int scMaxTracks = 10;
     if ([_playerTimer isValid])
         [_playerTimer invalidate];
 
-    NSUInteger track = [self trackNumberForTrackId:sid];
     [_scrubber prepareToPlay:1 atPosition:0.0];
     [_scrubber transitionToRecordingSingleRecorder:YES];
     
@@ -917,7 +916,7 @@ EDITING PROTOCOL PUBLIC API
 }
 
 -(NSMutableDictionary*)trackMutableInfoForTrack:(NSUInteger)track {
-    NSLog(@"%s %ld",__func__,track);
+    NSLog(@"%s %lu",__func__,(unsigned long)track);
     NSMutableDictionary *result;
     for (id item in [_tracks allKeys]) {
         id trackNumberValue = _tracks[item][@"tracknum"];
@@ -1086,7 +1085,7 @@ EDITING PROTOCOL PUBLIC API
 }
 
 -(NSDictionary*)trackInfoForTrack:(NSUInteger)track {
-    NSLog(@"%s %ld",__func__,track);
+    NSLog(@"%s %lu",__func__,(unsigned long)track);
     NSDictionary *result;
     for (id item in [_tracks allKeys]) {
         id trackNumberValue = _tracks[item][@"tracknum"];
@@ -1185,8 +1184,7 @@ EDITING PROTOCOL PUBLIC API
     NSInteger track = [self trackNumberForSource];
     if (track != NSNotFound) {
         _durationForTrack[track] = positionSeconds;
-        NSLog(@"PC StartDur %.3f in track %ld",_durationForTrack[track],track);
-
+        NSLog(@"PC StartDur %.3f in track %ld",_durationForTrack[track],(long)track);
     }
     
     [_delegate positionChanged:self positionSeconds:positionSeconds];

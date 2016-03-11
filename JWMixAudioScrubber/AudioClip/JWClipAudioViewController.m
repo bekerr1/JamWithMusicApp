@@ -186,7 +186,7 @@ UIGestureRecognizerDelegate, AudioHelperDelegate
 //    jwscreensandcontrols
 
 -(void)updateAmpImage {
-    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %u",selectedAmpImageIndex + 1]];
+    UIImage *ampImage = [UIImage imageNamed:[NSString stringWithFormat:@"jwjustscreensonly - %lu",selectedAmpImageIndex + 1]];
     dispatch_async(dispatch_get_main_queue(), ^{
         _ampImageView.image = ampImage;
         [self.view setNeedsLayout];
