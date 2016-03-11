@@ -23,7 +23,7 @@
     
     self.presetsGrouping = [[NSMutableArray alloc] init];
     self.presetsGrouping = [NSMutableArray arrayWithObjects:self.systemDefinedpresets, self.userDefinedPresets, nil];
-    //_currentPresetIndex = [NSIndexPath indexPathForRow:_selectedEffectIndex inSection:0];
+    //_currentPresetIndex = [NSIndexPath indexPathForRow:_selectedPresetIndex inSection:0];
 
 }
 
@@ -67,7 +67,7 @@
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    if (indexPath.row == _selectedEffectIndex) {
+    if (indexPath.row == _selectedPresetIndex) {
         cell.accessoryType = UITableViewCellAccessoryCheckmark;
     } else {
         cell.accessoryType = UITableViewCellAccessoryNone;
@@ -77,14 +77,12 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     
-    UITableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:_selectedEffectIndex inSection:0]];
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:_selectedPresetIndex inSection:0]];
     cell.accessoryType = UITableViewCellAccessoryNone;
-    
-    _selectedEffectIndex = indexPath.row;
-
+    _selectedPresetIndex = indexPath.row;
     [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
     
-    
+    [_delegate previewSelectedPresetAtIndex:_selectedPresetIndex];
     
 }
 

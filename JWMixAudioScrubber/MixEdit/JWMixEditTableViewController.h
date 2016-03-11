@@ -12,7 +12,7 @@
 @protocol JWMixEditDelegate;
 
 
-@interface JWMixEditTableViewController : UITableViewController
+@interface JWMixEditTableViewController : UITableViewController 
 
 @property (weak) id <JWMixEditDelegate> delegateMixEdit;
 @property (nonatomic) id <JWEffectsHandler> effectsHandler;
@@ -25,11 +25,13 @@
 @optional
 - (id <JWEffectsModifyingProtocol>) mixNodeControllerForScrubber;
 - (void)recordAtNodeIndex:(NSUInteger)index;
-
 - (void)doneWithMixEdit:(JWMixEditTableViewController*)mixEdit;
-
 - (id <JWEffectsModifyingProtocol>) trackNodeControllerForNodeAtIndex:(NSUInteger)index;
+-(void)previewSelectedPresetAtIndex:(NSInteger)enumValue effectAtIndex:(NSUInteger)effect playerNodeIndex:(NSUInteger)pn;
+-(void)changeToPresetAtIndex:(NSInteger)index effectAtIndex:(NSUInteger)effect playerNodeIndex:(NSUInteger)pn;
+-(void)stopAudioForPresets;
 
 @end
+
 
 
