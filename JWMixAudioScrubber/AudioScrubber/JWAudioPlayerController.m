@@ -1424,29 +1424,6 @@ JWMixEditDelegate
     }
 }
 
-//NSLog(@"PREVIEW MOMENT mom");
-//        _listenToPositionChanges = YES;
-//        NSTimeInterval playPos = _lastPlayPosition;
-//[self positionChanged:nil positionSeconds:playPos force:YES];
-//        self.positionChangeUpdateTimeStamp = [NSDate date];
-//        _momentTime = _momentPreviewTime;
-//        self.state = JWPlayerStateScrubbAudioPreviewMoment;
-//            _listenToPositionChanges = NO;
-//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime ) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//            [_sc readyForScrub];
-//            if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
-//                self.state = JWPlayerStateSetPlayToPos;
-//                self.positionChangeUpdateTimeStamp= nil;
-//            }
-//        });
-
-//                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                    [_sc readyForScrub];
-//                    if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
-//                        self.state = JWPlayerStateSetPlayToPos;
-//                    }
-//                });
-
 
 
 -(NSURL*)recordingFileURL:(JWScrubberController*)controller {
@@ -1765,4 +1742,28 @@ JWMixEditDelegate
 //JWColorScrubberBottomAvg : [UIColor colorWithWhite:0.24 alpha:0.8],
 //JWColorScrubberBottomPeak : [[UIColor iosTungstenColor] colorWithAlphaComponent:0.9],
 //}
+
+//NSLog(@"PREVIEW MOMENT mom");
+//        _listenToPositionChanges = YES;
+//        NSTimeInterval playPos = _lastPlayPosition;
+//[self positionChanged:nil positionSeconds:playPos force:YES];
+//        self.positionChangeUpdateTimeStamp = [NSDate date];
+//        _momentTime = _momentPreviewTime;
+//        self.state = JWPlayerStateScrubbAudioPreviewMoment;
+//            _listenToPositionChanges = NO;
+//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime ) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//            [_sc readyForScrub];
+//            if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
+//                self.state = JWPlayerStateSetPlayToPos;
+//                self.positionChangeUpdateTimeStamp= nil;
+//            }
+//        });
+
+//                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((_momentTime) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                    [_sc readyForScrub];
+//                    if (self.state == JWPlayerStateScrubbAudioPreviewMoment) {
+//                        self.state = JWPlayerStateSetPlayToPos;
+//                    }
+//                });
+
 
