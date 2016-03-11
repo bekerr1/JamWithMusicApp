@@ -16,8 +16,8 @@
 @import MediaPlayer;
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate,UIDocumentInteractionControllerDelegate> {
-    BOOL _playing;
-    NSUInteger selectedAmpImageIndex;
+    BOOL _playing;  // used to set toolbar items play state in effects mode
+    NSUInteger selectedAmpImageIndex; // the currently selected amp image index
     NSUInteger _countDownLabelValue;
 }
 @property (strong, nonatomic) JWAudioPlayerController* playerController;
@@ -35,17 +35,17 @@
 @property (strong, nonatomic) IBOutlet UIView *volumeView;
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *scrubberActivity;
 @property (strong, nonatomic) IBOutlet UIView *scrubberContainerView;
-@property (strong, nonatomic) IBOutlet UIImageView *logoImageView;
+@property (strong, nonatomic) IBOutlet UIImageView *logoImageView; // holds the amp image
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
-@property (strong, nonatomic) id scrubber;
-@property (strong, nonatomic) id playerControls;
-@property (strong, nonatomic) id mixEdit;
 @property (strong, nonatomic) IBOutlet UIView *sctv;
 @property (strong, nonatomic) IBOutlet UIView *mixeditContainerView;
-@property (nonatomic) NSMutableString *statusString;
-@property (strong, nonatomic) NSArray *trackItems;
 @property (strong, nonatomic) IBOutlet UILabel *countDownLabel;
+@property (nonatomic) NSMutableString *statusString;
+@property (strong, nonatomic) NSArray *trackItems; // the track items being used by this detail
 @property (strong, nonatomic) UIColor *restoreColor;
+@property (strong, nonatomic) id scrubber; // holds the scrubber object contained in sb container
+@property (strong, nonatomic) id playerControls; // holds the playercontrols object contained in sb container
+@property (strong, nonatomic) id mixEdit; // holds the mixed object contained in sb container
 @end
 
 
@@ -54,6 +54,7 @@
 #pragma mark - Managing the detail item
 
 - (void)setDetailItem:(id)newDetailItem {
+
     if (_detailItem != newDetailItem) {
         _detailItem = newDetailItem;
         
@@ -65,6 +66,7 @@
             [self configureView];
     }
 }
+
 // Update the view.
 
 - (void)configureView {
@@ -222,6 +224,7 @@
     NSNumber *selectedIndex = noti.userInfo[@"index"];
     if (selectedIndex)
         selectedAmpImageIndex = [selectedIndex unsignedIntegerValue];
+
     [self updateAmpImage];
 }
 
@@ -293,7 +296,6 @@
                      } completion:^(BOOL fini){
                      }];
 }
-
 
 
 #pragma mark - TOOLBAR BUTTON ACTIONS

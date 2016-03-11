@@ -395,7 +395,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 
-#pragma mark - 
+#pragma mark - Insert
 
 -(void)insertNewObject:(id)sender {
     
@@ -444,6 +444,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 //TODO: added with audio file key so i can identify the five second audio file
 //coresponding to the trimmed audio file
+
 -(NSMutableDictionary*)newTrackObjectOfType:(JWMixerNodeTypes)mixNodeType andFileURL:(NSURL*)fileURL withAudioFileKey:(NSString *)key {
     
     NSMutableDictionary *result = nil;
@@ -1278,7 +1279,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     return result;
 }
 
-
 -(void)addTrackNodeToNewJamTrack {
     
     id jamTrack = [self newJamTrackObjectWithRecorderFileURL:nil];
@@ -1306,7 +1306,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     }
 }
 
-
 -(BOOL)addTrackNodeToNewJamTrack:(NSURL*)fileURL {
 
     BOOL result = NO;
@@ -1331,7 +1330,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     
     return result;
 }
-
 
 -(void)performNewJamTrack:(NSURL*)fileURL {
 
@@ -1386,8 +1384,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     }
 //    [self saveUserOrderedList];
 }
-
-
 
 
 -(NSArray*)tracks:(DetailViewController*)controller forJamTrackKey:(NSString*)key {
@@ -1831,8 +1827,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 
-
 // Override to support rearranging the table view.
+
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
     
     NSLog(@"%s",__func__);
