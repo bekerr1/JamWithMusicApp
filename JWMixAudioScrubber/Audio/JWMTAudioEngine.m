@@ -419,6 +419,11 @@
 
 #pragma mark public setters getters
 
+-(void)setEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
+    _engineDelegate = engineDelegate;
+    self.delegate = _engineDelegate;
+}
+
 -(void)setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
     _engineDelegate = engineDelegate;
     self.delegate = _engineDelegate;

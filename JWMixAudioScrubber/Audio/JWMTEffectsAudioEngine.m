@@ -22,6 +22,13 @@
 
 @implementation JWMTEffectsAudioEngine
 
+-(void)setEngineEffectsDelegate:(id<JWMTEffectsAudioEngineDelegate>)engineEffectsDelegate {
+
+    _engineEffectsDelegate = engineEffectsDelegate;
+    self.engineDelegate = engineEffectsDelegate;
+}
+
+
 -(void) setupAVEngine {
 
     // READ and initialize effects list before call super
@@ -154,13 +161,11 @@
     return result;
 }
 
--(id <JWEffectsModifyingProtocol> )mixerNodeAtIndex:(NSUInteger)pindex
-{
+-(id <JWEffectsModifyingProtocol> )mixerNodeAtIndex:(NSUInteger)pindex {
     return [self.audioEngine mainMixerNode];
 }
 
--(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex
-{
+-(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex {
     id <JWEffectsModifyingProtocol> result;
     if (pindex < [self.playerNodeList count]) {
         NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
@@ -202,8 +207,6 @@
         
         if ([effectNodes count] > 0) {
             
-            
-                
                 for (int j = 0; j < [effects count] - 1; j++) {
                     
                     JWEffectNodeTypes type = [effects[j][@"type"] unsignedIntegerValue];
@@ -235,14 +238,9 @@
                         default:
                             break;
                     }
-                
-                
             }
-            
-            
         }
     }
-    
     
 }
 
@@ -277,6 +275,7 @@
             }
         }
     }
+    
     
     [self makeEngineConnections];
     [self startEngine];
@@ -460,7 +459,6 @@
                            @"delaytime" : @(1), //from 0 to 2 seconds
                            @"lowpasscutoff" : @(1500) //from 10 hz to sampleRate / 2
                            } mutableCopy];
-            
             break;
             
         case JWEffectNodeTypeDistortion:
@@ -470,8 +468,6 @@
                            @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
                            @"pregain" : @(0.0)
                            } mutableCopy];
-
-            
             break;
             
         case JWEffectNodeTypeEQ:
@@ -493,6 +489,13 @@
         effectsArray = [@[newEffect] mutableCopy];
         self.playerNodeList[trackIndex][@"effects"] = effectsArray;
     }
+    
+    // Either a new effects array was created or an effect was added to existing Array
+    // Either pass up the entire array
+    
+    if ([_engineEffectsDelegate respondsToSelector:@selector(effectsChanged:inNodeAtIndex:)])
+        [_engineEffectsDelegate effectsChanged:effectsArray inNodeAtIndex:trackIndex];
+
     
     [self refreshEngineForEffectsNodeChanges];
     

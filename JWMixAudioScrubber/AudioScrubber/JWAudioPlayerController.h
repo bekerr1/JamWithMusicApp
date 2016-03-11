@@ -61,6 +61,8 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(NSUInteger)numberOfTracksWithAudio;
 -(void)configureScrubbers:(BOOL)tap;
 
+-(void)effectsCurrentSettings;
+
 @end
 
 
@@ -72,14 +74,18 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)noTrackSelected:(JWAudioPlayerController *)controller;
 -(void)trackSelected:(JWAudioPlayerController *)controller;
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
+
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey;
+
 -(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controllerkey;
+
 @optional
+
 -(NSString*)playerController:(JWAudioPlayerController*)controller titleForTrackWithKey:(NSString*)key;
 -(NSString*)playerController:(JWAudioPlayerController*)controller titleDetailForTrackWithKey:(NSString*)key;
 //TODO: so i can set the target of a timer to the detail view controller
 //becuase it hold the label that needs to be manipulated
 -(id)countDownTarget;
-
 
 @end
