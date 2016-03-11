@@ -1556,7 +1556,7 @@ JWMixEditDelegate
     } else if ([effectNode isKindOfClass:[AVAudioUnitDelay class]]) {
         //doesnt have load factory preset but will soon have "load user preset" so should be
         //able to preview
-        AVAudioUnitDelay *delay = (AVAudioUnitDelay *)effectNode;
+// UNUSED        AVAudioUnitDelay *delay = (AVAudioUnitDelay *)effectNode;
     } else if ([effectNode isKindOfClass:[AVAudioUnitDistortion class]]) {
         AVAudioUnitDistortion *distortion = (AVAudioUnitDistortion *)effectNode;
         [distortion loadFactoryPreset:enumValue];
@@ -1564,7 +1564,7 @@ JWMixEditDelegate
     } else if ([effectNode isKindOfClass:[AVAudioUnitEQ class]]) {
         //doesnt have load factory preset but will soon have "load user preset" so should be
         //able to preview
-        AVAudioUnitEQ *eq = (AVAudioUnitEQ *)effectNode;
+// UNUSED        AVAudioUnitEQ *eq = (AVAudioUnitEQ *)effectNode;
     }
     
     pnl[pn][@"effects"][effect][@"factorypreset"] = @(enumValue);
