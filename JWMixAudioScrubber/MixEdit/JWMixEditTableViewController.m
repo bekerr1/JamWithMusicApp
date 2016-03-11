@@ -228,10 +228,6 @@
  
  */
 
-
-
-#else
-
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
     //JWMixerNodeTypes playerNodeType = [self.playerNodeSelected[@"type"] integerValue];
