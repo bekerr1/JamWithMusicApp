@@ -419,6 +419,11 @@
 
 #pragma mark public setters getters
 
+-(void)setEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
+    _engineDelegate = engineDelegate;
+    self.delegate = _engineDelegate;
+}
+
 -(void)setClipEngineDelegate:(id<JWMTAudioEngineDelgegate>)engineDelegate {
     _engineDelegate = engineDelegate;
     self.delegate = _engineDelegate;
@@ -869,6 +874,7 @@
 
 -(void)scheduleAllStartSeconds:(NSTimeInterval)secondsIn  {
     
+    // duration 0.0 not sepcified play to end
     [self scheduleAllWithOptions:0 insetSeconds:secondsIn duration:0.0 recording:NO];
 }
 
@@ -1053,7 +1059,7 @@
             
             // SCHEDULE THE BUFFER
             //TODO: added a check on the type to make sure the right completion block is scheduled
-            if (type == JWMixerNodeTypePlayer || type == JWMixerNodeTypeMixerPlayerRecorder) {
+            if (type == JWMixerNodeTypePlayer || type == JWMixerNodeTypePlayerRecorder) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
                                    options:AVAudioPlayerNodeBufferInterrupts
                          completionHandler:playerCompletion
@@ -1529,7 +1535,7 @@
         JWMixerNodeTypes nodeType = [pn[@"type"] integerValue];
         NSString *fileString = pn[@"fileURLString"];
         
-        if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
+        if (nodeType == JWMixerNodeTypePlayerRecorder) {
             
             if (!fileString) {
                 //This is the top most recorder node with no fileURL

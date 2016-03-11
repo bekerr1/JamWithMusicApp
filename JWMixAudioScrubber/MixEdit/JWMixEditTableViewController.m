@@ -7,6 +7,7 @@
 //
 
 #import "JWMixEditTableViewController.h"
+#import "JWEffectPresetsTableViewController.h"
 // Effect slider Cell Types
 #import "JWSliderTableViewCell.h"
 #import "JWRecorderTableViewCell.h"
@@ -25,8 +26,12 @@
     BOOL _sectionEnabledMixer;
     NSUInteger _mixerSection;
     NSUInteger _scrubberSection;
+    JWEffectNodeTypes _currentSelectedEffectType;
 }
+
 @property (strong, nonatomic) NSMutableArray *playerNodeList;
+@property (strong, nonatomic) NSMutableDictionary *playerNodeSelected;
+
 @end
 
 
@@ -39,6 +44,7 @@
     
     _sectionEnabledScrubber = YES;
     _sectionEnabledMixer = YES;
+    _currentSelectedEffectType = 20;
     self.clearsSelectionOnViewWillAppear = NO;  // preserve selection between presentations.
     
     CGRect fr = self.tableView.tableHeaderView.frame;
@@ -67,16 +73,20 @@
 
 -(void)refresh {
     
-    [self getPlayerNodeListFromHandler];
+    [self getTableViewDataSource];
     
     [self.tableView reloadData];
 }
 
 
--(void)getPlayerNodeListFromHandler
+-(void)getTableViewDataSource
 {
+    
     self.playerNodeList = [self.effectsHandler configPlayerNodeList];
+    self.playerNodeSelected = self.playerNodeList[_selectedNodeIndex];
+    
 }
+
 
 #pragma mark -
 
@@ -151,8 +161,9 @@
 -(JWEffectNodeTypes)effectNodeTypeForNodeAtIndex:(NSUInteger)index effectIndex:(NSUInteger)eIndex {
     
     JWEffectNodeTypes result;
-    NSArray * effects = [self effectsForNodeAtIndex:index];
-    if ([effects count] > index) {
+    NSArray * effects = self.playerNodeSelected[@"effects"];
+    //TODO: replaced index with zero?
+    if ([effects count] > 0) {
         id typeValue = effects[eIndex][@"type"];
         if (typeValue)
             result = [typeValue unsignedIntegerValue];
@@ -163,8 +174,9 @@
 -(NSString *)effectTitleForNodeAtIndex:(NSUInteger)index effectIndex:(NSUInteger)eIndex {
     
     NSString * result;
-    NSArray * effects = [self effectsForNodeAtIndex:index];
-    if ([effects count] > index) {
+    NSArray * effects = self.playerNodeSelected[@"effects"];
+    //TODO: replaced index with zero?
+    if ([effects count] > 0) {
         id titleValue = effects[eIndex][@"title"];
         if (titleValue)
             result = titleValue;
@@ -188,8 +200,8 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     
-    NSInteger count = [_playerNodeList count];
-    count = 1;  // SELECTED
+    //NSInteger count = [_playerNodeList count];
+    NSInteger count = 1;  // SELECTED
     
     // mixer node and scrubber controller row
     
@@ -205,6 +217,71 @@
     
     return count;
 }
+
+#define NEW_TABLEVIEW_MODEL
+#ifdef NEW_TABLEVIEW_MODEL
+
+/* 
+ Data source is the actual player node so can refer to it directly when creating
+    number of rows
+ keys: player, effectnodes, title, trackid, audiofile, type, audiobuffer, fileURLString
+ 
+ MixerSection = 1 if enabled and ScrubberSection = 2 if enabled
+ 
+ */
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    
+    //JWMixerNodeTypes playerNodeType = [self.playerNodeSelected[@"type"] integerValue];
+    NSDictionary *effectNodes = self.playerNodeSelected[@"effectnodes"];
+    NSUInteger effectNodesCount = effectNodes.count;
+    
+    NSUInteger count = 0;
+    NSUInteger playerNodeSection = 0;
+    NSUInteger bottomSections = 0;
+
+    if (_sectionEnabledMixer)
+    bottomSections++;
+    if (_sectionEnabledScrubber)
+    bottomSections++;
+    
+    if (bottomSections > 0  && section > playerNodeSection) {
+       
+        if (_mixerSection > 0 && section == _mixerSection) {
+            count = 2;
+        }
+        if (_scrubberSection > 0 && section == _scrubberSection) {
+            count = 1;
+        }
+    } else {
+        
+        count = [self numberOfBaseRowsForNode] + effectNodesCount;
+        
+//        if (playerNodeType == JWMixerNodeTypePlayer) {
+//            count = baseCount + effectNodesCount;
+//            
+//        } else if (playerNodeType == JWMixerNodeTypePlayerRecorder) {
+//            
+//            id fileURL = self.playerNodeSelected[@"fileURLString"];
+//            if (fileURL) {
+//                count = baseCount + effectNodesCount;
+//            } else {
+//                count = 1;
+//            }
+//        } else {
+//            count = 1;
+//        }
+    }
+
+    
+    
+    return count;
+    
+}
+
+#else
+
+
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
@@ -266,14 +343,18 @@
 }
 
 
--(NSUInteger)numberOfBaseRowsForNodeAtIndex:(NSUInteger)index
+
+#endif
+
+
+-(NSUInteger)numberOfBaseRowsForNode
 {
     NSUInteger nBaseRowsForNode = 0;
-    JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+    JWMixerNodeTypes nodeType = [self.playerNodeSelected[@"type"] integerValue];
     if (nodeType == JWMixerNodeTypePlayer) {
         nBaseRowsForNode = 2; // 2 primary cells volume and pan
     } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
-        id fileURL = [self playerNodeFileURLAtIndex:index];
+        id fileURL = self.playerNodeSelected[@"fileURLString"];
         if (fileURL) {
             nBaseRowsForNode = 2; // 2 primary cells volume and pan two for player,
             nBaseRowsForNode++; //one for recorder
@@ -311,7 +392,7 @@
     
     [sliderCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
     
-    JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
+    //JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
     
     // First section beyond mixNodeCount
     
@@ -360,7 +441,7 @@
     
     cell = sliderCell;
     
-    cell.backgroundView = cback;
+    //cell.backgroundView = cback;
     
     return cell;
     
@@ -376,12 +457,12 @@
     NSUInteger nodeSection = indexPath.section;
     nodeSection = _selectedNodeIndex;
 
-    NSUInteger nBaseRowsForNode = [self numberOfBaseRowsForNodeAtIndex:nodeSection];
-    JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:nodeSection];
+    NSUInteger nBaseRowsForNode = [self numberOfBaseRowsForNode];
+    JWMixerNodeTypes nodeType = [self.playerNodeSelected[@"type"] integerValue];
     
     // within BASE ROWS
     
-    JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
+    //JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
     
     if (indexPath.row < nBaseRowsForNode) {
         
@@ -408,7 +489,7 @@
 
                 
                 [sliderCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
-                [sliderCell.slider addTarget:cback action:@selector(adjustGOffsetVolume:) forControlEvents:UIControlEventValueChanged];
+                //[sliderCell.slider addTarget:cback action:@selector(adjustGOffsetVolume:) forControlEvents:UIControlEventValueChanged];
                 //[sliderCell.slider addTarget:cback action:@selector(sliderDidFinish:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside];
                 
                 sliderCell.sliderLabel.text = @"volume";
@@ -531,7 +612,7 @@
         cell = [self tableView:tableView effectCellForRowAtIndexPath:indexPath baseRowForNodes:nBaseRowsForNode];
     }
     
-    cell.backgroundView = cback;
+    //cell.backgroundView = cback;
 
     return cell;
 }
@@ -550,8 +631,8 @@
     NSUInteger nodeSection = indexPath.section;
     nodeSection = _selectedNodeIndex;
     
-    JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
-    
+    //JWCustomCellBackground *cback = [[JWCustomCellBackground alloc] init];
+    //TODO: could just use playernodeselected dictionary?
     id <JWEffectsModifyingProtocol> node = [_effectsHandler effectNodeAtIndex:arrayIndex forPlayerNodeAtIndex:nodeSection];
     
     if (node) {
@@ -693,7 +774,7 @@
         
     }
     
-    cell.backgroundView = cback;
+    //cell.backgroundView = cback;
     
     return cell;
     
@@ -734,7 +815,7 @@
         
     }
     
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.selectionStyle = UITableViewCellSelectionStyleGray;//UITableViewCellSelectionStyleNone;
     
     if (![cell.selectedBackgroundView isKindOfClass:[JWCustomCellBackground class]]) {
         cell.selectedBackgroundView = [[JWCustomCellBackground alloc] init];
@@ -772,7 +853,7 @@
         
         // player Section
         
-        NSUInteger nBaseRowsForNode = [self numberOfBaseRowsForNodeAtIndex:indexPath.section];
+        NSUInteger nBaseRowsForNode = [self numberOfBaseRowsForNode];
         NSUInteger arrayIndex = indexPath.row - nBaseRowsForNode; // -2 the first cells for player
 
         if (indexPath.row < nBaseRowsForNode) {
@@ -879,6 +960,53 @@
     // Return NO if you do not want the item to be re-orderable.
     return NO;
 }
+
+
+#pragma mark - Prepare for Segue
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
+    NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
+    _currentSelectedEffectType = [self effectNodeTypeForNodeAtIndex:selected.section effectIndex:selected.row - [self numberOfBaseRowsForNode]];
+    
+    JWEffectPresetsTableViewController *prvc = [segue destinationViewController];
+    
+    if ([segue.identifier isEqualToString:@"PresetSegue"]) {
+        if (_currentSelectedEffectType == JWEffectNodeTypeEQ) {
+            
+        } else if (_currentSelectedEffectType == JWEffectNodeTypeReverb) {
+            
+            NSArray *stringReverbPresets = [_effectsHandler stringRepresentedReverbPreset];
+            [prvc setSystemDefinedpresets:stringReverbPresets];
+            
+        } else if (_currentSelectedEffectType == JWEffectNodeTypeDistortion) {
+            
+            NSArray *stringDistortionPresets = [_effectsHandler stringRepresentedDistortionPresets];
+            [prvc setSystemDefinedpresets:stringDistortionPresets];
+            
+        } else if (_currentSelectedEffectType == JWEffectNodeTypeDelay) {
+            
+            NSDictionary *usrp = self.playerNodeList[_selectedNodeIndex][@"userpresets"];
+            NSMutableArray *presetStrings = [[NSMutableArray alloc] init];
+            for (NSString *preset in usrp[@"presetname"]) {
+                [presetStrings addObject:preset];
+            }
+            
+            [prvc setUserDefinedPresets:presetStrings];
+            
+        }
+        
+        if (_currentSelectedEffectType == JWEffectNodeTypeDistortion || _currentSelectedEffectType == JWEffectNodeTypeReverb) {
+            NSArray *ef = self.playerNodeSelected[@"effects"];
+            if (ef.count > 0) {
+                NSDictionary *currentEF = ef[selected.row - [self numberOfBaseRowsForNode]];
+                [prvc setSelectedEffectIndex:[currentEF[@"factorypreset"] integerValue]];
+            }
+        }                
+        
+    }
+}
+
 
 
 @end

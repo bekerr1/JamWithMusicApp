@@ -18,6 +18,9 @@
 -(id <JWEffectsModifyingProtocol> )mixerNodeAtIndex:(NSUInteger)pindex;
 -(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex;
 -(NSMutableArray *)configPlayerNodeList;
+-(NSArray *)stringRepresentedReverbPreset;
+-(NSArray *)stringRepresentedDistortionPresets;
+-(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(id)et withPresetName:(NSString *)preset;
 @end
 
 typedef NS_ENUM(NSUInteger, JWCurrentEffect) {

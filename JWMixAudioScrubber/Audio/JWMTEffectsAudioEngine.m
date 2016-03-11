@@ -17,10 +17,19 @@
 @interface JWMTEffectsAudioEngine() <JWEffectsHandler>
 @property (strong, nonatomic) NSArray *effectnodesList; // an item for each player, another array stack of effects
 @property (strong, nonatomic) NSMutableArray *effectnodes; // holds objects AudioNodes
+//@property (nonatomic) NSMutableDictionary *userDelayPresets;
+//@property (nonatomic) NSMutableDictionary *userEQPresets;
 @end
 
 
 @implementation JWMTEffectsAudioEngine
+
+-(void)setEngineEffectsDelegate:(id<JWMTEffectsAudioEngineDelegate>)engineEffectsDelegate {
+
+    _engineEffectsDelegate = engineEffectsDelegate;
+    self.engineDelegate = engineEffectsDelegate;
+}
+
 
 -(void) setupAVEngine {
 
@@ -154,13 +163,11 @@
     return result;
 }
 
--(id <JWEffectsModifyingProtocol> )mixerNodeAtIndex:(NSUInteger)pindex
-{
+-(id <JWEffectsModifyingProtocol> )mixerNodeAtIndex:(NSUInteger)pindex {
     return [self.audioEngine mainMixerNode];
 }
 
--(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex
-{
+-(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex {
     id <JWEffectsModifyingProtocol> result;
     if (pindex < [self.playerNodeList count]) {
         NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
@@ -176,6 +183,54 @@
 
     return result;
 }
+
+-(NSArray *)stringRepresentedReverbPreset {
+    
+    NSArray *reverb = [NSArray arrayWithObjects:@"Small Room", @"Medium Room", @"Large Room", @"Medium Hall", @"Large Hall", @"Plate", @"Medium Chamber", @"Large Chamber", @"Cathedral", @"Large Room 2", @"Medium Hall 2", @"Medium Hall 3", @"Large Hall 2", nil];
+    
+    return reverb;
+}
+
+-(NSArray *)stringRepresentedDistortionPresets {
+    
+    NSArray *distortion = [NSArray arrayWithObjects:@"Drums Bit Brush", @"Drums Buffer Beats", @"Drums LoFi", @"Broken Speaker", @"Cellphone", @"Decimated 1", @"Decimated 2", @"Decimated 3", @"Decimated 4", @"Distorted Funk", @"Distorted^3", @"Distorted^2", @"Echo 1", @"Echo 2", @"Echo Tight 1", @"Echo Tight 2", @"Everything Is Broken", @"Alien Chatter", @"Cosmic Interface", @"Golden π", @"Radio Tower", @"Waves", nil];
+    
+    return distortion;
+    
+}
+
+#pragma mark - User defined presets (part of effects handler)
+
+
+-(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(JWEffectNodeTypes)et withPresetName:(NSString *)preset {
+    
+    NSDictionary *effectAtIndex = self.playerNodeList[selected][@"effects"][eff];
+    NSDictionary *userPreset = [[NSMutableDictionary alloc] init];
+    
+    if (et == JWEffectNodeTypeDelay) {
+        
+        NSUInteger feedback = [effectAtIndex[@"feedback"] integerValue];
+        NSUInteger delaytime = [effectAtIndex[@"delaytime"] integerValue];
+        NSUInteger lowpasscutoff = [effectAtIndex[@"lowpasscutoff"] integerValue];
+        
+        userPreset = [@{
+                        @"effecttype" : @(JWEffectNodeTypeDelay),
+                        @"feedback" : @(feedback), //from -100 to 100 percent
+                        @"delaytime" : @(delaytime), //from 0 to 2 seconds
+                        @"lowpasscutoff" : @(lowpasscutoff), //from 10 hz to sampleRate / 2
+                        @"presetname" : preset
+                        } copy];
+        
+    } else if (et == JWEffectNodeTypeEQ) {
+        
+        
+    }
+    
+    self.playerNodeList[selected][@"userpresets"] = userPreset;
+}
+
+
+
 
 
 #pragma mark -
@@ -202,8 +257,6 @@
         
         if ([effectNodes count] > 0) {
             
-            
-                
                 for (int j = 0; j < [effects count] - 1; j++) {
                     
                     JWEffectNodeTypes type = [effects[j][@"type"] unsignedIntegerValue];
@@ -235,14 +288,9 @@
                         default:
                             break;
                     }
-                
-                
             }
-            
-            
         }
     }
-    
     
 }
 
@@ -277,6 +325,7 @@
             }
         }
     }
+    
     
     [self makeEngineConnections];
     [self startEngine];
@@ -361,6 +410,7 @@
     NSTimeInterval delayTime = 0.0;
     float feedback = 0.0;
     float lpc = 0.0;
+    float wetdry = 0.0;
     
     id delayValue = params[@"delaytime"];
     if (delayValue)
@@ -373,11 +423,17 @@
     id lowpasscut = params[@"lowpasscutoff"];
     if (lowpasscut)
         lpc = [lowpasscut floatValue];
+
+    id wetdryValue = params[@"wetdry"];
+    if (wetdryValue)
+        wetdry = [wetdryValue floatValue];
+
     
     AVAudioUnitDelay *delay = [AVAudioUnitDelay new];
     delay.delayTime = delayTime;
     delay.feedback = feedback;
     delay.lowPassCutoff = lpc;
+    delay.wetDryMix = wetdry;
     
     return delay;
 }
@@ -430,7 +486,7 @@
     int trackIndex = 0;
     for (int i = 0; i < [self.playerNodeList count]; i++) {
         
-        NSMutableDictionary *dictAtPn = self.playerNodeList[i];
+        NSDictionary *dictAtPn = self.playerNodeList[i];
         NSString *trackID = dictAtPn[@"trackid"];
         
         if ([trackID isEqualToString:selectedTrackID]) {
@@ -439,7 +495,6 @@
         }
     }
     
-    //TODO: not sure if this is supposed to be mutable or not
     NSMutableDictionary *newEffect;
     
     switch (effect) {
@@ -460,7 +515,6 @@
                            @"delaytime" : @(1), //from 0 to 2 seconds
                            @"lowpasscutoff" : @(1500) //from 10 hz to sampleRate / 2
                            } mutableCopy];
-            
             break;
             
         case JWEffectNodeTypeDistortion:
@@ -470,8 +524,6 @@
                            @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
                            @"pregain" : @(0.0)
                            } mutableCopy];
-
-            
             break;
             
         case JWEffectNodeTypeEQ:
@@ -494,10 +546,18 @@
         self.playerNodeList[trackIndex][@"effects"] = effectsArray;
     }
     
+    // Either a new effects array was created or an effect was added to existing Array
+    // Either pass up the entire array
+    
+    if ([_engineEffectsDelegate respondsToSelector:@selector(effectsChanged:inNodeAtIndex:)])
+        [_engineEffectsDelegate effectsChanged:effectsArray inNodeAtIndex:trackIndex];
+
+    
     [self refreshEngineForEffectsNodeChanges];
     
     return YES;
 }
+
 
 
 #pragma mark -
