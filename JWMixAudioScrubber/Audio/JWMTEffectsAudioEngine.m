@@ -559,33 +559,6 @@
 }
 
 
-
-#pragma mark -
-
--(NSString*)documentsDirectoryPath {
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    return [searchPaths objectAtIndex:0];
-}
-
--(void)saveUserOrderedList {
-    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"mixereffects.dat"];
-    [_effectnodesList writeToURL:[NSURL fileURLWithPath:fpath] atomically:YES];
-    
-    NSLog(@"\n%s\nmixereffects.dat\n%@",__func__,[_effectnodesList description]);
-}
-
-// joe: is not mutable
--(NSArray *)readUserOrderedList {
-    NSString *fpath = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"mixereffects.dat"];
-//    NSMutableArray* effectsNodeList = [[NSMutableArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-    // joe: is not mutable
-    NSArray* effectsNodeList = [[NSArray alloc] initWithContentsOfURL:[NSURL fileURLWithPath:fpath]];
-    
-    NSLog(@"\n%s\nmixereffects.dat\n%@",__func__,[effectsNodeList description]);
-    return effectsNodeList;
-}
-
-
 @end
 
 
