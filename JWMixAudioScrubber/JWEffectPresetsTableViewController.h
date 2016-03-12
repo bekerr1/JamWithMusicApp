@@ -23,6 +23,6 @@
 
 @protocol JWPresetProtocol <NSObject>
 
--(void)previewSelectedPresetAtIndex:(NSInteger)enumValue;
+-(void)previewSelectedPresetAtIndex:(NSInteger)enumValue withStringName:(NSString *)preset;
 
 @end

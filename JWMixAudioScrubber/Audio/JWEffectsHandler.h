@@ -20,7 +20,8 @@
 -(NSMutableArray *)configPlayerNodeList;
 -(NSArray *)stringRepresentedReverbPreset;
 -(NSArray *)stringRepresentedDistortionPresets;
--(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(id)et withPresetName:(NSString *)preset;
+-(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(NSUInteger)et withPresetName:(NSString *)preset;
+-(NSString *)stringPresetForEffectWithNode:(NSInteger)node effectAt:(NSInteger)effect;
 @end
 
 typedef NS_ENUM(NSUInteger, JWCurrentEffect) {

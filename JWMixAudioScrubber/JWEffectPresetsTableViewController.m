@@ -82,7 +82,7 @@
     _selectedPresetIndex = indexPath.row;
     [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
     
-    [_delegate previewSelectedPresetAtIndex:_selectedPresetIndex];
+    [_delegate previewSelectedPresetAtIndex:_selectedPresetIndex withStringName:self.systemDefinedpresets[_selectedPresetIndex]];
     
 }
 

@@ -17,4 +17,6 @@
 @property (strong, nonatomic) IBOutlet UILabel *parameterLabel3;
 @property (strong, nonatomic) IBOutlet UILabel *nodeTitleLabel;
 @property (weak, nonatomic) IBOutlet UISwitch *switchControl;
+@property (weak, nonatomic) IBOutlet UILabel *effectsPresetLabel;
+
 @end
