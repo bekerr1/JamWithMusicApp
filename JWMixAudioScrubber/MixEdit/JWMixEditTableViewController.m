@@ -28,6 +28,7 @@
     NSUInteger _scrubberSection;
     JWEffectNodeTypes _currentSelectedEffectType;
     NSUInteger _lastSelectedEffectRow;
+    NSIndexPath* _selectedIndexPath;
 }
 
 @property (strong, nonatomic) NSMutableArray *playerNodeList;
@@ -641,38 +642,35 @@
         NSString *effectTitle = [self effectTitleForNodeAtIndex:indexPath.section effectIndex:arrayIndex];
         
         JWEffectNodeTypes effectKind = [self effectNodeTypeForNodeAtIndex:indexPath.section effectIndex:arrayIndex];
+        
+        JWEffectParametersTableViewCell *paramCell =
+        [tableView dequeueReusableCellWithIdentifier:@"JWEffectParametersCell" forIndexPath:indexPath];
 
         if (effectKind == JWEffectNodeTypeReverb) {
             
-            JWSliderAndSwitchTableViewCell *sliderAndSwitchCell =
-            [tableView dequeueReusableCellWithIdentifier:@"JWSliderAndSwitchCell" forIndexPath:indexPath];
-            
-            // Slider
-            [sliderAndSwitchCell.slider removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
-            sliderAndSwitchCell.slider.minimumValue = 0;
-            sliderAndSwitchCell.slider.maximumValue = 100;  // wet dry is percent 0 to 100
-            sliderAndSwitchCell.slider.value = [node floatValue1];
-
-            [sliderAndSwitchCell.slider addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
+            //Slider One
+            paramCell.parameterLabel1.text = @"Wet/Dry";
+            [paramCell.effectParameter1 removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
+            paramCell.effectParameter1.minimumValue = 0;
+            paramCell.effectParameter1.maximumValue = 100;  // wet dry is percent 0 to 100
+            paramCell.effectParameter1.value = [node floatValue1];
+            [paramCell.effectParameter1 addTarget:node action:@selector(adjustFloatValue1WithSlider:) forControlEvents:UIControlEventValueChanged];
 
             // Switch
-            [sliderAndSwitchCell.switchControl removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
-
-            sliderAndSwitchCell.switchControl.on = [node boolValue1];
+            [paramCell.switchControl removeTarget:nil action:nil forControlEvents:UIControlEventValueChanged];
+            paramCell.switchControl.on = [node boolValue1];
+            [paramCell.switchControl addTarget:node action:@selector(adjustBoolValue1WithSwitch:) forControlEvents:UIControlEventValueChanged];
             
-            [sliderAndSwitchCell.switchControl addTarget:node action:@selector(adjustBoolValue1WithSwitch:) forControlEvents:UIControlEventValueChanged];
-
-            // Name and titles
-            sliderAndSwitchCell.sliderLabel.text = @"Wet/Dry";
-            sliderAndSwitchCell.nodeTitleLabel.text = effectTitle;
+            paramCell.nodeTitleLabel.text = effectTitle;
             
-            cell = sliderAndSwitchCell;
+            paramCell.parameterLabel2.hidden = YES;
+            paramCell.effectParameter2.hidden = YES;
+            paramCell.parameterLabel3.hidden = YES;
+            paramCell.effectParameter3.hidden = YES;
+            
             
         } else if (effectKind == JWEffectNodeTypeDistortion) {
             
-            
-            JWEffectParametersTableViewCell *paramCell =
-            [tableView dequeueReusableCellWithIdentifier:@"JWEffectParametersCell" forIndexPath:indexPath];
             
             // Slider 1
             paramCell.parameterLabel1.text = @"Wet/Dry";
@@ -705,12 +703,8 @@
             // Name and title
             paramCell.nodeTitleLabel.text = effectTitle;
             
-            cell = paramCell;
             
         } else if (effectKind == JWEffectNodeTypeDelay) {
-            
-            JWEffectParametersTableViewCell *paramCell =
-            [tableView dequeueReusableCellWithIdentifier:@"JWEffectParametersCell" forIndexPath:indexPath];
             
             
             // Slider 1
@@ -749,15 +743,9 @@
             // Name and title
             paramCell.nodeTitleLabel.text = effectTitle;
             
-            cell = paramCell;
-            
             
         } else if (effectKind == JWEffectNodeTypeEQ) {
             
-            id <JWEffectsModifyingProtocol> node = [_effectsHandler effectNodeAtIndex:arrayIndex forPlayerNodeAtIndex:nodeSection];
-            
-            JWEffectParametersTableViewCell *paramCell =
-            [tableView dequeueReusableCellWithIdentifier:@"JWEffectParametersCell" forIndexPath:indexPath];
             
             // Slider 1
             paramCell.parameterLabel1.text = @"parm1";
@@ -786,7 +774,7 @@
             
             paramCell.nodeTitleLabel.text = effectTitle;
             
-            cell = paramCell;
+            
         } else {
             
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NoCell"];
@@ -794,10 +782,12 @@
             NSLog(@"No effect Found. %s", __func__);
         }
         
+        paramCell.effectsPresetLabel.text = [_effectsHandler stringPresetForEffectWithNode:nodeSection effectAt:arrayIndex];
+        cell = paramCell;
         
     }
     
-    //cell.backgroundView = cback;
+    
     
     return cell;
     
@@ -885,13 +875,13 @@
             
             JWEffectNodeTypes effectKind = [self effectNodeTypeForNodeAtIndex:indexPath.section effectIndex:arrayIndex];
             if (effectKind == JWEffectNodeTypeReverb) {
-                return 90.0f;  // effects
+                return 120.0f;  // effects
             } else if (effectKind == JWEffectNodeTypeDelay) {
-                return 200.0f;  // effects
+                return 280.0f;  // effects
             } else if (effectKind == JWEffectNodeTypeDistortion) {
                 return 160.0f;  // effects
             } else if (effectKind == JWEffectNodeTypeEQ) {
-                return 200.0f;  // effects
+                return 280.0f;  // effects
             }
         }
     }
@@ -989,9 +979,9 @@
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     
-    NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
-    _lastSelectedEffectRow = selected.row - [self numberOfBaseRowsForNode];
-    _currentSelectedEffectType = [self effectNodeTypeForNodeAtIndex:selected.section effectIndex:_lastSelectedEffectRow];
+    _selectedIndexPath = [self.tableView indexPathForSelectedRow];
+    _lastSelectedEffectRow = _selectedIndexPath.row - [self numberOfBaseRowsForNode];
+    _currentSelectedEffectType = [self effectNodeTypeForNodeAtIndex:_selectedIndexPath.section effectIndex:_lastSelectedEffectRow];
     
     
     JWEffectPresetsTableViewController *prvc = [segue destinationViewController];
@@ -1019,7 +1009,7 @@
         if (_currentSelectedEffectType == JWEffectNodeTypeDistortion || _currentSelectedEffectType == JWEffectNodeTypeReverb) {
             NSArray *ef = self.playerNodeSelected[@"effects"];
             if (ef.count > 0) {
-                NSDictionary *currentEF = ef[selected.row - [self numberOfBaseRowsForNode]];
+                NSDictionary *currentEF = ef[_selectedIndexPath.row - [self numberOfBaseRowsForNode]];
                 [prvc setSelectedPresetIndex:[currentEF[@"factorypreset"] integerValue]];
             }
         }
@@ -1029,9 +1019,12 @@
 
 #pragma mark - Preset Protocol
 
--(void)previewSelectedPresetAtIndex:(NSInteger)enumValue {
+-(void)previewSelectedPresetAtIndex:(NSInteger)enumValue withStringName:(NSString *)preset {
     
     [_delegateMixEdit previewSelectedPresetAtIndex:enumValue effectAtIndex:_lastSelectedEffectRow playerNodeIndex:_selectedNodeIndex];
+    
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:_selectedIndexPath];
+    [(JWEffectParametersTableViewCell *)cell effectsPresetLabel].text = preset;
 }
 
 

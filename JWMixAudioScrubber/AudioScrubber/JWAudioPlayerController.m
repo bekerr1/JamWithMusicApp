@@ -1551,7 +1551,9 @@ JWMixEditDelegate
     
     if ([effectNode isKindOfClass:[AVAudioUnitReverb class]]) {
         AVAudioUnitReverb *reverb = (AVAudioUnitReverb *)effectNode;
+        float wetdry = reverb.wetDryMix;
         [reverb loadFactoryPreset:enumValue];
+        reverb.wetDryMix = wetdry;
         
     } else if ([effectNode isKindOfClass:[AVAudioUnitDelay class]]) {
         //doesnt have load factory preset but will soon have "load user preset" so should be
@@ -1559,7 +1561,11 @@ JWMixEditDelegate
 // UNUSED        AVAudioUnitDelay *delay = (AVAudioUnitDelay *)effectNode;
     } else if ([effectNode isKindOfClass:[AVAudioUnitDistortion class]]) {
         AVAudioUnitDistortion *distortion = (AVAudioUnitDistortion *)effectNode;
+        float wetdry = distortion.wetDryMix;
+        float pregain = distortion.preGain;
         [distortion loadFactoryPreset:enumValue];
+        distortion.wetDryMix = wetdry;
+        distortion.preGain = pregain;
         
     } else if ([effectNode isKindOfClass:[AVAudioUnitEQ class]]) {
         //doesnt have load factory preset but will soon have "load user preset" so should be

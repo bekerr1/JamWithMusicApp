@@ -202,7 +202,7 @@
 #pragma mark - User defined presets (part of effects handler)
 
 
--(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(JWEffectNodeTypes)et withPresetName:(NSString *)preset {
+-(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(NSUInteger)et withPresetName:(NSString *)preset {
     
     NSDictionary *effectAtIndex = self.playerNodeList[selected][@"effects"][eff];
     NSDictionary *userPreset = [[NSMutableDictionary alloc] init];
@@ -227,6 +227,29 @@
     }
     
     self.playerNodeList[selected][@"userpresets"] = userPreset;
+}
+
+
+-(NSString *)stringPresetForEffectWithNode:(NSInteger)node effectAt:(NSInteger)effect {
+    
+    NSDictionary *effectAt = self.playerNodeList[node][@"effects"][effect];
+    JWEffectNodeTypes effectType = [effectAt[@"type"] integerValue];
+    
+    
+    if (effectType == JWEffectNodeTypeReverb) {
+        AVAudioUnitReverbPreset factory = [effectAt[@"factorypreset"] integerValue];
+        return [self stringRepresentedReverbPreset][factory];
+        
+    } else if (effectType == JWEffectNodeTypeDistortion) {
+        AVAudioUnitDistortionPreset factory = [effectAt[@"factorypreset"] integerValue];
+        return [self stringRepresentedDistortionPresets][factory];
+        
+    } else if (effectType == JWEffectNodeTypeDelay) {
+        return @"No Presets Set";
+    } else if (effectType == JWEffectNodeTypeEQ) {
+        return @"No Presets Set";
+    }
+    return @"";
 }
 
 
