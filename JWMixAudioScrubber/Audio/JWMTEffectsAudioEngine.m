@@ -137,7 +137,6 @@
 }
 
 
-
 -(id <JWEffectsModifyingProtocol> )effectNodeAtIndex:(NSUInteger)eindex forPlayerNodeAtIndex:(NSUInteger)pindex {
     
     id <JWEffectsModifyingProtocol> result = nil;
@@ -201,7 +200,6 @@
 
 #pragma mark - User defined presets (part of effects handler)
 
-
 -(void)addUserDefinedPresetAtIndex:(NSUInteger)eff selectedTrack:(NSUInteger)selected forEffectType:(NSUInteger)et withPresetName:(NSString *)preset {
     
     NSDictionary *effectAtIndex = self.playerNodeList[selected][@"effects"][eff];
@@ -229,7 +227,6 @@
     self.playerNodeList[selected][@"userpresets"] = userPreset;
 }
 
-
 -(NSString *)stringPresetForEffectWithNode:(NSInteger)node effectAt:(NSInteger)effect {
     
     NSDictionary *effectAt = self.playerNodeList[node][@"effects"][effect];
@@ -253,9 +250,6 @@
 }
 
 
-
-
-
 #pragma mark -
 
 //@"title" : @"Delay",
@@ -275,6 +269,9 @@
     
     for (int i = 0; i < [self.playerNodeList count]; i++) {
         
+        // For every player node obtain the Effects array and EffectNodes array
+        // Set the values in the Effects array to the values read from the corresponding EffectNodes
+        
         NSArray *effectNodes = self.playerNodeList[i][@"effectnodes"];
         NSMutableArray *effects = self.playerNodeList[i][@"effects"];
         
@@ -287,6 +284,7 @@
                         case JWEffectNodeTypeReverb:
                             
                             effects[j][@"wetdry"] = @([effectNodes[j] floatValue1]);
+                            effects[j][@"bypass"] = @([effectNodes[j] boolValue1]);
                             break;
                             
                         case JWEffectNodeTypeDelay:
@@ -294,14 +292,15 @@
                             effects[j][@"wetdry"] = @([effectNodes[j] floatValue1]);
                             effects[j][@"feedback"] = @([effectNodes[j] floatValue2]);
                             effects[j][@"lowpasscutoff"] = @([effectNodes[j] floatValue3]);
-                            
+                            effects[j][@"delaytime"] = @([effectNodes[j] timeInterval1]);
+                            effects[j][@"bypass"] = @([effectNodes[j] boolValue1]);
                             break;
                             
                         case JWEffectNodeTypeDistortion:
                             
                             effects[j][@"wetdry"] = @([effectNodes[j] floatValue1]);
                             effects[j][@"pregain"] = @([effectNodes[j] floatValue2]);
-                            
+                            effects[j][@"bypass"] = @([effectNodes[j] boolValue1]);
                             break;
                             
                         case JWEffectNodeTypeEQ:
@@ -316,8 +315,6 @@
     }
     
 }
-
-
 
 -(void)refreshEngineForEffectsNodeChanges {
 
@@ -353,7 +350,6 @@
     [self makeEngineConnections];
     [self startEngine];
 }
-
 
 
 //Dont think this needs to be called from refresh, since the array is set directly
@@ -405,35 +401,41 @@
 
 
 -(AVAudioUnitReverb *)reverbEffectWith:(NSDictionary *)params {
+
     NSLog(@"%s Effect Created. %@", __func__, [params description]);
-    
     
     AVAudioUnitReverb *reverb = [AVAudioUnitReverb new];
     
-    id value = params[@"factorypreset"];
-    if (value) {
-        
-        AVAudioUnitReverbPreset factoryPreset = [params[@"factorypreset"] integerValue];
+    id presetValue = params[@"factorypreset"];
+    if (presetValue) {
+        AVAudioUnitReverbPreset factoryPreset = [presetValue integerValue];
         [reverb loadFactoryPreset:factoryPreset];
-        
-        
-    }
-    float wetDry = [params[@"wetdry"] floatValue];
-    if (wetDry) {
-        [reverb setWetDryMix:wetDry];
     }
     
+    id wetdryValue = params[@"wetdry"];
+    if (wetdryValue) {
+        [reverb setWetDryMix:[wetdryValue floatValue]];
+    } else {
+        [reverb setWetDryMix:0.10];  // just a little
+    }
+
+    id bypassValue = params[@"bypass"];
+    if (bypassValue) {
+        reverb.bypass = [bypassValue boolValue];
+    }
     
     return reverb;
 }
 
 -(AVAudioUnitDelay *)delayEffectWith:(NSDictionary *)params {
+    
     NSLog(@"%s Effect Created. %@", __func__, [params description]);
     
-    NSTimeInterval delayTime = 0.0;
+    NSTimeInterval delayTime = 1.0;
     float feedback = 0.0;
     float lpc = 0.0;
-    float wetdry = 0.0;
+    float wetdry = 0.10; // just a little
+    BOOL bypass = NO;
     
     id delayValue = params[@"delaytime"];
     if (delayValue)
@@ -451,39 +453,51 @@
     if (wetdryValue)
         wetdry = [wetdryValue floatValue];
 
+    id bypassValue = params[@"bypass"];
+    if (bypassValue)
+        bypass = [bypassValue floatValue];
+
     
     AVAudioUnitDelay *delay = [AVAudioUnitDelay new];
     delay.delayTime = delayTime;
     delay.feedback = feedback;
     delay.lowPassCutoff = lpc;
     delay.wetDryMix = wetdry;
+    delay.bypass = bypass;
     
     return delay;
 }
 
 -(AVAudioUnitDistortion *)distortionEffectWith:(NSDictionary *)params {
-//   NSLog(@"%s Effect Created. %@", __func__, [params description]);
+ 
+    NSLog(@"%s Effect Created. %@", __func__, [params description]);
     
     AVAudioUnitDistortion *distortion = [AVAudioUnitDistortion new];
     
-    float preGain = 0.0;
-    
-    id value = params[@"factorypreset"];
-    if (value) {
-        AVAudioUnitDistortionPreset factoryPreset = [value integerValue];
+    id presetValue = params[@"factorypreset"];
+    if (presetValue) {
+        AVAudioUnitDistortionPreset factoryPreset = [presetValue integerValue];
         [distortion loadFactoryPreset:factoryPreset];
     }
     
-    id gain = params[@"pregain"];
-    if (gain)
-        preGain = [gain floatValue];
+    id pregainValue = params[@"pregain"];
+    if (pregainValue) {
+        distortion.preGain = [pregainValue floatValue];
+    } else {
+        distortion.preGain = 0.10f; // just a little
+    }
     
     id wetDry = params[@"wetdry"];
     if (wetDry) {
         [distortion setWetDryMix:[wetDry floatValue]];
+    } else {
+        [distortion setWetDryMix:0.10f]; // just a little
     }
     
-    distortion.preGain = preGain;
+    id bypassValue = params[@"bypass"];
+    if (bypassValue)
+        distortion.bypass = [bypassValue boolValue];
+    
     
     return distortion;
     
@@ -547,12 +561,13 @@
                            @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
                            @"pregain" : @(0.0)
                            } mutableCopy];
+            
+
             break;
             
         case JWEffectNodeTypeEQ:
             
             break;
-            
             
         default:
             break;
@@ -560,6 +575,7 @@
     
     newEffect[@"type"] = @(effect); //JWEffectType
     newEffect[@"wetdry"] = @(100); //from 0 to 100 percent
+    newEffect[@"bypass"] = @(NO);
     
     NSMutableArray *effectsArray = self.playerNodeList[trackIndex][@"effects"];
     if (effectsArray) {
@@ -573,7 +589,7 @@
     // Either pass up the entire array
     
     if ([_engineEffectsDelegate respondsToSelector:@selector(effectsChanged:inNodeAtIndex:)])
-        [_engineEffectsDelegate effectsChanged:effectsArray inNodeAtIndex:trackIndex];
+        [_engineEffectsDelegate effectsChanged:[NSArray arrayWithArray:effectsArray] inNodeAtIndex:trackIndex];
 
     
     [self refreshEngineForEffectsNodeChanges];

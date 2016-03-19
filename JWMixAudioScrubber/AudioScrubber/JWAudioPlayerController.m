@@ -392,40 +392,48 @@ JWMixEditDelegate
                     id effectsModify = [_audioEngine effectNodeAtIndex:edex forPlayerNodeAtIndex:index];
                     if (effectsModify) {
                         if (effectKind == JWEffectNodeTypeReverb) {
-                            
-                            // TODO: obtain correct factory preset
-                            
+
                             anEffect = [@{@"title" : @"Reverb",
-                                          @"factorypreset" : @(AVAudioUnitReverbPresetMediumHall)
                                           } mutableCopy];
                             
                             anEffect[@"type"] = @(effectKind); //JWEffectType
                             anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
+                            anEffect[@"bypass"] = @([effectsModify boolValue1]);
+
+                            // Get the factory preset from the config not the node
+                            id configFactoryPreset = effects[edex][@"factorypreset"];
+                            if (configFactoryPreset) {
+                                anEffect[@"factorypreset"] = @([configFactoryPreset integerValue]);
+                            }
+
                             
                         } else if (effectKind == JWEffectNodeTypeDistortion) {
                             
-                            // TODO: obtain correct factory preset
-
                             anEffect = [@{@"title" : @"Distortion",
-                                          @"factorypreset" : @(AVAudioUnitDistortionPresetDrumsBitBrush),
                                           } mutableCopy];
                             
                             anEffect[@"type"] = @(effectKind); //JWEffectType
                             anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
-                            anEffect[@"pregain"] = @([effectsModify floatValue1]);
+                            anEffect[@"pregain"] = @([effectsModify floatValue2]);
+                            anEffect[@"bypass"] = @([effectsModify boolValue1]);
+
+                            // Get the factory preset from the config not the node
+                            id configFactoryPreset = effects[edex][@"factorypreset"];
+                            if (configFactoryPreset) {
+                                anEffect[@"factorypreset"] = @([configFactoryPreset integerValue]);
+                            }
 
                         } else if (effectKind == JWEffectNodeTypeDelay) {
                             
-                            // TODO: obtain correct factory preset
-                            
                             anEffect = [@{@"title" : @"Delay",
-                                          @"delaytime" : @(1), //from 0 to 2 seconds
                                           } mutableCopy];
                             
                             anEffect[@"type"] = @(effectKind); //JWEffectType
                             anEffect[@"wetdry"] = @([effectsModify floatValue1]); //from 0 to 100 percent
                             anEffect[@"feedback"] = @([effectsModify floatValue2]);
                             anEffect[@"lowpasscutoff"] = @([effectsModify floatValue3]);
+                            anEffect[@"delaytime"] = @([effectsModify timeInterval1]);
+                            anEffect[@"bypass"] = @([effectsModify boolValue1]);
                             
                         } else if (effectKind == JWEffectNodeTypeEQ) {
                             
@@ -1575,6 +1583,9 @@ JWMixEditDelegate
     
     pnl[pn][@"effects"][effect][@"factorypreset"] = @(enumValue);
     
+    
+    [self effectsChanged:[NSArray arrayWithArray:pnl[pn][@"effects"]] inNodeAtIndex:pn];
+
     
     //[self previewPreset];
 }
