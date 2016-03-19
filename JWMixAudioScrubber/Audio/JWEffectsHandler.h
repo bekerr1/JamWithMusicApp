@@ -2,7 +2,7 @@
 //  EffectsHandler.h
 //  JamWIthT
 //
-//  Created by brendan kerr on 11/2/15.
+//  co-created by joe and brendan kerr on 11/2/15.
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 

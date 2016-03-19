@@ -2,7 +2,7 @@
 //  JWJamMP3TableViewController.m
 //  JamWIthT
 //
-//  Created by brendan kerr on 10/3/15.
+//  co-created by joe and brendan kerr on 10/3/15.
 //  Copyright (c) 2015 JOSEPH KERR. All rights reserved.
 //
 

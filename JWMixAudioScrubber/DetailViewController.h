@@ -2,7 +2,7 @@
 //  DetailViewController.h
 //  JWAudioScrubber
 //
-//  Created by brendan kerr on 12/25/15.
+//  co-created by joe and brendan kerr on 12/25/15.
 //  Copyright © 2015 b3k3r. All rights reserved.
 //
 

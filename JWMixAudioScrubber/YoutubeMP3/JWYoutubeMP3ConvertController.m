@@ -2,7 +2,7 @@
 //  JWYoutubeMP3ConvertController.m
 //  JamWIthT
 //
-//  Created by JOSEPH KERR on 10/21/15.
+//  co-created by joe and brendan kerr on 10/21/15.
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 

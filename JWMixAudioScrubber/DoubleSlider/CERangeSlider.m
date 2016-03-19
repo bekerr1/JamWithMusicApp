@@ -2,7 +2,7 @@
 //  CERangeSlider.m
 //  DoubleSlider
 //
-//  Created by brendan kerr on 11/27/15.
+//  co-created by joe and brendan kerr on 11/27/15.
 //  Copyright © 2015 b3k3r. All rights reserved.
 //
 

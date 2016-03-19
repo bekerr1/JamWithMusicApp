@@ -2,7 +2,7 @@
 //  JWRecordJamViewController.h
 //  JamWithV1.0
 //
-//  Created by brendan kerr on 9/15/15.
+//  co-created by joe and brendan kerr on 9/15/15.
 //  Copyright (c) 2015 b3k3r. All rights reserved.
 //
 

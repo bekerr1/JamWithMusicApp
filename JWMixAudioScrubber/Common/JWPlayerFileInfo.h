@@ -2,7 +2,7 @@
 //  JWPlayerFileInfo.h
 //  JWAudio
 //
-//  Created by JOSEPH KERR on 11/20/15.
+//  co-created by joe and brendan kerr on 11/20/15.
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 

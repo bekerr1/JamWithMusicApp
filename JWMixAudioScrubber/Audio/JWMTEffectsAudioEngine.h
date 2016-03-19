@@ -2,7 +2,7 @@
 //  JWEffectsClipAudioEngine.h
 //  JamWIthT
 //
-//  Created by brendan kerr on 10/29/15.
+//  co-created by joe and brendan kerr on 10/29/15.
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 

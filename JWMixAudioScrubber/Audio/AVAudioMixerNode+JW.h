@@ -2,7 +2,7 @@
 //  AVAudioMixerNode+JW.h
 //  JamWIthT
 //
-//  Created by JOSEPH KERR on 11/11/15.
+//  co-created by joe and brendan kerr on 11/11/15.
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 

@@ -2,7 +2,7 @@
 //  JWSourceAudioListsViewController.m
 //  JWMixAudioScrubber
 //
-//  Created by JOSEPH KERR on 1/10/16.
+//  co-created by joe and brendan kerr on 1/10/16.
 //  Copyright © 2016 JOSEPH KERR. All rights reserved.
 //
 

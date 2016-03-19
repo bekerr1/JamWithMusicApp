@@ -2,7 +2,7 @@
 //  JWCameraViewController.h
 //  JWMixAudioScrubber
 //
-//  Created by brendan kerr on 1/11/16.
+//  co-created by joe and brendan kerr on 1/11/16.
 //  Copyright © 2016 JOSEPH KERR. All rights reserved.
 //
 

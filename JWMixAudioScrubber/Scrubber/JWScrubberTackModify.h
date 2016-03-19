@@ -2,7 +2,7 @@
 //  JWScrubberTackModify.h
 //  JamWDev
 //
-//  Created by JOSEPH KERR on 1/12/16.
+//  co-created by joe and brendan kerr on 1/12/16.
 //  Copyright © 2016 JOSEPH KERR. All rights reserved.
 //
 

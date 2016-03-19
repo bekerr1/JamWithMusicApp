@@ -2,7 +2,7 @@
 //  JWBufferSampler.m
 //  JamWIthT
 //
-//  Created by JOSEPH KERR on 9/27/15.
+//  co-created by joe and brendan kerr on 9/27/15.
 //  Copyright © 2015 JOSEPH KERR. All rights reserved.
 //
 
