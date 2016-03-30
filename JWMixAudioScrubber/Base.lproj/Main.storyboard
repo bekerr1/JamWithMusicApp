@@ -2019,7 +2019,6 @@
                                 <rect key="contentStretch" x="0.0" y="0.0" width="0.0" height="0.0"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="300" id="KGa-EX-c7b"/>
-                                    <constraint firstAttribute="width" constant="600" id="tcY-5f-g6L"/>
                                 </constraints>
                                 <connections>
                                     <segue destination="9Av-kI-Eau" kind="embed" identifier="buttonsVC" id="sfz-P8-8VS"/>
