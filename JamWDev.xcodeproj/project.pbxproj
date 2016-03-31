@@ -89,6 +89,13 @@
 		F40D64191C53799E000C1E8E /* CERangeSliderTrack.m in Sources */ = {isa = PBXBuildFile; fileRef = F40D640C1C53799E000C1E8E /* CERangeSliderTrack.m */; };
 		F40D641A1C53799E000C1E8E /* CETimeCountLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = F40D640E1C53799E000C1E8E /* CETimeCountLayer.m */; };
 		F40D64261C574AC5000C1E8E /* JWClipAudioHelperViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F40D64241C574AC5000C1E8E /* JWClipAudioHelperViewController.m */; };
+		F41E3EB21CAD9449006CE6EC /* Firebase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F41E3EB11CAD9449006CE6EC /* Firebase.framework */; };
+		F41E3EB61CAD94BB006CE6EC /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F41E3EB51CAD94BB006CE6EC /* CFNetwork.framework */; };
+		F41E3EB81CAD94C6006CE6EC /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F41E3EB71CAD94C6006CE6EC /* Security.framework */; };
+		F41E3EBA1CAD94D3006CE6EC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F41E3EB91CAD94D3006CE6EC /* SystemConfiguration.framework */; };
+		F41E3EBE1CAD9545006CE6EC /* JWUserController.m in Sources */ = {isa = PBXBuildFile; fileRef = F41E3EBD1CAD9545006CE6EC /* JWUserController.m */; };
+		F41E3EC11CAD9602006CE6EC /* libicucore.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F41E3EC01CAD9602006CE6EC /* libicucore.tbd */; };
+		F41E3EC31CAD9611006CE6EC /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F41E3EC21CAD9611006CE6EC /* libc++.tbd */; };
 		F48AEBFF1C6D077B0044ACE8 /* Server_Parameter_Ideas in Resources */ = {isa = PBXBuildFile; fileRef = F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */; };
 		F48AEC041C711D6A0044ACE8 /* JWCommon.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC011C711D6A0044ACE8 /* JWCommon.m */; };
 		F48AEC051C711D6A0044ACE8 /* JWCustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC031C711D6A0044ACE8 /* JWCustomCellBackground.m */; };
@@ -284,6 +291,15 @@
 		F40D641F1C5379E5000C1E8E /* JWRangeSliderViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWRangeSliderViewController.m; sourceTree = "<group>"; };
 		F40D64241C574AC5000C1E8E /* JWClipAudioHelperViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWClipAudioHelperViewController.m; path = AudioClip/JWClipAudioHelperViewController.m; sourceTree = "<group>"; };
 		F40D64251C574AC5000C1E8E /* JWClipAudioHelperViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWClipAudioHelperViewController.h; path = AudioClip/JWClipAudioHelperViewController.h; sourceTree = "<group>"; };
+		F41E3EB11CAD9449006CE6EC /* Firebase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Firebase.framework; sourceTree = "<group>"; };
+		F41E3EB51CAD94BB006CE6EC /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		F41E3EB71CAD94C6006CE6EC /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		F41E3EB91CAD94D3006CE6EC /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		F41E3EBC1CAD9545006CE6EC /* JWUserController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWUserController.h; path = User/JWUserController.h; sourceTree = "<group>"; };
+		F41E3EBD1CAD9545006CE6EC /* JWUserController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWUserController.m; path = User/JWUserController.m; sourceTree = "<group>"; };
+		F41E3EC01CAD9602006CE6EC /* libicucore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libicucore.tbd; path = usr/lib/libicucore.tbd; sourceTree = SDKROOT; };
+		F41E3EC21CAD9611006CE6EC /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		F41E3EC41CADD20E006CE6EC /* JWUserConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JWUserConstants.h; sourceTree = "<group>"; };
 		F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Server_Parameter_Ideas; sourceTree = "<group>"; };
 		F48AEC001C711D6A0044ACE8 /* JWCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWCommon.h; sourceTree = "<group>"; };
 		F48AEC011C711D6A0044ACE8 /* JWCommon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWCommon.m; sourceTree = "<group>"; };
@@ -302,6 +318,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F41E3EC31CAD9611006CE6EC /* libc++.tbd in Frameworks */,
+				F41E3EC11CAD9602006CE6EC /* libicucore.tbd in Frameworks */,
+				F41E3EBA1CAD94D3006CE6EC /* SystemConfiguration.framework in Frameworks */,
+				F41E3EB81CAD94C6006CE6EC /* Security.framework in Frameworks */,
+				F41E3EB61CAD94BB006CE6EC /* CFNetwork.framework in Frameworks */,
+				F41E3EB21CAD9449006CE6EC /* Firebase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,6 +347,7 @@
 		5525FE7E1C3727430081FB23 = {
 			isa = PBXGroup;
 			children = (
+				F41E3EBB1CAD94DB006CE6EC /* Firebase */,
 				55F41C251C5CC1C7002F3893 /* scrub_sq100_enh.png */,
 				5525FE891C3727430081FB23 /* JWMixAudioScrubber */,
 				5525FEA61C3727430081FB23 /* JWMixAudioScrubberTests */,
@@ -359,6 +382,7 @@
 				5525FEC51C3728A40081FB23 /* Mixedit */,
 				5525FEC41C37289A0081FB23 /* Scrubber */,
 				5525FEC31C3728920081FB23 /* Audio */,
+				F41E3EBF1CAD954C006CE6EC /* User */,
 				5525FE8D1C3727430081FB23 /* AppDelegate.h */,
 				5525FE8E1C3727430081FB23 /* AppDelegate.m */,
 				5525FE901C3727430081FB23 /* MasterViewController.h */,
@@ -640,6 +664,29 @@
 			path = DoubleSlider;
 			sourceTree = "<group>";
 		};
+		F41E3EBB1CAD94DB006CE6EC /* Firebase */ = {
+			isa = PBXGroup;
+			children = (
+				F41E3EC21CAD9611006CE6EC /* libc++.tbd */,
+				F41E3EC01CAD9602006CE6EC /* libicucore.tbd */,
+				F41E3EB91CAD94D3006CE6EC /* SystemConfiguration.framework */,
+				F41E3EB71CAD94C6006CE6EC /* Security.framework */,
+				F41E3EB51CAD94BB006CE6EC /* CFNetwork.framework */,
+				F41E3EB11CAD9449006CE6EC /* Firebase.framework */,
+			);
+			name = Firebase;
+			sourceTree = "<group>";
+		};
+		F41E3EBF1CAD954C006CE6EC /* User */ = {
+			isa = PBXGroup;
+			children = (
+				F41E3EC41CADD20E006CE6EC /* JWUserConstants.h */,
+				F41E3EBC1CAD9545006CE6EC /* JWUserController.h */,
+				F41E3EBD1CAD9545006CE6EC /* JWUserController.m */,
+			);
+			name = User;
+			sourceTree = "<group>";
+		};
 		F48AEC091C711DAE0044ACE8 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
@@ -833,6 +880,7 @@
 				5525FECC1C3728ED0081FB23 /* JWPlayerFileInfo.m in Sources */,
 				5525FF301C3729980081FB23 /* JWMTAudioEngine.m in Sources */,
 				5525FED61C3729130081FB23 /* JWLoopAudioPlayerController.m in Sources */,
+				F41E3EBE1CAD9545006CE6EC /* JWUserController.m in Sources */,
 				F48AEC051C711D6A0044ACE8 /* JWCustomCellBackground.m in Sources */,
 				F40D64171C53799E000C1E8E /* CERangeSlider.m in Sources */,
 				5525FEEC1C37295C0081FB23 /* JWPulseLightView.m in Sources */,
@@ -1045,6 +1093,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = JWMixAudioScrubber/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1059,6 +1111,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = JWMixAudioScrubber/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
