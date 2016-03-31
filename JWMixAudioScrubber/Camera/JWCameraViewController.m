@@ -437,7 +437,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     
     self.layoutConstraintScrubberHeight.constant = expectedHeight;
     
-    CGSize scrubber = CGSizeMake(self.view.bounds.size.height, self.layoutConstraintScrubberHeight.constant);
+    CGSize scrubber = CGSizeMake(self.view.bounds.size.width, self.layoutConstraintScrubberHeight.constant);
+    NSLog(@"Width: %f, Height: %f", self.view.bounds.size.width, self.view.bounds.size.height);
     NSLog(@"Scrubber Size %@, Bounds Size %@", NSStringFromCGSize(scrubber), NSStringFromCGRect(self.view.bounds));
     
     return scrubber;
