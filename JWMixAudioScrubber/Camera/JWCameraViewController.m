@@ -432,7 +432,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         tracksz = 85.0f;
     }
     
-    CGFloat expectedHeight = (controller.numberOfTracksWithAudio  * tracksz);// + 40;  // labels on scrubber
+    CGFloat expectedHeight = (nTracks  * tracksz);// + 40;  // labels on scrubber
+    //CGFloat expectedHeight = (controller.numberOfTracksWithAudio  * tracksz);// + 40;  // labels on scrubber
     
     self.layoutConstraintScrubberHeight.constant = expectedHeight;
     

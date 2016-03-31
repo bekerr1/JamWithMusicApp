@@ -157,7 +157,7 @@
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
     self.sc.numberOfTracks = [playerNodeList count] + (tapMixer ? 1 : 0);
     
-    [self.sc setViewOptions:ScrubberViewOptionDisplayFullView];
+    [self.sc setViewOptions:ScrubberViewOptionsDisplayInCameraView];
     self.sc.scrubberControllerSize = [self.delegate updateScrubberHeight:self];
     
     [self configureScrubberColors];

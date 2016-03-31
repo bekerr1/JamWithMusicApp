@@ -530,7 +530,7 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
     
 //    NSLog(@"%s %.2f",__func__,self.topLayoutScrollViewConstraint.constant);
     
-    if (_viewOptions == ScrubberViewOptionNone || _viewOptions == ScrubberViewOptionDisplayFullView) {
+    if (_viewOptions == ScrubberViewOptionNone || _viewOptions == ScrubberViewOptionDisplayFullView || _viewOptions == ScrubberViewOptionsDisplayInCameraView) {
         // neither is SET full view
         _durationLabel.hidden = YES;
         _remainingLabel.hidden = YES;
@@ -594,13 +594,24 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 #pragma mark -
 
--(void)prepareForTracks {
-    CGSize size = [_delegate viewSize];
+
+-(void)prepareForTracksWithSize:(CGSize)size {
+    
     _tracksOffest = size.width/2;  // playhead is in middle
     self.scrollView.contentInset = UIEdgeInsetsMake(0, _tracksOffest, 0, _tracksOffest);
     self.scrollView.contentSize = CGSizeZero;
     [self configureBookendClips:size];
     self.playHeadWindow.hidden = NO;
+}
+
+-(void)prepareForTracks {
+    CGSize size = [_delegate viewSize];
+    [self prepareForTracksWithSize:size];
+}
+
+-(void)prepareForTracksInCamera {
+    CGSize size = [_delegate viewSize];
+    [self prepareForTracksWithSize:size];
 }
 
 // allows length to be set

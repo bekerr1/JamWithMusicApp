@@ -20,7 +20,8 @@ typedef NS_ENUM(NSInteger, ScrubberViewOptions) {
     ScrubberViewOptionNone     =1,
     ScrubberViewOptionDisplayLabels,
     ScrubberViewOptionDisplayOnlyValueLabels,
-    ScrubberViewOptionDisplayFullView
+    ScrubberViewOptionDisplayFullView,
+    ScrubberViewOptionsDisplayInCameraView
 };
 
 typedef NS_ENUM(NSInteger, SampleSize) {
