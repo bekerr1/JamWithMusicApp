@@ -9,7 +9,7 @@
 #import "AppDelegate.h"
 #import "DetailViewController.h"
 #import "MasterViewController.h"
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
+//#import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import "JWCurrentWorkItem.h"
 #import "JWFileController.h"
 
@@ -38,8 +38,8 @@
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
-    return [[FBSDKApplicationDelegate sharedInstance] application:application
-                                    didFinishLaunchingWithOptions:launchOptions];
+    return YES;//[[FBSDKApplicationDelegate sharedInstance] application:application
+           //                         didFinishLaunchingWithOptions:launchOptions];
 }
 
 /*
@@ -52,80 +52,80 @@ Jan 30 01:10:55 JOes-Phone JamWDev[2111] <Warning>: -[AppDelegate application:di
 Jan 30 01:10:55 JOes-Phone
 */
 
-//- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
-//    
-//    NSLog(@"%s %@ %@",__func__,[url description],[options description]);
-//    
-//    BOOL moveDocOnOpen = NO;
-//    id optionsAnnotation = options[UIApplicationOpenURLOptionsAnnotationKey];
-//    if (optionsAnnotation) {
-//        id moveDocument = optionsAnnotation[@"LSMoveDocumentOnOpen"];
-//        if (moveDocument) {
-//            moveDocOnOpen = [moveDocument boolValue];
-//        }
-//    }
-//    BOOL openInPlace = NO;
-//    id optionsOpenInPlace = options[UIApplicationOpenURLOptionsOpenInPlaceKey];
-//    if (optionsOpenInPlace) {
-//        openInPlace = [optionsOpenInPlace boolValue];
-//    }
-//    BOOL isMusicMemos = NO;
-//    id optionsSourceApp = options[UIApplicationOpenURLOptionsSourceApplicationKey];
-//    if (optionsSourceApp) {
-//        NSLog(@"optionsSourceApp %@",optionsSourceApp);
-//        if ([optionsSourceApp isEqualToString:@"com.apple.musicmemos"]) {
-//            NSLog(@"MusicMemos %@",[url lastPathComponent]);
-//            isMusicMemos = YES;
-//        }
-//    }
-//
-//    
-//    NSURL *resultURL = [[JWFileController sharedInstance] processInBoxItem:url options:options];
-//
-//    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
-//    UINavigationController *navigationController = [splitViewController.viewControllers firstObject];
-////    UIViewController *vc = [navigationController topViewController];
-//    MasterViewController *master = [[navigationController viewControllers] firstObject];
-//    
-////    if (resultURL && isMusicMemos) {
-////        
-////        [master performNewJamTrack:resultURL];
-////    }
-//
-//    if (resultURL) {
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
+    
+    NSLog(@"%s %@ %@",__func__,[url description],[options description]);
+    
+    BOOL moveDocOnOpen = NO;
+    id optionsAnnotation = options[UIApplicationOpenURLOptionsAnnotationKey];
+    if (optionsAnnotation) {
+        id moveDocument = optionsAnnotation[@"LSMoveDocumentOnOpen"];
+        if (moveDocument) {
+            moveDocOnOpen = [moveDocument boolValue];
+        }
+    }
+    BOOL openInPlace = NO;
+    id optionsOpenInPlace = options[UIApplicationOpenURLOptionsOpenInPlaceKey];
+    if (optionsOpenInPlace) {
+        openInPlace = [optionsOpenInPlace boolValue];
+    }
+    BOOL isMusicMemos = NO;
+    id optionsSourceApp = options[UIApplicationOpenURLOptionsSourceApplicationKey];
+    if (optionsSourceApp) {
+        NSLog(@"optionsSourceApp %@",optionsSourceApp);
+        if ([optionsSourceApp isEqualToString:@"com.apple.musicmemos"]) {
+            NSLog(@"MusicMemos %@",[url lastPathComponent]);
+            isMusicMemos = YES;
+        }
+    }
+
+    
+    NSURL *resultURL = [[JWFileController sharedInstance] processInBoxItem:url options:options];
+
+    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+    UINavigationController *navigationController = [splitViewController.viewControllers firstObject];
+//    UIViewController *vc = [navigationController topViewController];
+    MasterViewController *master = [[navigationController viewControllers] firstObject];
+    
+//    if (resultURL && isMusicMemos) {
 //        
 //        [master performNewJamTrack:resultURL];
-//    } else {
-//        
-//        
-//        NSString *message;
-//        if (resultURL)
-//            message = [NSString stringWithFormat:@"Successfully Copied file %@",[url lastPathComponent]];
-//        else
-//            message = [NSString stringWithFormat:@"There was a problem copying file %@",[url lastPathComponent]];
-//        
-//        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"File Import" message:message
-//                                                                          preferredStyle:UIAlertControllerStyleAlert];
-//        
-//        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-//        }];
-//        
-//        [alertController addAction:okAction];
-//        [splitViewController presentViewController:alertController animated:YES completion:nil];
 //    }
-//    
-//    return (resultURL != nil);
-//}
-//
 
-
-
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-    return [[FBSDKApplicationDelegate sharedInstance] application:application
-                                                                  openURL:url
-                                                        sourceApplication:sourceApplication
-                                                               annotation:annotation];
+    if (resultURL) {
+        
+        [master performNewJamTrack:resultURL];
+    } else {
+        
+        
+        NSString *message;
+        if (resultURL)
+            message = [NSString stringWithFormat:@"Successfully Copied file %@",[url lastPathComponent]];
+        else
+            message = [NSString stringWithFormat:@"There was a problem copying file %@",[url lastPathComponent]];
+        
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"File Import" message:message
+                                                                          preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        }];
+        
+        [alertController addAction:okAction];
+        [splitViewController presentViewController:alertController animated:YES completion:nil];
+    }
+    
+    return (resultURL != nil);
 }
+
+
+
+
+//- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+//    return [[FBSDKApplicationDelegate sharedInstance] application:application
+//                                                                  openURL:url
+//                                                        sourceApplication:sourceApplication
+//                                                               annotation:annotation];
+//}
 /*
  
  AIRDROP from mac
@@ -167,7 +167,7 @@ UIApplicationOpenURLOptionsSourceApplicationKey = "com.apple.musicmemos";
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     
-    [FBSDKAppEvents activateApp];
+    //[FBSDKAppEvents activateApp];
     
     [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"AppWillForeground" object:nil]];
 
