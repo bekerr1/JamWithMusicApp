@@ -16,6 +16,7 @@
 #import "JWClipAudioViewController.h"
 #import "JWCurrentWorkItem.h"
 #import "UIColor+JW.h"
+//#import "JWAWSIdentityManager.h"
 
 @interface MasterViewController () <JWDetailDelegate,
 JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFieldDelegate>
@@ -45,6 +46,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+   // JWAWSIdentityManager *manager = [JWAWSIdentityManager sharedInstance];
+    //[manager logOut];
 //    _scrubberWhiteImage = [UIImage imageNamed:@"scrub50"];
 
     _scrubberBlueImage = [UIImage imageNamed:@"scrubberIconBlue"];
@@ -687,6 +690,10 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
           @"title":@"Audio Files",
           @"type":@(JWHomeSectionTypeAudioFiles),
           @"trackobjectset":[self newJamTracks],
+          } mutableCopy],
+       [@{
+          @"title":@"User",
+          @"type":@(JWHomeSectionTypeUser)
           } mutableCopy],
        ] mutableCopy
      ];
@@ -1471,6 +1478,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
             result ++;
         } else if (sectionType == JWHomeSectionTypeOther) {
             result ++;
+        } else if (sectionType == JWHomeSectionTypeUser) {
+            result ++;
         }
     }
     
@@ -1484,13 +1493,13 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
         return 24;
     typeSection =[self indexOfSectionOfType:JWHomeSectionTypePreloaded];
     if (typeSection != NSNotFound && section == typeSection)
-        return 20;
+        return 24;
     typeSection =[self indexOfSectionOfType:JWHomeSectionTypeDownloaded];
     if (typeSection != NSNotFound && section == typeSection)
-        return 20;
+        return 24;
     typeSection =[self indexOfSectionOfType:JWHomeSectionTypeYoutube];
     if (typeSection != NSNotFound && section == typeSection)
-        return 30;
+        return 24;
     typeSection =[self indexOfSectionOfType:JWHomeSectionTypeMyTracks];
     if (typeSection != NSNotFound && section == typeSection)
         return 24;
@@ -1519,7 +1528,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     if (typeSection != NSNotFound && section == typeSection)
         return 10;
 
-    return 0;
+    return 5;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -1535,7 +1544,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
         id titleValue = _homeControllerSections[section][@"title"];
         if (titleValue) {
             if (section == [self indexOfSectionOfType:JWHomeSectionTypeOther] ||
-                section == [self indexOfSectionOfType:JWHomeSectionTypeYoutube]
+                section == [self indexOfSectionOfType:JWHomeSectionTypeYoutube] ||
+                section == [self indexOfSectionOfType:JWHomeSectionTypeUser]
                 ) {
                 result = titleValue;
             } else {
@@ -1578,6 +1588,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
             count ++;
             count ++;
         } else if (sectionType == JWHomeSectionTypeOther) {
+            count ++;
+        } else if (sectionType == JWHomeSectionTypeUser) {
             count ++;
         }
     }
@@ -1676,6 +1688,11 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
             cell = toOtherSelectCell;
 //            cell.textLabel.text = @"Other" ;
             cell.detailTextLabel.text = @"Amp Selection";
+            isTrackItem = NO;
+        } else if (sectionType == JWHomeSectionTypeUser) {
+            UITableViewCell *userCell =
+            [tableView dequeueReusableCellWithIdentifier:@"JWUserAuthentication" forIndexPath:indexPath];
+            cell = userCell;
             isTrackItem = NO;
         }
         
@@ -2114,6 +2131,7 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 -(void)readHomeMenuLists {
     _homeControllerSections = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"homeObjects"]];
+    NSLog(@"home Controller URL: %@", [self fileURLWithFileName:@"homeObjects"]);
     [self serializeInJamTracks];
 //    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
     NSLog(@"%s HOMEOBJECTS [%ld]",__func__,(unsigned long)[_homeControllerSections count]);

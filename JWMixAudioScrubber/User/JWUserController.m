@@ -27,7 +27,7 @@ NSString * const kUsersMusicFiles = @"jamfiles";
 
 
 
--(id)init {
+-(instancetype)init {
     
     if (self = [super init]) {
         //Initialize
@@ -45,7 +45,7 @@ NSString * const kUsersMusicFiles = @"jamfiles";
     BOOL __block newUserPass = NO;
     
     Firebase *usersRef = [self.rootReference childByAppendingPath:kUsersSection];
-    Firebase *newUserRef = [usersRef childByAutoId];
+    Firebase *newUserRef = [usersRef childByAppendingPath:name];
     
     NSDictionary *newUser = @{
                               @"username" : name,

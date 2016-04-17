@@ -15,7 +15,8 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
     JWHomeSectionTypePreloaded,
     JWHomeSectionTypeYoutube,
     JWHomeSectionTypeMyTracks,
-    JWHomeSectionTypeAudioFiles
+    JWHomeSectionTypeAudioFiles,
+    JWHomeSectionTypeUser
 };
 
 @protocol JWDetailDelegate;
