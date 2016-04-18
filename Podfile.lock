@@ -14,6 +14,18 @@ PODS:
     - AWSCore (= 2.3.6)
   - AWSS3 (2.3.6):
     - AWSCore (= 2.3.6)
+  - Bolts (1.7.0):
+    - Bolts/AppLinks (= 1.7.0)
+    - Bolts/Tasks (= 1.7.0)
+  - Bolts/AppLinks (1.7.0):
+    - Bolts/Tasks
+  - Bolts/Tasks (1.7.0)
+  - FBSDKCoreKit (4.11.0):
+    - Bolts (~> 1.7)
+  - FBSDKLoginKit (4.11.0):
+    - FBSDKCoreKit
+  - FBSDKShareKit (4.11.0):
+    - FBSDKCoreKit
 
 DEPENDENCIES:
   - AWSAutoScaling
@@ -24,6 +36,9 @@ DEPENDENCIES:
   - AWSLambda
   - AWSMobileAnalytics
   - AWSS3
+  - FBSDKCoreKit
+  - FBSDKLoginKit
+  - FBSDKShareKit
 
 SPEC CHECKSUMS:
   AWSAutoScaling: 49d9f49984a82852511be4caa2a510f522cd8de1
@@ -34,5 +49,9 @@ SPEC CHECKSUMS:
   AWSLambda: 9882d7bf98d368fa7e0c98d0f6e15dbbd4eb0e26
   AWSMobileAnalytics: 56ce9e671640fbd702f8ce52b0f128e525f3e51c
   AWSS3: 1caaf6b45100503fecf3d418c394519a89409a74
+  Bolts: a0058fa3b331c5a1e4402d534f2dae36dbff31e4
+  FBSDKCoreKit: 686ac982723a14ec9ddb85e2f81235d7706c891b
+  FBSDKLoginKit: bade9fc78277764149ccc5bfaadbf13c83175c6a
+  FBSDKShareKit: 2d1746144cfc8a9dbbd24997c34ee0471be51b6a
 
 COCOAPODS: 0.39.0

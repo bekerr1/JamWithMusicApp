@@ -14,6 +14,11 @@ pod 'AWSMobileAnalytics'
 pod 'AWSS3'
 pod 'AWSCognito’
 
+
+pod 'FBSDKCoreKit'
+pod 'FBSDKShareKit'
+pod 'FBSDKLoginKit'
+
 #pod 'AWSCloudWatch'
 #pod 'AWSEC2'
 #pod 'AWSElasticLoadBalancing'

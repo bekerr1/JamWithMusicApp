@@ -44,6 +44,26 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>Bolts.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>FBSDKCoreKit.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>FBSDKLoginKit.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>FBSDKShareKit.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods-JamWDev.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -72,12 +92,27 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>1EE9EAC822D6FEE6E5D8D7CE6BEA4772</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>2C7B34EC3A628033A244CF7A1508AB8D</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>46F9EB7F7757A2229BC98E09D2CC8DD6</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>4D1D316CB9BD9BBE4169B95795828500</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>4E286D373D75563CE26E479A68203892</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -92,22 +127,12 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>9135FD97BEC3941B4FB0992AB92DDAF8</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>9C6FD24F5BA517B021C4C224822C55FD</key>
+		<key>7E61C9A8C176278C6C99C2C59E9C152E</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
 		<key>A9C1AF7BB748E000B6D414CC208B80D7</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>AA9DE8CF3E5F10CE00959EEA884A3D83</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -122,7 +147,22 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>EB7C4DD18DDFE2CC81253238138171C5</key>
+		<key>C43DEF8E5BFEC36D943258BA3F21834D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>EED87CE627DFF93337654BA2F7A72C33</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>F3CE383BCD190DFD1B312E3920C7B769</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>F5BFA11765E4D396DC4B121F64B0E2CA</key>
 		<dict>
 			<key>primary</key>
 			<true/>
