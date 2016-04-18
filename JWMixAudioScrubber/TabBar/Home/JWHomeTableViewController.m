@@ -6,8 +6,24 @@
 //  Copyright © 2016 JOSEPH KERR. All rights reserved.
 //
 
+
+/*
+ 
+ Home controller purpose - Home controller serves as an area for the user to see:
+    *Sessions started.
+    *Following artists uploaded tracks
+    *
+ 
+ Home controller list -
+    -Home items
+        -Jamtracksets (get from filemanager)
+            -session_"key"
+        -People you follow's jamtracks (get from aws)
+        -
+ 
+ 
+ */
 #import "JWHomeTableViewController.h"
-#import "JWFileManager.h"
 
 @interface JWHomeTableViewController()
 
@@ -22,6 +38,8 @@
 
 -(void)viewDidLoad {
     [super viewDidLoad];
+    
+    //self.homeControllerList = [[JWFileManager defaultManager] homeItems];
     
     _scrubberBlueImage = [UIImage imageNamed:@"scrubberIconBlue"];
     _scrubberWhiteImage = [UIImage imageNamed:@"scrubberIconWhite"];

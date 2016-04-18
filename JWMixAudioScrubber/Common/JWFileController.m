@@ -167,7 +167,7 @@
 - (void)initdb {
     
     // CREATE DIRECTORY STRUCTURE AND COPY RESOURCES
-    NSString *jtDirectory = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"JamTracks"];
+    NSString *jtDirectory = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"JamSessions"];
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:jtDirectory isDirectory:&isDir]){
         // Exists
@@ -177,7 +177,7 @@
                                   withIntermediateDirectories:YES attributes:nil
                                                         error:&error];
     }
-    jtDirectory = [jtDirectory stringByAppendingPathComponent:@"Downloaded"];
+    jtDirectory = [jtDirectory stringByAppendingPathComponent:@"SourceAudioJamTrackDownloads"];
     if ([[NSFileManager defaultManager] fileExistsAtPath:jtDirectory isDirectory:&isDir]){
         // Exists
     } else {
@@ -186,7 +186,7 @@
                                   withIntermediateDirectories:YES attributes:nil
                                                         error:&error];
     }
-    jtDirectory = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"JamTrackDownloads"];
+    jtDirectory = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"UserJamTrackDownloads"];
     if ([[NSFileManager defaultManager] fileExistsAtPath:jtDirectory isDirectory:&isDir]){
         // Exists
     } else {
@@ -195,7 +195,7 @@
                                   withIntermediateDirectories:YES attributes:nil
                                                         error:&error];
     }
-    jtDirectory = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"Downloads"];
+    jtDirectory = [[self documentsDirectoryPath] stringByAppendingPathComponent:@"OtherDownloads"];
     if ([[NSFileManager defaultManager] fileExistsAtPath:jtDirectory isDirectory:&isDir]){
         // Exists
     } else {
@@ -976,6 +976,8 @@
                       [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
     NSLog(@"%s USERLISTCOUNT [%lu]",__func__,(unsigned long)[_userOrderList count]);
 }
+
+
 
 @end
 

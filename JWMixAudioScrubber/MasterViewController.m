@@ -665,36 +665,51 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     return result;
 }
 
+
+
 -(NSMutableArray*)newHomeMenuLists {
     NSMutableArray *result =
     [@[
        [@{
+          
+          //will be used for settings and files user sets
           @"title":@"Settings And Files",
           @"type":@(JWHomeSectionTypeOther),
           } mutableCopy],
+       
+       //Will be supplied by an s3 bucket, Not used
+//       [@{
+//          @"title":@"Provided JamTracks",
+//          @"type":@(JWHomeSectionTypePreloaded),
+//          @"trackobjectset":[self newProvidedJamTracks],
+//          } mutableCopy],
        [@{
-          @"title":@"Provided JamTracks",
-          @"type":@(JWHomeSectionTypePreloaded),
-          @"trackobjectset":[self newProvidedJamTracks],
-          } mutableCopy],
-       [@{
+          
+          //Will be used when user downloads somone elses jam track
           @"title":@"Downloaded JamTracks",
           @"type":@(JWHomeSectionTypeDownloaded),
           @"trackobjectset":[self newDownloadedJamTracks],
           } mutableCopy],
+       
+       //source audio will be determined by the tab the user is currently in
+//       [@{
+//          @"title":@"Source Audio",
+//          @"type":@(JWHomeSectionTypeYoutube)
+//          } mutableCopy],
        [@{
-          @"title":@"Source Audio",
-          @"type":@(JWHomeSectionTypeYoutube)
-          } mutableCopy],
-       [@{
-          @"title":@"Audio Files",
+          
+          //Will be used to give user their saved/unfinished jam sessions
+          @"title":@"Jam Sessions",
           @"type":@(JWHomeSectionTypeAudioFiles),
           @"trackobjectset":[self newJamTracks],
           } mutableCopy],
-       [@{
-          @"title":@"User",
-          @"type":@(JWHomeSectionTypeUser)
-          } mutableCopy],
+       
+       //Will not be used, the user will be prompted to sign in when they need to
+//       [@{
+//          
+//          @"title":@"User",
+//          @"type":@(JWHomeSectionTypeUser)
+//          } mutableCopy],
        ] mutableCopy
      ];
     
