@@ -89,6 +89,7 @@
 		F40D64191C53799E000C1E8E /* CERangeSliderTrack.m in Sources */ = {isa = PBXBuildFile; fileRef = F40D640C1C53799E000C1E8E /* CERangeSliderTrack.m */; };
 		F40D641A1C53799E000C1E8E /* CETimeCountLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = F40D640E1C53799E000C1E8E /* CETimeCountLayer.m */; };
 		F40D64261C574AC5000C1E8E /* JWClipAudioHelperViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F40D64241C574AC5000C1E8E /* JWClipAudioHelperViewController.m */; };
+		F41904481CC4584100937707 /* JWHomeTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F41904471CC4584100937707 /* JWHomeTableViewController.m */; };
 		F48AEBFF1C6D077B0044ACE8 /* Server_Parameter_Ideas in Resources */ = {isa = PBXBuildFile; fileRef = F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */; };
 		F48AEC041C711D6A0044ACE8 /* JWCommon.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC011C711D6A0044ACE8 /* JWCommon.m */; };
 		F48AEC051C711D6A0044ACE8 /* JWCustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC031C711D6A0044ACE8 /* JWCustomCellBackground.m */; };
@@ -284,11 +285,8 @@
 		F40D641F1C5379E5000C1E8E /* JWRangeSliderViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWRangeSliderViewController.m; sourceTree = "<group>"; };
 		F40D64241C574AC5000C1E8E /* JWClipAudioHelperViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWClipAudioHelperViewController.m; path = AudioClip/JWClipAudioHelperViewController.m; sourceTree = "<group>"; };
 		F40D64251C574AC5000C1E8E /* JWClipAudioHelperViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWClipAudioHelperViewController.h; path = AudioClip/JWClipAudioHelperViewController.h; sourceTree = "<group>"; };
-		F41E3EB51CAD94BB006CE6EC /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		F41E3EB71CAD94C6006CE6EC /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		F41E3EB91CAD94D3006CE6EC /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		F41E3EC01CAD9602006CE6EC /* libicucore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libicucore.tbd; path = usr/lib/libicucore.tbd; sourceTree = SDKROOT; };
-		F41E3EC21CAD9611006CE6EC /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		F41904461CC4584100937707 /* JWHomeTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWHomeTableViewController.h; path = TabBar/Home/JWHomeTableViewController.h; sourceTree = "<group>"; };
+		F41904471CC4584100937707 /* JWHomeTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWHomeTableViewController.m; path = TabBar/Home/JWHomeTableViewController.m; sourceTree = "<group>"; };
 		F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Server_Parameter_Ideas; sourceTree = "<group>"; };
 		F48AEC001C711D6A0044ACE8 /* JWCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWCommon.h; sourceTree = "<group>"; };
 		F48AEC011C711D6A0044ACE8 /* JWCommon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWCommon.m; sourceTree = "<group>"; };
@@ -370,6 +368,8 @@
 				5525FE911C3727430081FB23 /* MasterViewController.m */,
 				5525FE931C3727430081FB23 /* DetailViewController.h */,
 				5525FE941C3727430081FB23 /* DetailViewController.m */,
+				F41904461CC4584100937707 /* JWHomeTableViewController.h */,
+				F41904471CC4584100937707 /* JWHomeTableViewController.m */,
 				5525FE961C3727430081FB23 /* Main.storyboard */,
 				55CD12281C3F16B5001662CF /* YoutubeSearch.storyboard */,
 				55CD122B1C3F17C7001662CF /* Other.storyboard */,
@@ -645,7 +645,7 @@
 			path = DoubleSlider;
 			sourceTree = "<group>";
 		};
-        F48AEC091C711DAE0044ACE8 /* Camera */ = {
+		F48AEC091C711DAE0044ACE8 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
 				F48AEC061C711D870044ACE8 /* JWAudioPlayerCameraController.h */,
@@ -846,6 +846,7 @@
 				5525FF281C3729980081FB23 /* AVAudioUnitDelay+JW.m in Sources */,
 				55F41C291C5D581D002F3893 /* JWActivityItemProvider.m in Sources */,
 				55CD128C1C461D14001662CF /* JWScrubberTackModify.m in Sources */,
+				F41904481CC4584100937707 /* JWHomeTableViewController.m in Sources */,
 				55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */,
 				5525FEEF1C37295C0081FB23 /* JWScrubberController.m in Sources */,
 				55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */,
