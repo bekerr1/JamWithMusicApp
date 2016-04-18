@@ -5,10 +5,10 @@
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
-        <!--Item-->
+        <!--Home-->
         <scene sceneID="394-52-KLl">
             <objects>
-                <tableViewController id="45n-dl-FVw" sceneMemberID="viewController">
+                <tableViewController title="Home" id="45n-dl-FVw" customClass="JWHomeTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="CO7-kI-UAJ">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -341,18 +341,17 @@
             </objects>
             <point key="canvasLocation" x="-1734" y="-2352"/>
         </scene>
-        <!--Tab Bar Controller-->
+        <!--Menu Tab Bar Controller-->
         <scene sceneID="GEA-9X-tbY">
             <objects>
-                <tabBarController id="VBr-mx-YCr" sceneMemberID="viewController">
+                <tabBarController id="VBr-mx-YCr" customClass="JWMenuTabBarController" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" id="44r-3i-3mZ">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </tabBar>
                     <connections>
-                        <segue destination="qdV-Ch-dg0" kind="relationship" relationship="viewControllers" id="1vC-xC-pqG"/>
-                        <segue destination="45n-dl-FVw" kind="relationship" relationship="viewControllers" id="7nq-3S-pTm"/>
+                        <segue destination="45n-dl-FVw" kind="relationship" relationship="viewControllers" id="5qD-BP-w7e"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="97g-sz-oHI" userLabel="First Responder" sceneMemberID="firstResponder"/>

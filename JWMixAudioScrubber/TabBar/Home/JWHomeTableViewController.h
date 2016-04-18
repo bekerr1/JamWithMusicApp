@@ -10,4 +10,7 @@
 
 @interface JWHomeTableViewController : UITableViewController
 
+@property (nonatomic) NSMutableArray *homeControllerData;
+@property (nonatomic) NSMutableDictionary *homeControllerList;
+
 @end
