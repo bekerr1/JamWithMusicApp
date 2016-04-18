@@ -1,0 +1,38 @@
+PODS:
+  - AWSAutoScaling (2.3.6):
+    - AWSCore (= 2.3.6)
+  - AWSCognito (2.3.6):
+    - AWSCore (= 2.3.6)
+  - AWSCore (2.3.6)
+  - AWSDynamoDB (2.3.6):
+    - AWSCore (= 2.3.6)
+  - AWSKinesis (2.3.6):
+    - AWSCore (= 2.3.6)
+  - AWSLambda (2.3.6):
+    - AWSCore (= 2.3.6)
+  - AWSMobileAnalytics (2.3.6):
+    - AWSCore (= 2.3.6)
+  - AWSS3 (2.3.6):
+    - AWSCore (= 2.3.6)
+
+DEPENDENCIES:
+  - AWSAutoScaling
+  - AWSCognito
+  - AWSCore
+  - AWSDynamoDB
+  - AWSKinesis
+  - AWSLambda
+  - AWSMobileAnalytics
+  - AWSS3
+
+SPEC CHECKSUMS:
+  AWSAutoScaling: 49d9f49984a82852511be4caa2a510f522cd8de1
+  AWSCognito: af54fe65171c7c994c134e5d29b1ee60ee234825
+  AWSCore: 917d84b32974136194a905b98c0ae25c9f3350b8
+  AWSDynamoDB: 0bfd95eb10363090d8570a48d5feb4e3d7ec5264
+  AWSKinesis: 89c0042637c088ba54f2bb892d285693b44d93e8
+  AWSLambda: 9882d7bf98d368fa7e0c98d0f6e15dbbd4eb0e26
+  AWSMobileAnalytics: 56ce9e671640fbd702f8ce52b0f128e525f3e51c
+  AWSS3: 1caaf6b45100503fecf3d418c394519a89409a74
+
+COCOAPODS: 0.39.0
