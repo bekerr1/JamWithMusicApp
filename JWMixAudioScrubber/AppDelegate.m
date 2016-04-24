@@ -9,11 +9,11 @@
 #import "AppDelegate.h"
 #import "DetailViewController.h"
 #import "MasterViewController.h"
-//#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import "JWCurrentWorkItem.h"
 #import "JWFileController.h"
 
-@interface AppDelegate () <UISplitViewControllerDelegate>
+@interface AppDelegate () <UISplitViewControllerDelegate, UITabBarControllerDelegate>
 
 @end
 
@@ -23,6 +23,10 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     
+    [[UINavigationBar appearance] setBarTintColor:[UIColor darkGrayColor]];
+    [[UINavigationBar appearance] setTitleTextAttributes:
+     [NSDictionary dictionaryWithObjectsAndKeys:
+      [UIColor whiteColor], NSForegroundColorAttributeName, nil]];
     
     [JWFileController sharedInstance];
     [[JWFileController sharedInstance] reload];
@@ -33,13 +37,14 @@
     if (ampIndexNumber)
         [JWCurrentWorkItem sharedInstance].currentAmpImageIndex = [ampIndexNumber unsignedIntegerValue];
     
+    
     // Override point for customization after application launch.
 //    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
 //    UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
 //    navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
 //    splitViewController.delegate = self;
-    return YES;//[[FBSDKApplicationDelegate sharedInstance] application:application
-           //                         didFinishLaunchingWithOptions:launchOptions];
+    return [[FBSDKApplicationDelegate sharedInstance] application:application
+                                    didFinishLaunchingWithOptions:launchOptions];
 }
 
 /*
@@ -120,12 +125,12 @@ Jan 30 01:10:55 JOes-Phone
 
 
 
-//- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-//    return [[FBSDKApplicationDelegate sharedInstance] application:application
-//                                                                  openURL:url
-//                                                        sourceApplication:sourceApplication
-//                                                               annotation:annotation];
-//}
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    return [[FBSDKApplicationDelegate sharedInstance] application:application
+                                                                  openURL:url
+                                                        sourceApplication:sourceApplication
+                                                               annotation:annotation];
+}
 /*
  
  AIRDROP from mac

@@ -17,9 +17,7 @@
 
 @interface JWAWSFacbookAuthViewController() <FBSDKLoginButtonDelegate, UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic) JWAWSIdentityManager *identity;
 @property (nonatomic, copy) NSString *userId;
-@property (nonatomic) JWAWSDynamoDBManager *database;
 @property (nonatomic) FBSDKLoginButton *loginButton;
 @property (nonatomic) NSMutableArray *trackSet;
 @property (nonatomic) NSMutableDictionary *displayedUser;

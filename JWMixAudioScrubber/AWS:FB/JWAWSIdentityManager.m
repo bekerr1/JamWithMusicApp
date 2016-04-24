@@ -102,33 +102,12 @@
 - (NSString *)identityId {
 
     return self.credentialsProvider.identityId;
-    
-//    if (!self.userID) {
-//        [[self.credentialsProvider getIdentityId] continueWithBlock:^id(AWSTask *task) {
-//            if (task.error) {
-//                NSLog(@"Error");
-//            } else {
-//                NSLog(@"Made it through");
-//                self.userID = task.result;
-//            }
-//            return task.result;
-//        }];
-//        
-//    }
-//    return self.userID;
 }
 
 
 
 #pragma mark - Facebook
 
-
-//- (BOOL)isLoggedInWithFacebook {
-//    BOOL loggedIn = NO;
-//    loggedIn = [FBSDKAccessToken currentAccessToken] != nil;
-//    
-//    return self.keychain[FB_PROVIDER] != nil && loggedIn;
-//}
 
 
 - (void)reloadFBSession {

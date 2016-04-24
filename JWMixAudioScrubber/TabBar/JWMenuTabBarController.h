@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface JWMenuTabBarController : UITabBarController
+@interface JWMenuTabBarController : UITabBarController <UITabBarControllerDelegate>
 
 @end

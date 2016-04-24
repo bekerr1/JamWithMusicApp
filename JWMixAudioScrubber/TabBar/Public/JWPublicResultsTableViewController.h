@@ -1,5 +1,5 @@
 //
-//  JWPublicTableViewController.h
+//  JWPublicResultsTableViewController.h
 //  JamWDev
 //
 //  Created by brendan kerr on 4/18/16.
@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface JWPublicTableViewController : UITableViewController
+@interface JWPublicResultsTableViewController : UITableViewController
 
 @end
