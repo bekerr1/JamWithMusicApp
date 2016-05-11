@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "JWBlockingView.h"
 
-@interface JWMenuTabBarController : UITabBarController <UITabBarControllerDelegate>
+@interface JWMenuTabBarController : UITabBarController <UITabBarControllerDelegate, BlockingViewDelegate>
 
 @end

@@ -35,8 +35,8 @@
 -(instancetype)initWithUserId:(NSString *)userid jamtrackName:(NSString *)trackName parameters:(NSDictionary *)params {
     
     if (self = [super init]) {
-        self.userId = userid;
-        self.trackName = trackName;
+        self.UserId = userid;
+        self.TrackName = trackName;
     }
     return self;
 }

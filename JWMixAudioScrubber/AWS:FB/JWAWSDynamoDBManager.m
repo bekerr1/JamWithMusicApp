@@ -13,6 +13,7 @@
 
 @interface JWAWSDynamoDBManager()
 
+@property (nonatomic, copy) void (^queryReturn)(NSArray *items);
 
 
 @end
@@ -53,11 +54,12 @@
     }];
 }
 
--(void)queryDatabase:(Class)databaseClass hashKeyAttribute:(NSString *)key attributeValues:(id)values {
+-(void)queryDatabase:(Class)databaseClass hashKeyAttribute:(NSString *)key attributeValues:(id)values completionBlock:(void(^)(NSArray *items))block {
     
     AWSDynamoDBQueryExpression *query = [AWSDynamoDBQueryExpression new];
     query.hashKeyAttribute = key;
     query.hashKeyValues = values;
+    self.queryReturn = block;
     
     [self queryTable:databaseClass withExpression:query];
     
@@ -78,7 +80,8 @@
         if (task.result) {
             NSLog(@"Got a result. %s", __func__);
             AWSDynamoDBPaginatedOutput *paginatedOutput = task.result;
-            [self.delegateDB dynamoDBReturnedFromQueryWith:paginatedOutput.items];
+            NSAssert(self.queryReturn != nil, @"Return Block is nil");
+            self.queryReturn(paginatedOutput.items);    
         }
         
         return nil;
@@ -93,7 +96,11 @@
 -(void)createNewUserWithId:(NSString *)userID suppliedUserName:(NSString *)username faceBookName:(NSString *)fbName {
     
     JWUsersDBModel *newUser = [[JWUsersDBModel alloc] initWithUserId:userID suppliedUserName:username facebookName:fbName];
+    
+    JWUsers_ByFBDBModel *newFBUser = [[JWUsers_ByFBDBModel alloc] initWithFacebookName:fbName username:username userID:userID];
+    
     [self saveNewObjectToDynamoDB:newUser];
+    [self saveNewObjectToDynamoDB:newFBUser];
 }
 
 

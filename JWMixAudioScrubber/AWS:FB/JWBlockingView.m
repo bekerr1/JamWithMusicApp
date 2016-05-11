@@ -38,7 +38,7 @@
         self.pageStatement.lineBreakMode = NSLineBreakByWordWrapping;
         self.pageStatement.textColor = [UIColor whiteColor];
         self.pageStatement.numberOfLines = 0;
-        self.pageStatement.alpha = 1.0;
+        //self.pageStatement.alpha = 1.0;
         
         self.blockingStatement = [[UILabel alloc]
                                   initWithFrame:CGRectMake(0, 0, self.frame.size.width - LABEL_WIDTH_OFFSET, LABEL_HEIGHT)];
@@ -46,7 +46,7 @@
         self.blockingStatement.lineBreakMode = NSLineBreakByWordWrapping;
         self.blockingStatement.textColor = [UIColor whiteColor];
         self.blockingStatement.numberOfLines = 0;
-        self.blockingStatement.alpha = 1.0;
+        //self.blockingStatement.alpha = 1.0;
         
         [self.blockingStatement setText:@"You must register through Facebook to acess this content"];
         

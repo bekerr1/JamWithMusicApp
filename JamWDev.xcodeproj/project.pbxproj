@@ -108,6 +108,8 @@
 		F48AEC051C711D6A0044ACE8 /* JWCustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC031C711D6A0044ACE8 /* JWCustomCellBackground.m */; };
 		F48AEC081C711D870044ACE8 /* JWAudioPlayerCameraController.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC071C711D870044ACE8 /* JWAudioPlayerCameraController.m */; };
 		F48AEC0C1C711DAE0044ACE8 /* JWCameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC0B1C711DAE0044ACE8 /* JWCameraViewController.m */; };
+		F4912C5E1CE2A57000172E5D /* JWUsers_ByFBDBModel.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C5D1CE2A57000172E5D /* JWUsers_ByFBDBModel.m */; };
+		F4912C621CE2C03D00172E5D /* JWContinueView.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C611CE2C03D00172E5D /* JWContinueView.m */; };
 		F4F2D51E1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */; };
 /* End PBXBuildFile section */
 
@@ -336,6 +338,10 @@
 		F48AEC071C711D870044ACE8 /* JWAudioPlayerCameraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWAudioPlayerCameraController.m; path = ../AudioScrubber/JWAudioPlayerCameraController.m; sourceTree = "<group>"; };
 		F48AEC0A1C711DAE0044ACE8 /* JWCameraViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWCameraViewController.h; sourceTree = "<group>"; };
 		F48AEC0B1C711DAE0044ACE8 /* JWCameraViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWCameraViewController.m; sourceTree = "<group>"; };
+		F4912C5C1CE2A57000172E5D /* JWUsers_ByFBDBModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWUsers_ByFBDBModel.h; path = "AWS:FB/JWUsers_ByFBDBModel.h"; sourceTree = "<group>"; };
+		F4912C5D1CE2A57000172E5D /* JWUsers_ByFBDBModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWUsers_ByFBDBModel.m; path = "AWS:FB/JWUsers_ByFBDBModel.m"; sourceTree = "<group>"; };
+		F4912C601CE2C03C00172E5D /* JWContinueView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWContinueView.h; path = "AWS:FB/JWContinueView.h"; sourceTree = "<group>"; };
+		F4912C611CE2C03D00172E5D /* JWContinueView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWContinueView.m; path = "AWS:FB/JWContinueView.m"; sourceTree = "<group>"; };
 		F4F2D51C1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWEffectPresetsTableViewController.h; sourceTree = "<group>"; };
 		F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWEffectPresetsTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -422,16 +428,15 @@
 				5525FE941C3727430081FB23 /* DetailViewController.m */,
 				F41904461CC4584100937707 /* JWHomeTableViewController.h */,
 				F41904471CC4584100937707 /* JWHomeTableViewController.m */,
-				F41904681CC5B49300937707 /* JWPublicResultsTableViewController.h */,
-				F41904691CC5B49300937707 /* JWPublicResultsTableViewController.m */,
-				F419046C1CC5B4D300937707 /* JWPublicTableViewController.h */,
-				F419046B1CC5B4D300937707 /* JWPublicTableViewController.m */,
+				F4912C5F1CE2B77F00172E5D /* Public Tab */,
 				F42762BC1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.h */,
 				F42762BD1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.m */,
 				F419044C1CC4AD4A00937707 /* JWMenuTabBarController.h */,
 				F419044D1CC4AD4A00937707 /* JWMenuTabBarController.m */,
 				F42762BF1CCC68A300FBFC1D /* JWBlockingView.h */,
 				F42762C01CCC68A300FBFC1D /* JWBlockingView.m */,
+				F4912C601CE2C03C00172E5D /* JWContinueView.h */,
+				F4912C611CE2C03D00172E5D /* JWContinueView.m */,
 				F419044F1CC563C700937707 /* JWFileManager.h */,
 				F41904501CC563C700937707 /* JWFileManager.m */,
 				F419046E1CC5B52100937707 /* TableViewTemplate.m */,
@@ -729,6 +734,8 @@
 				F419045B1CC5960700937707 /* JWJamTracksDBModel.m */,
 				F419045E1CC5960700937707 /* JWUsersDBModel.h */,
 				F419045F1CC5960700937707 /* JWUsersDBModel.m */,
+				F4912C5C1CE2A57000172E5D /* JWUsers_ByFBDBModel.h */,
+				F4912C5D1CE2A57000172E5D /* JWUsers_ByFBDBModel.m */,
 				F41904601CC5960700937707 /* JWAWSIdentityManager.h */,
 				F419045D1CC5960700937707 /* JWAWSIdentityManager.m */,
 				F41904611CC5960700937707 /* JWAWSFacbookAuthViewController.h */,
@@ -763,6 +770,17 @@
 				5525FF121C3729980081FB23 /* AVAudioUnitReverb+JW.m */,
 			);
 			name = categories;
+			sourceTree = "<group>";
+		};
+		F4912C5F1CE2B77F00172E5D /* Public Tab */ = {
+			isa = PBXGroup;
+			children = (
+				F41904681CC5B49300937707 /* JWPublicResultsTableViewController.h */,
+				F41904691CC5B49300937707 /* JWPublicResultsTableViewController.m */,
+				F419046C1CC5B4D300937707 /* JWPublicTableViewController.h */,
+				F419046B1CC5B4D300937707 /* JWPublicTableViewController.m */,
+			);
+			name = "Public Tab";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -997,6 +1015,7 @@
 				5525FEEF1C37295C0081FB23 /* JWScrubberController.m in Sources */,
 				F41904641CC5960700937707 /* JWJamTracksDBModel.m in Sources */,
 				55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */,
+				F4912C5E1CE2A57000172E5D /* JWUsers_ByFBDBModel.m in Sources */,
 				F41904631CC5960700937707 /* JWAWSDynamoDBManager.m in Sources */,
 				55CD127B1C3F6EBD001662CF /* JWCurrentWorkItem.m in Sources */,
 				5525FECD1C3728ED0081FB23 /* JWUITransportButton.m in Sources */,
@@ -1041,6 +1060,7 @@
 				5525FF051C37298B0081FB23 /* JWRecorderTableViewCell.m in Sources */,
 				5525FEF21C37295C0081FB23 /* JWScrubberViewController.m in Sources */,
 				55CD126A1C3F6D71001662CF /* JWFileDowloadController.m in Sources */,
+				F4912C621CE2C03D00172E5D /* JWContinueView.m in Sources */,
 				5525FE951C3727430081FB23 /* DetailViewController.m in Sources */,
 				F42762BE1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.m in Sources */,
 				55F41C1F1C51D9D0002F3893 /* UIColor+JW.m in Sources */,

@@ -24,6 +24,7 @@
 
 
 - (void)FBLogin;
+-(void)facebookLogout;
 - (BOOL)isLoggedInWithFacebook;
 - (void)completeFBLogin;
 - (void)completeFBLoginWithCompletion:(AWSContinuationBlock)completion;

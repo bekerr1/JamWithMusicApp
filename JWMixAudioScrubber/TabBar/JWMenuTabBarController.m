@@ -1,4 +1,4 @@
-//
+    //
 //  JWMenuTabBarController.m
 //  JamWDev
 //
@@ -10,8 +10,10 @@
 #import "JWMixNodes.h"
 #import "JWPublicTableViewController.h"
 #import "JWAWSIdentityManager.h"
-#import "JWBlockingView.h"
+#import "JWContinueView.h"
 
+
+#define TESTING 1
 
 @interface JWMenuTabBarController() {
     BOOL _loggedIn;
@@ -19,6 +21,7 @@
 }
 
 @property (nonatomic) JWBlockingView *blockingView;
+@property (nonatomic) JWContinueView *continueView;
 
 @end
 @implementation JWMenuTabBarController 
@@ -35,7 +38,12 @@
 
 -(void)viewDidLoad {
     [super viewDidLoad];
-    
+#ifdef TESTING
+    [[JWAWSIdentityManager sharedInstance] facebookLogout];
+    if (![[JWAWSIdentityManager sharedInstance] isLoggedInWithFacebook]) {
+        NSLog(@"itWorked");
+    }
+#endif
 }
 
 
@@ -123,7 +131,7 @@ Most likely should be called after an audio file is clipped or audio is download
             
             if (!_blocked) {
                 self.blockingView = [[JWBlockingView alloc] initWithFrame:self.view.frame];
-                
+                self.blockingView.delegate = self;
                 self.blockingView.pageStatement.text = @"This page allows artists to search for other registered users and download their content to use inside JamWith.";
                 
                 //Originaly i set the views alpha to 0.5 but that affected all of its subviews which wasnt the desired look.  Now i am setting the background color to a color with an alpha component.
@@ -143,10 +151,12 @@ Most likely should be called after an audio file is clipped or audio is download
 
 -(void)unblock {
     NSLog(@"%s", __func__);
+    
     [[JWAWSIdentityManager sharedInstance] completeFBLoginWithCompletion:^id(AWSTask *task) {
         NSLog(@"Completion.");
         dispatch_async(dispatch_get_main_queue(), ^{
             [self removeBlock];
+            [self continueWithUsername];
         });
         return nil;
     }];
@@ -158,12 +168,21 @@ Most likely should be called after an audio file is clipped or audio is download
     
 }
 
-#pragma mark - VIEW BLOCK CALLS
+#pragma mark - VIEW CALLS
 
 
 -(void)removeBlock {
-    
+    NSLog(@"%s", __func__);
     [self.blockingView removeFromSuperview];
+}
+
+-(void)continueWithUsername {
+    NSLog(@"%s", __func__);
+    
+    self.continueView = [[JWContinueView alloc] initWithFrame:self.view.frame];
+    self.continueView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5];
+    
+    [self.view addSubview:self.continueView];
 }
 
 

@@ -8,6 +8,7 @@
 
 #import "JWAWSIdentityManager.h"
 
+#define TESTING
 @interface JWAWSIdentityManager() <FBSDKLoginButtonDelegate> {
     
 }
@@ -159,6 +160,11 @@
     NSLog(@"%@", [logs description]);
     return [FBSDKAccessToken currentAccessToken] != nil;
     
+}
+
+-(void)facebookLogout {
+    
+    [[FBSDKLoginManager new] logOut];
 }
 
 
