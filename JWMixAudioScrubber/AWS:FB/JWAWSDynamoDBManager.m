@@ -11,10 +11,12 @@
 #import "AWSConfiguration.h"
 
 
-@interface JWAWSDynamoDBManager()
+@interface JWAWSDynamoDBManager() {
+    BOOL _lastCall;
+}
 
 @property (nonatomic, copy) void (^queryReturn)(NSArray *items);
-
+@property (nonatomic, copy) void (^viewRemover)();
 
 @end
 
@@ -48,6 +50,9 @@
         
         if (task.result) {
             NSLog(@"Got a result. %s", __func__);
+            if (_lastCall) {
+                self.viewRemover();
+            }
         }
         
         return nil;
@@ -93,13 +98,17 @@
 
 #pragma mark - APP SPECIFIC DB CALLS
 
--(void)createNewUserWithId:(NSString *)userID suppliedUserName:(NSString *)username faceBookName:(NSString *)fbName {
+-(void)createNewUserWithId:(NSString *)userID suppliedUserName:(NSString *)username faceBookName:(NSString *)fbName completionHandler:(void (^)())completion {
     
     JWUsersDBModel *newUser = [[JWUsersDBModel alloc] initWithUserId:userID suppliedUserName:username facebookName:fbName];
     
     JWUsers_ByFBDBModel *newFBUser = [[JWUsers_ByFBDBModel alloc] initWithFacebookName:fbName username:username userID:userID];
     
+    self.viewRemover = completion;
+    
+    _lastCall = NO;
     [self saveNewObjectToDynamoDB:newUser];
+    _lastCall = YES;
     [self saveNewObjectToDynamoDB:newFBUser];
 }
 

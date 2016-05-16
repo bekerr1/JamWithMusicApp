@@ -99,15 +99,15 @@
 
 
 
-- (IBAction)continueButtonPressed:(UIButton *)sender {
-    
-//    NSLog(@"%@", [[JWAWSIdentityManager sharedInstance] identityId]);
-    [[JWAWSDynamoDBManager sharedInstance] createNewUserWithId:[[JWAWSIdentityManager sharedInstance] identityId] suppliedUserName:@"MyAxeAndMe" faceBookName:@"Brendan Kerr"];
-    
-    [self performSegueWithIdentifier:@"DisplayData" sender:nil];
-    
-    
-}
+//- (IBAction)continueButtonPressed:(UIButton *)sender {
+//    
+////    NSLog(@"%@", [[JWAWSIdentityManager sharedInstance] identityId]);
+//    [[JWAWSDynamoDBManager sharedInstance] createNewUserWithId:[[JWAWSIdentityManager sharedInstance] identityId] suppliedUserName:@"MyAxeAndMe" faceBookName:@"Brendan Kerr"];
+//    
+//    [self performSegueWithIdentifier:@"DisplayData" sender:nil];
+//    
+//    
+//}
 
 
 

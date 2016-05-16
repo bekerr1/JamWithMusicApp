@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
+
 typedef NS_ENUM(NSInteger, JWHomeSectionType) {
     JWHomeSectionTypeNone     =1,
     JWHomeSectionTypeOther,

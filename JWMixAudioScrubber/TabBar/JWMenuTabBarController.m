@@ -10,7 +10,7 @@
 #import "JWMixNodes.h"
 #import "JWPublicTableViewController.h"
 #import "JWAWSIdentityManager.h"
-#import "JWContinueView.h"
+#import "JWFileManager.h"
 
 
 #define TESTING 1
@@ -46,76 +46,76 @@
 #endif
 }
 
-
-#pragma mark - TRACK OBJECT CREATION
-
-/*
-When you want a jam track object with a player that has valid url and an empty recorder
-Most likely should be called after an audio file is clipped or audio is downloaded
- */
--(NSMutableDictionary*)newCompleteJamTrackObjectWithFileURL:(NSURL*)fileURL audioFileKey:(NSString *)key {
-    NSMutableDictionary *result = nil;
-    
-    
-    id track1 = [self newTrackObjectOfType:JWAudioNodeTypePlayer andFileURL:fileURL withAudioFileKey:key];
-    id track2 = [self newTrackObjectOfType:JWAudioNodeTypeRecorder];
-    
-    NSMutableArray *trackObjects = [@[track1, track2] mutableCopy];
-    
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"titletype":@"jamtrack",
-       @"title":@"jam Track",
-       @"trackobjectset":trackObjects,
-       @"date":[NSDate date],
-       } mutableCopy];
-    return result;
-}
-
-
--(NSMutableDictionary*)newTrackObjectOfType:(JWAudioNodeType)audioNodeType andFileURL:(NSURL*)fileURL withAudioFileKey:(NSString *)key {
-    
-    NSMutableDictionary *result = nil;
-    if (audioNodeType == JWAudioNodeTypePlayer) {
-        result =
-        [@{@"key":[[NSUUID UUID] UUIDString],
-           @"starttime":@(0.0),
-           @"date":[NSDate date],
-           @"type":@(JWAudioNodeTypePlayer)
-           } mutableCopy];
-        
-    } else if (audioNodeType == JWAudioNodeTypeRecorder) {
-        result =
-        [@{@"key":[[NSUUID UUID] UUIDString],
-           @"starttime":@(0.0),
-           @"date":[NSDate date],
-           @"type":@(JWAudioNodeTypeRecorder)
-           } mutableCopy];
-    }
-    
-    if (fileURL)
-        result[@"fileURL"] = fileURL;
-    if (key)
-        result[@"audiofilekey"] = key;
-    
-    return result;
-}
-
-
-
-//Trying to deal with just valid fileURL audio or empty recorder nodes, no samples
--(NSMutableDictionary*)newTrackObjectOfType:(JWAudioNodeType)audioNodeType {
-    
-    NSMutableDictionary *result = nil;
-    if (audioNodeType == JWAudioNodeTypePlayer) {
-        //return [self newTrackObjectOfType:audioNodeType andFileURL:[self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil] withAudioFileKey:nil];
-        
-    } else if (audioNodeType == JWAudioNodeTypeRecorder) {
-        return [self newTrackObjectOfType:audioNodeType andFileURL:nil withAudioFileKey:nil];
-    }
-    return result;
-}
-
+//OBJECT JWJAMSESSIONCOORDINATOR
+//#pragma mark - TRACK OBJECT CREATION
+//
+///*
+//When you want a jam track object with a player that has valid url and an empty recorder
+//Most likely should be called after an audio file is clipped or audio is downloaded
+// */
+//-(NSMutableDictionary*)newCompleteJamTrackObjectWithFileURL:(NSURL*)fileURL audioFileKey:(NSString *)key {
+//    NSMutableDictionary *result = nil;
+//    
+//    
+//    id track1 = [self newTrackObjectOfType:JWAudioNodeTypePlayer andFileURL:fileURL withAudioFileKey:key];
+//    id track2 = [self newTrackObjectOfType:JWAudioNodeTypeRecorder];
+//    
+//    NSMutableArray *trackObjects = [@[track1, track2] mutableCopy];
+//    
+//    result =
+//    [@{@"key":[[NSUUID UUID] UUIDString],
+//       @"titletype":@"jamtrack",
+//       @"title":@"jam Track",
+//       @"trackobjectset":trackObjects,
+//       @"date":[NSDate date],
+//       } mutableCopy];
+//    return result;
+//}
+//
+//
+//-(NSMutableDictionary*)newTrackObjectOfType:(JWAudioNodeType)audioNodeType andFileURL:(NSURL*)fileURL withAudioFileKey:(NSString *)key {
+//    
+//    NSMutableDictionary *result = nil;
+//    if (audioNodeType == JWAudioNodeTypePlayer) {
+//        result =
+//        [@{@"key":[[NSUUID UUID] UUIDString],
+//           @"starttime":@(0.0),
+//           @"date":[NSDate date],
+//           @"type":@(JWAudioNodeTypePlayer)
+//           } mutableCopy];
+//        
+//    } else if (audioNodeType == JWAudioNodeTypeRecorder) {
+//        result =
+//        [@{@"key":[[NSUUID UUID] UUIDString],
+//           @"starttime":@(0.0),
+//           @"date":[NSDate date],
+//           @"type":@(JWAudioNodeTypeRecorder)
+//           } mutableCopy];
+//    }
+//    
+//    if (fileURL)
+//        result[@"fileURL"] = fileURL;
+//    if (key)
+//        result[@"audiofilekey"] = key;
+//    
+//    return result;
+//}
+//
+//
+//
+//////Trying to deal with just valid fileURL audio or empty recorder nodes, no samples
+////-(NSMutableDictionary*)newTrackObjectOfType:(JWAudioNodeType)audioNodeType {
+////    
+////    NSMutableDictionary *result = nil;
+////    if (audioNodeType == JWAudioNodeTypePlayer) {
+////        //return [self newTrackObjectOfType:audioNodeType andFileURL:[self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil] withAudioFileKey:nil];
+////        
+////    } else if (audioNodeType == JWAudioNodeTypeRecorder) {
+////        return [self newTrackObjectOfType:audioNodeType andFileURL:nil withAudioFileKey:nil];
+////    }
+////    return result;
+////}
+////
 
 #pragma mark - TAB BAR DELEGATE
 
@@ -147,7 +147,7 @@ Most likely should be called after an audio file is clipped or audio is download
 }
 
 
-#pragma mark - BLOCKING VIEW DELEGATE 
+#pragma mark - BLOCKING VIEW DELEGATE s
 
 -(void)unblock {
     NSLog(@"%s", __func__);
@@ -168,6 +168,14 @@ Most likely should be called after an audio file is clipped or audio is download
     
 }
 
+-(void)registrationComplete {
+    NSLog(@"%s", __func__);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.continueView removeFromSuperview];
+    });
+    
+}
+
 #pragma mark - VIEW CALLS
 
 
@@ -176,11 +184,13 @@ Most likely should be called after an audio file is clipped or audio is download
     [self.blockingView removeFromSuperview];
 }
 
+
 -(void)continueWithUsername {
     NSLog(@"%s", __func__);
     
     self.continueView = [[JWContinueView alloc] initWithFrame:self.view.frame];
     self.continueView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5];
+    self.continueView.delegate = self;
     
     [self.view addSubview:self.continueView];
 }

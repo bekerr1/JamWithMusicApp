@@ -969,12 +969,12 @@
      [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]
                     atomically:YES];
     
-    NSLog(@"%s USERLISTCOUNT [%lu]",__func__,(unsigned long)[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT [%lu] and description: %@",__func__,(unsigned long)[_userOrderList count], [_userOrderList description]);
 }
 -(void)readUserOrderedList {
     _userOrderList = [[NSMutableArray alloc] initWithContentsOfURL:
                       [NSURL fileURLWithPath:[[self documentsDirectoryPath] stringByAppendingPathComponent:(NSString*)JWDbKeyUserOrderedListFileName]]];
-    NSLog(@"%s USERLISTCOUNT [%lu]",__func__,(unsigned long)[_userOrderList count]);
+    NSLog(@"%s USERLISTCOUNT [%lu] and description: %@",__func__,(unsigned long)[_userOrderList count], [_userOrderList description]);
 }
 
 

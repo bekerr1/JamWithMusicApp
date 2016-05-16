@@ -14,7 +14,15 @@ typedef NS_ENUM(NSInteger, JWIlligalRegisterAction) {
     JWIlligalRegisterActionUsernameFormatError
 };
 
+@protocol ContinueViewDelegate <NSObject>
+
+-(void)registrationComplete;
+
+@end
+
 @interface JWContinueView : UIView <UITextFieldDelegate>
+
+@property (nonatomic) id <ContinueViewDelegate> delegate;
 
 
 @end

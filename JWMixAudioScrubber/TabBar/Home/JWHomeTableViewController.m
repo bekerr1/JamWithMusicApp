@@ -24,6 +24,7 @@
  
  */
 #import "JWHomeTableViewController.h"
+#import "JWFileManager.h"
 
 @interface JWHomeTableViewController()
 
@@ -38,8 +39,8 @@
 
 -(void)viewDidLoad {
     [super viewDidLoad];
-    
-    //self.homeControllerList = [[JWFileManager defaultManager] homeItems];
+    NSLog(@"%s", __func__);
+    self.homeControllerData = [[JWFileManager defaultManager] homeItemsList];
     
     _scrubberBlueImage = [UIImage imageNamed:@"scrubberIconBlue"];
     _scrubberWhiteImage = [UIImage imageNamed:@"scrubberIconWhite"];
@@ -59,20 +60,19 @@
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    return [self.homeControllerList[@"jamtracksets"] count];
+    return [self.homeControllerData[section] count];
     
 }
 
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     
-    return [self.homeControllerList[@"homeitems"] count];
+    return [self.homeControllerData count];
 }
 
 
 //TODO: customize this so it reflects the title of each section
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section  {
     
-    NSUInteger numberOfSessions = [self.homeControllerList[@"jamtracksets"] count];
     
     //UITableViewHeaderFooterView *view = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"JWHeaderViewX"];
 //    if (view == nil)
@@ -81,6 +81,7 @@
     UITableViewHeaderFooterView *view = [UITableViewHeaderFooterView new];
     view.contentView.backgroundColor = [UIColor blackColor];
     view.textLabel.textColor = [UIColor yellowColor];
+    view.textLabel.text = self.homeControllerData[section][@"title"];
     return view;
     
 }

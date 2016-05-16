@@ -18,12 +18,16 @@
     return @"Facebook";
 }
 
++(NSString *)rangeKeyAttribute {
+    return @"UserName";
+}
+
 -(instancetype)initWithFacebookName:(NSString *)fbName username:(NSString *)username params:(NSDictionary *)parameters {
     
     if (self = [super init]) {
         
-        self.fbName = fbName;
-        self.username = username;
+        self.Facebook = fbName;
+        self.UserName = username;
         self.parameters = parameters;
     }
     return self;
@@ -33,8 +37,8 @@
     
     if (self = [super init]) {
         
-        self.fbName = fbName;
-        self.username = username;
+        self.Facebook = fbName;
+        self.UserName = username;
         self.userID = userID;
     }
     return self;

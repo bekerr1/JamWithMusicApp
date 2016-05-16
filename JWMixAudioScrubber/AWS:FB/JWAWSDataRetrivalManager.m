@@ -7,6 +7,7 @@
 //
 
 #import "JWAWSDataRetrivalManager.h"
+#import "JWUsers_ByFBDBModel.h"
 #import "JWUsersDBModel.h"
 #import <AWSDynamoDB/AWSDynamoDB.h>
 
@@ -39,7 +40,7 @@
 -(void)updateCurrentSearch:(NSString *)string {
     
     dispatch_async(self.userSearchQueue, ^() {
-        
+        [self queryDynamoDBUsingString:string];
     });
 }
 
@@ -83,27 +84,36 @@
 
 -(void)queryDynamoDBUsingString:(NSString *)string {
     
-    AWSDynamoDBObjectMapper *dynamoDBObjectMapper = [AWSDynamoDBObjectMapper
-                                                     defaultDynamoDBObjectMapper];
-    AWSDynamoDBQueryExpression *queryExpression = [AWSDynamoDBQueryExpression new];
-    queryExpression.expressionAttributeValues = @{@":search_val" : string, @":hash_value" : @"facebookProfileName"};
-    queryExpression.hashKeyAttribute = @":hash_value";
     
-    [[dynamoDBObjectMapper query:[JWUsersDBModel class]
-                     expression:queryExpression]
-     continueWithBlock:^id(AWSTask *task) {
-         if (task.error) {
-             NSLog(@"The request failed. Error: [%@]", task.error);
-         }
-         if (task.exception) {
-             NSLog(@"The request failed. Exception: [%@]", task.exception);
-         }
-         if (task.result) {
-             
-         }
-         return nil;
-     }];
+    if (![string  isEqual: @""]) {
+        NSLog(@"Query %s", __func__);
+        AWSDynamoDBObjectMapper *dynamoDBObjectMapper = [AWSDynamoDBObjectMapper
+                                                         defaultDynamoDBObjectMapper];
+        AWSDynamoDBQueryExpression *queryExpression = [AWSDynamoDBQueryExpression new];
+        
+        //queryExpression.expressionAttributeValues = @{@":search_val":string};
+        queryExpression.hashKeyAttribute = @"Facebook";
+        queryExpression.hashKeyValues = string;
+//        queryExpression.hashKeyValues = @"begins_with(Facebook, :search_val)";
+//        queryExpression.rangeKeyConditionExpression = @"begins_with(Facebook, :search_val)";
+        
+        [[dynamoDBObjectMapper query:[JWUsers_ByFBDBModel class]
+                          expression:queryExpression]
+         continueWithBlock:^id(AWSTask *task) {
+             if (task.error) {
+                 NSLog(@"The request failed. Error: [%@]", task.error);
+             }
+             if (task.exception) {
+                 NSLog(@"The request failed. Exception: [%@]", task.exception);
+             }
+             if (task.result) {
+                 NSLog(@"Completed with success");
+             }
+             return nil;
+         }];
+        
 
+    }
     
 }
 

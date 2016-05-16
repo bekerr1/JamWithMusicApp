@@ -19,9 +19,10 @@
 @property (nonatomic) NSArray *userTrackList;
 //@property (nonatomic) id <JWDynamoDBResultDelegate> delegateDB;
 
+
 + (instancetype)sharedInstance;
 //USERS
--(void)createNewUserWithId:(NSString *)userID suppliedUserName:(NSString *)username faceBookName:(NSString *)fbName;
+-(void)createNewUserWithId:(NSString *)userID suppliedUserName:(NSString *)username faceBookName:(NSString *)fbName completionHandler:(void (^)())completion;
 -(void)createNewUserWithId:(NSString *)userID otherParameters:(NSDictionary *)params;
 -(void)createNewJamTrackForUser:(NSString *)userID jamtrackName:(NSString *)trackName parameters:(NSDictionary *)params;
 //S3

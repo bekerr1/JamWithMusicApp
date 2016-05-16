@@ -1,0 +1,3 @@
+Starts by initializing a set of directories that will be used to organize the different files.  Some retrival queues are also initialized along with a metadata dictionary. Copy resources is called inside the init method to create the test .caf's used
+
+A load call will load files with certain prefixes into different desired arrays. It goes through each directory and checks each file in the directory for a prefix. The clips and trimmed arrays are then sorted by date (earliest to latest).  Directory data is then read into these arrays.

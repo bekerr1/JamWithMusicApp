@@ -10,8 +10,8 @@
 
 @interface JWUsers_ByFBDBModel : AWSDynamoDBObjectModel <AWSDynamoDBModeling>
 
-@property (nonatomic) NSString *fbName;
-@property (nonatomic) NSString *username;
+@property (nonatomic) NSString *Facebook;
+@property (nonatomic) NSString *UserName;
 @property (nonatomic) NSString *userID;
 @property (nonatomic) NSDictionary *parameters;
 

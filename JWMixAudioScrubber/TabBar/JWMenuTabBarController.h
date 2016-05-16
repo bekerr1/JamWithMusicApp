@@ -8,7 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import "JWBlockingView.h"
+#import "JWContinueView.h"
 
-@interface JWMenuTabBarController : UITabBarController <UITabBarControllerDelegate, BlockingViewDelegate>
+@interface JWMenuTabBarController : UITabBarController <UITabBarControllerDelegate, BlockingViewDelegate, ContinueViewDelegate>
 
 @end

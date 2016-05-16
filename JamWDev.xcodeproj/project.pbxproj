@@ -110,6 +110,8 @@
 		F48AEC0C1C711DAE0044ACE8 /* JWCameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC0B1C711DAE0044ACE8 /* JWCameraViewController.m */; };
 		F4912C5E1CE2A57000172E5D /* JWUsers_ByFBDBModel.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C5D1CE2A57000172E5D /* JWUsers_ByFBDBModel.m */; };
 		F4912C621CE2C03D00172E5D /* JWContinueView.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C611CE2C03D00172E5D /* JWContinueView.m */; };
+		F4912C641CE5718D00172E5D /* File System Notes in Resources */ = {isa = PBXBuildFile; fileRef = F4912C631CE5718C00172E5D /* File System Notes */; };
+		F4912C671CE5B0A100172E5D /* JWJamSessionCoordinator.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C661CE5B0A100172E5D /* JWJamSessionCoordinator.m */; };
 		F4F2D51E1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */; };
 /* End PBXBuildFile section */
 
@@ -342,6 +344,9 @@
 		F4912C5D1CE2A57000172E5D /* JWUsers_ByFBDBModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWUsers_ByFBDBModel.m; path = "AWS:FB/JWUsers_ByFBDBModel.m"; sourceTree = "<group>"; };
 		F4912C601CE2C03C00172E5D /* JWContinueView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWContinueView.h; path = "AWS:FB/JWContinueView.h"; sourceTree = "<group>"; };
 		F4912C611CE2C03D00172E5D /* JWContinueView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWContinueView.m; path = "AWS:FB/JWContinueView.m"; sourceTree = "<group>"; };
+		F4912C631CE5718C00172E5D /* File System Notes */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "File System Notes"; sourceTree = "<group>"; };
+		F4912C651CE5B0A100172E5D /* JWJamSessionCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWJamSessionCoordinator.h; sourceTree = "<group>"; };
+		F4912C661CE5B0A100172E5D /* JWJamSessionCoordinator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWJamSessionCoordinator.m; sourceTree = "<group>"; };
 		F4F2D51C1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWEffectPresetsTableViewController.h; sourceTree = "<group>"; };
 		F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWEffectPresetsTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -426,6 +431,8 @@
 				5525FE911C3727430081FB23 /* MasterViewController.m */,
 				5525FE931C3727430081FB23 /* DetailViewController.h */,
 				5525FE941C3727430081FB23 /* DetailViewController.m */,
+				F4912C651CE5B0A100172E5D /* JWJamSessionCoordinator.h */,
+				F4912C661CE5B0A100172E5D /* JWJamSessionCoordinator.m */,
 				F41904461CC4584100937707 /* JWHomeTableViewController.h */,
 				F41904471CC4584100937707 /* JWHomeTableViewController.m */,
 				F4912C5F1CE2B77F00172E5D /* Public Tab */,
@@ -452,6 +459,7 @@
 				55CD12811C3F742A001662CF /* JWTrackSetsViewController.m */,
 				55CD12DB1C4A588A001662CF /* JWHeaderFooterView.h */,
 				55CD12DC1C4A588A001662CF /* JWHeaderFooterView.m */,
+				F4912C631CE5718C00172E5D /* File System Notes */,
 				F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */,
 			);
 			path = JWMixAudioScrubber;
@@ -896,6 +904,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				55CD12841C3F7B31001662CF /* JWMedia.xcassets in Resources */,
+				F4912C641CE5718D00172E5D /* File System Notes in Resources */,
 				5525FE9D1C3727430081FB23 /* LaunchScreen.storyboard in Resources */,
 				F48AEBFF1C6D077B0044ACE8 /* Server_Parameter_Ideas in Resources */,
 				5525FF391C3746280081FB23 /* AminorBackingtrackTrimmedMP3-45.m4a in Resources */,
@@ -1013,6 +1022,7 @@
 				F41904481CC4584100937707 /* JWHomeTableViewController.m in Sources */,
 				55CD12571C3F6D5E001662CF /* JWFilesTableViewController.m in Sources */,
 				5525FEEF1C37295C0081FB23 /* JWScrubberController.m in Sources */,
+				F4912C671CE5B0A100172E5D /* JWJamSessionCoordinator.m in Sources */,
 				F41904641CC5960700937707 /* JWJamTracksDBModel.m in Sources */,
 				55CD12561C3F6D5E001662CF /* JWAmpPageViewController.m in Sources */,
 				F4912C5E1CE2A57000172E5D /* JWUsers_ByFBDBModel.m in Sources */,

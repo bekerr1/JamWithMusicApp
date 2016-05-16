@@ -11,4 +11,6 @@
 
 @interface JWAWSDataRetrivalManager : NSObject
 
+-(void)updateCurrentSearch:(NSString *)string;
+
 @end

@@ -12,6 +12,7 @@
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import "JWCurrentWorkItem.h"
 #import "JWFileController.h"
+#import "JWFileManager.h"
 
 @interface AppDelegate () <UISplitViewControllerDelegate, UITabBarControllerDelegate>
 
@@ -28,6 +29,7 @@
      [NSDictionary dictionaryWithObjectsAndKeys:
       [UIColor whiteColor], NSForegroundColorAttributeName, nil]];
     
+    [JWFileManager defaultManager];
     [JWFileController sharedInstance];
     [[JWFileController sharedInstance] reload];
     

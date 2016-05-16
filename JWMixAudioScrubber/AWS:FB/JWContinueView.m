@@ -94,7 +94,11 @@
             
             NSAssert(current != nil, @"nil profile");
             
-            [[JWAWSDynamoDBManager sharedInstance] createNewUserWithId:[[JWAWSIdentityManager sharedInstance] identityId] suppliedUserName:self.userNameTextField.text faceBookName:[NSString stringWithFormat:@"%@ %@", current.firstName, current.lastName]];
+            [[JWAWSDynamoDBManager sharedInstance] createNewUserWithId:[[JWAWSIdentityManager sharedInstance] identityId] suppliedUserName:self.userNameTextField.text faceBookName:[NSString stringWithFormat:@"%@ %@", current.firstName, current.lastName] completionHandler:^ {
+                [_delegate registrationComplete];
+            }];
+            
+            
             
         }];
     }

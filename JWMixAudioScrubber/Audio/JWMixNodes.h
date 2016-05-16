@@ -21,6 +21,16 @@
  JWMixerNodeTypeMixerPlayerRecorder  - a player and recorder to play/Record mixer output NOT USED
  */
 
+//New home section for tab bar controller
+typedef NS_ENUM(NSInteger, JWSectionType) {
+    JWHomeSectionNone     =1,
+    JWSectionTypeHome,
+    JWSectionTypePublic,
+    JWSectionTypeSocial,
+    JWSectionTypeProfile
+};
+
+
 //New enum with correct wording and all values are used
 typedef NS_ENUM(NSInteger, JWAudioNodeType) {
     JWAudioNodeTypeNone     =1,

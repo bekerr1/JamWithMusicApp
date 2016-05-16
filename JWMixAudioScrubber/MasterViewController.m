@@ -119,7 +119,8 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 #pragma mark - TABLE VIEW INDEX PATH
 
 // indexPath for tableView
-
+#define REDESIGN
+#ifdef REDESIGN
 -(id)jamTrackObjectAtIndexPath:(NSIndexPath*)indexPath {
     
     id result = nil;
@@ -151,6 +152,420 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 
+-(NSUInteger)countEmptyRecorderNodesForJamTrackWithKey:(NSString*)key {
+    
+    NSUInteger result = 0;
+    NSDictionary *object = [self jamTrackObjectAtIndexPath:_selectedDetailIndexPath];
+    
+    id trackNodes = object[@"trackobjectset"];
+    for (id trackNode in trackNodes) {
+        
+        id typeValue = trackNode[@"type"];
+        if (typeValue) {
+            JWMixerNodeTypes nodeType = [typeValue unsignedIntegerValue];
+            if (nodeType == JWMixerNodeTypePlayerRecorder) {
+                id fileURL = trackNode[@"fileURL"];
+                if (fileURL == nil)
+                    result++;
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+-(NSMutableDictionary*)newTrackObjectOfType:(JWMixerNodeTypes)mixNodeType {
+    
+    NSMutableDictionary *result = nil;
+    if (mixNodeType == JWMixerNodeTypePlayer) {
+        return [self newTrackObjectOfType:mixNodeType andFileURL:[self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil] withAudioFileKey:nil];
+        
+    } else if (mixNodeType == JWMixerNodeTypePlayerRecorder) {
+        return [self newTrackObjectOfType:mixNodeType andFileURL:nil withAudioFileKey:nil];
+    }
+    return result;
+}
+
+//TODO: added with audio file key so i can identify the five second audio file
+//coresponding to the trimmed audio file
+
+-(NSMutableDictionary*)newTrackObjectOfType:(JWMixerNodeTypes)mixNodeType andFileURL:(NSURL*)fileURL withAudioFileKey:(NSString *)key {
+    
+    NSMutableDictionary *result = nil;
+    if (mixNodeType == JWMixerNodeTypePlayer) {
+        result =
+        [@{@"key":[[NSUUID UUID] UUIDString],
+           @"title":@"track",
+           @"starttime":@(0.0),
+           @"date":[NSDate date],
+           @"type":@(JWMixerNodeTypePlayer)
+           } mutableCopy];
+    } else if (mixNodeType == JWMixerNodeTypePlayerRecorder) {
+        result =
+        [@{@"key":[[NSUUID UUID] UUIDString],
+           @"title":@"track recorder",
+           @"starttime":@(0.0),
+           @"date":[NSDate date],
+           @"type":@(JWMixerNodeTypePlayerRecorder)
+           } mutableCopy];
+    }
+    
+    if (fileURL)
+        result[@"fileURL"] = fileURL;
+    
+    if (key)
+        result[@"audiofilekey"] = key;
+    
+    
+    return result;
+}
+
+-(NSMutableDictionary*)newTrackObject {
+    NSMutableDictionary *result = nil;
+    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil];
+    result =
+    [@{@"key":[[NSUUID UUID] UUIDString],
+       @"title":@"track",
+       @"starttime":@(0.0),
+       @"date":[NSDate date],
+       @"fileURL":fileURL,
+       @"type":@(JWMixerNodeTypePlayer)
+       } mutableCopy];
+    
+    return result;
+}
+
+-(NSMutableArray*)newTrackObjectSet {
+    NSMutableArray *result = nil;
+    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil];
+    
+    NSMutableDictionary * fileReference =
+    [@{@"duration":@(0),
+       @"startinset":@(0.0),
+       @"endinset":@(0.0),
+       } mutableCopy];
+    result =[@[
+               [@{@"key":[[NSUUID UUID] UUIDString],
+                  @"title":@"track",
+                  @"starttime":@(0.0),
+                  @"referencefile": fileReference,
+                  @"date":[NSDate date],
+                  @"fileURL":fileURL,
+                  @"type":@(JWMixerNodeTypePlayer)
+                  } mutableCopy],
+               [@{@"key":[[NSUUID UUID] UUIDString],
+                  @"title":@"track",
+                  @"starttime":@(0.0),
+                  @"date":[NSDate date],
+                  @"type":@(JWMixerNodeTypePlayerRecorder)
+                  } mutableCopy]
+               ] mutableCopy];
+    
+    return result;
+}
+
+-(NSMutableDictionary*)newMixObject {
+    NSMutableDictionary *result = nil;
+    result =
+    [@{@"key":[[NSUUID UUID] UUIDString],
+       @"title":@"track set",
+       @"titletype":@"jamtrackMix",
+       @"trackobjectset":[self newTrackObjectSet],
+       @"date":[NSDate date],
+       } mutableCopy];
+    return result;
+}
+
+-(NSMutableArray*)newMixes {
+    NSMutableArray *result = nil;
+    result =[@[
+               [self newMixObject],
+               [self newMixObject]
+               ] mutableCopy];
+    return result;
+}
+
+-(NSMutableDictionary*)newJamTrackObject {
+    NSMutableDictionary *result = nil;
+    
+    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer];
+    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
+    
+    NSMutableArray *trackObjects = [@[track1, track2] mutableCopy];
+    
+    result =
+    [@{@"key":[[NSUUID UUID] UUIDString],
+       @"titletype":@"jamtrack",
+       @"title":@"jam Track",
+       @"trackobjectset":trackObjects,
+       @"date":[NSDate date],
+       } mutableCopy];
+    return result;
+}
+
+//TODO: added audio file key becuase the key generated here is for (i think) identifying the
+//jam track object
+-(NSMutableDictionary*)newJamTrackObjectWithFileURL:(NSURL*)fileURL audioFileKey:(NSString *)key {
+    NSMutableDictionary *result = nil;
+    
+    
+    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL withAudioFileKey:key];
+    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
+    
+    NSMutableArray *trackObjects = [@[track1, track2] mutableCopy];
+    
+    result =
+    [@{@"key":[[NSUUID UUID] UUIDString],
+       @"titletype":@"jamtrack",
+       @"title":@"jam Track",
+       @"trackobjectset":trackObjects,
+       @"date":[NSDate date],
+       } mutableCopy];
+    return result;
+}
+
+-(NSMutableDictionary*)newJamTrackObjectWithRecorderFileURL:(NSURL*)fileURL {
+    NSMutableDictionary *result = nil;
+    
+    id track = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder andFileURL:nil withAudioFileKey:nil];
+    
+    NSMutableArray *trackObjects = [@[track] mutableCopy];
+    
+    result =
+    [@{@"key":[[NSUUID UUID] UUIDString],
+       @"titletype":@"jamtrack",
+       @"title":@"jam Track",
+       @"trackobjectset":trackObjects,
+       @"date":[NSDate date],
+       } mutableCopy];
+    return result;
+}
+
+-(NSMutableArray*)newJamTracks {
+    NSMutableArray *result = nil;
+    NSMutableArray *jamTracks = [NSMutableArray new];
+    NSURL *fileURL;
+    NSMutableDictionary *track1;
+    NSMutableDictionary *track2;
+    
+    // JAMTRACK 1
+    NSMutableDictionary *jamTrack1 = [self newJamTrackObject];
+    jamTrack1[@"title"] = @"Brendans mix The killers";
+    
+    track1 = jamTrack1[@"trackobjectset"][0];
+    fileURL = [self fileURLWithFileName:@"TheKillersTrimmedMP3-30.m4a" inPath:@[]];
+    track1[@"fileURL"] = fileURL;
+    
+    track2 = jamTrack1[@"trackobjectset"][1];
+    fileURL = [self fileURLWithFileName:@"clipRecording_killers1.caf" inPath:@[]];
+    track2[@"fileURL"] = fileURL;
+    
+    
+    // JAMTRACK 2
+    NSMutableDictionary *jamTrack2 = [self newJamTrackObject];
+    jamTrack2[@"title"] = @"Brendans mix Aminor1";
+    
+    track1 = jamTrack2[@"trackobjectset"][0];
+    fileURL = [self fileURLWithFileName:@"AminorBackingtrackTrimmedMP3-45.m4a" inPath:@[]];
+    track1[@"fileURL"] = fileURL;
+    
+    track2 = jamTrack2[@"trackobjectset"][1];
+    fileURL = [self fileURLWithFileName:@"clipRecording_aminor1.caf" inPath:@[]];
+    track2[@"fileURL"] = fileURL;
+    
+    
+    [jamTracks insertObject:jamTrack2 atIndex:0];
+    [jamTracks insertObject:jamTrack1 atIndex:0];
+    
+    result = jamTracks;
+    
+    return result;
+}
+
+-(NSMutableArray*)newProvidedJamTracks {
+    NSMutableArray *result = nil;
+    result =[@[
+               [self newJamTrackObject],
+               [self newJamTrackObject]
+               ] mutableCopy];
+    return result;
+}
+
+-(NSMutableArray*)newDownloadedJamTracks {
+    
+    NSMutableArray *result = [NSMutableArray new];
+    for (id fileInfo in [[JWFileController sharedInstance] downloadedJamTrackFiles]) {
+        NSLog(@"%s %@",__func__,[fileInfo[@"furl"] lastPathComponent]);
+        
+        NSURL *fileURL = [self fileURLWithFileFlatFileURL:fileInfo[@"furl"]];
+        
+        //TODO: not sure if the key parameter is needed here
+        [result addObject:[self newJamTrackObjectWithFileURL:fileURL audioFileKey:nil]];
+    }
+    
+    return result;
+}
+
+
+
+-(NSMutableArray*)newHomeMenuLists {
+    NSMutableArray *result =
+    [@[
+       [@{
+          
+          //will be used for settings and files user sets
+          @"title":@"Settings And Files",
+          @"type":@(JWHomeSectionTypeOther),
+          } mutableCopy],
+       
+       //Will be supplied by an s3 bucket, Not used
+       //       [@{
+       //          @"title":@"Provided JamTracks",
+       //          @"type":@(JWHomeSectionTypePreloaded),
+       //          @"trackobjectset":[self newProvidedJamTracks],
+       //          } mutableCopy],
+       [@{
+          
+          //Will be used when user downloads somone elses jam track
+          @"title":@"Downloaded JamTracks",
+          @"type":@(JWHomeSectionTypeDownloaded),
+          @"trackobjectset":[self newDownloadedJamTracks],
+          } mutableCopy],
+       
+       //source audio will be determined by the tab the user is currently in
+       //       [@{
+       //          @"title":@"Source Audio",
+       //          @"type":@(JWHomeSectionTypeYoutube)
+       //          } mutableCopy],
+       [@{
+          
+          //Will be used to give user their saved/unfinished jam sessions
+          @"title":@"Jam Sessions",
+          @"type":@(JWHomeSectionTypeAudioFiles),
+          @"trackobjectset":[self newJamTracks],
+          } mutableCopy],
+       
+       //Will not be used, the user will be prompted to sign in when they need to
+       //       [@{
+       //
+       //          @"title":@"User",
+       //          @"type":@(JWHomeSectionTypeUser)
+       //          } mutableCopy],
+       ] mutableCopy
+     ];
+    
+    return result;
+}
+
+
+// returns a jamTrack that matches key
+-(id)jamTrackObjectWithKey:(NSString*)key {
+    
+    id result;
+    for (id objectSection in _homeControllerSections) {
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        for (id jamTrack in jamTracks) {
+            if ([key isEqualToString:jamTrack[@"key"]]) {
+                result = jamTrack;
+                break;
+            }
+        }
+        if (result)
+            break;
+    }
+    return result;
+}
+
+// returns a jamTrack that contains a tracknode that matches key
+-(id)jamTrackObjectContainingNodeKey:(NSString*)key {
+    
+    id result;
+    for (id objectSection in _homeControllerSections) {
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        for (id jamTrack in jamTracks) {
+            id trackNodes = jamTrack[@"trackobjectset"];
+            for (id trackNode in trackNodes) {
+                if ([key isEqualToString:trackNode[@"key"]]) {
+                    result = jamTrack; // // jamtrack containing node key
+                    break;
+                }
+            }
+            if (result)
+                break;
+        }
+        if (result)
+            break;
+    }
+    
+    return result;
+}
+
+
+// returns a trackNode
+-(id)jamTrackNodeObjectForKey:(NSString*)key {
+    
+    id result;
+    for (id objectSection in _homeControllerSections) {
+        
+        id jamTracks = objectSection[@"trackobjectset"];
+        for (id jamTrack in jamTracks) {
+            id trackNodes = jamTrack[@"trackobjectset"];
+            for (id trackNode in trackNodes) {
+                if ([key isEqualToString:trackNode[@"key"]]) {
+                    result = trackNode; // jamtrack node
+                    break;
+                }
+            }
+            if (result)
+                break;
+        }
+        if (result)
+            break;
+    }
+    return result;
+}
+
+
+-(NSString*)preferredTitleForObject:(id)object {
+    NSString *result;
+    id userTitleValue = object[@"usertitle"];
+    id titleValue = object[@"title"];
+    
+    if (userTitleValue) {
+        result = userTitleValue;
+    } else {
+        if (titleValue)
+            result = titleValue;
+        else
+            result = @"";
+    }
+    
+    return result;
+}
+
+
+// return the section array of jamtracks that contain this jam track
+
+-(NSMutableArray*)jamTracksWithJamTrackKey:(NSString*)key {
+    
+    NSMutableArray * result;
+    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
+    
+    if (itemIndexPath) {
+        id objectSection = _homeControllerSections[itemIndexPath.section];
+        result = objectSection[@"trackobjectset"];
+    }
+    
+    return result;
+}
+
+
+
+#endif
+
 -(void)textFieldDidEndEditing:(UITextField *)textField {
     NSLog(@"%s",__func__);
     
@@ -174,27 +589,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     [self detailOptions];
 }
 
--(NSUInteger)countEmptyRecorderNodesForJamTrackWithKey:(NSString*)key {
-    
-    NSUInteger result = 0;
-    NSDictionary *object = [self jamTrackObjectAtIndexPath:_selectedDetailIndexPath];
-    
-    id trackNodes = object[@"trackobjectset"];
-    for (id trackNode in trackNodes) {
-        
-        id typeValue = trackNode[@"type"];
-        if (typeValue) {
-            JWMixerNodeTypes nodeType = [typeValue unsignedIntegerValue];
-            if (nodeType == JWMixerNodeTypePlayerRecorder) {
-                id fileURL = trackNode[@"fileURL"];
-                if (fileURL == nil)
-                    result++;
-            }
-        }
-    }
-    
-    return result;
-}
 
 -(void)detailOptions {
     
@@ -433,288 +827,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 
 #pragma mark - track objects
 
--(NSMutableDictionary*)newTrackObjectOfType:(JWMixerNodeTypes)mixNodeType {
-    
-    NSMutableDictionary *result = nil;
-    if (mixNodeType == JWMixerNodeTypePlayer) {
-        return [self newTrackObjectOfType:mixNodeType andFileURL:[self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil] withAudioFileKey:nil];
-        
-    } else if (mixNodeType == JWMixerNodeTypePlayerRecorder) {
-        return [self newTrackObjectOfType:mixNodeType andFileURL:nil withAudioFileKey:nil];
-    }
-    return result;
-}
-
-//TODO: added with audio file key so i can identify the five second audio file
-//coresponding to the trimmed audio file
-
--(NSMutableDictionary*)newTrackObjectOfType:(JWMixerNodeTypes)mixNodeType andFileURL:(NSURL*)fileURL withAudioFileKey:(NSString *)key {
-    
-    NSMutableDictionary *result = nil;
-    if (mixNodeType == JWMixerNodeTypePlayer) {
-        result =
-        [@{@"key":[[NSUUID UUID] UUIDString],
-           @"title":@"track",
-           @"starttime":@(0.0),
-           @"date":[NSDate date],
-           @"type":@(JWMixerNodeTypePlayer)
-           } mutableCopy];
-    } else if (mixNodeType == JWMixerNodeTypePlayerRecorder) {
-        result =
-        [@{@"key":[[NSUUID UUID] UUIDString],
-           @"title":@"track recorder",
-           @"starttime":@(0.0),
-           @"date":[NSDate date],
-           @"type":@(JWMixerNodeTypePlayerRecorder)
-           } mutableCopy];
-    }
-
-    if (fileURL)
-        result[@"fileURL"] = fileURL;
-    
-    if (key)
-        result[@"audiofilekey"] = key;
-    
-
-    return result;
-}
-
--(NSMutableDictionary*)newTrackObject {
-    NSMutableDictionary *result = nil;
-    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil];
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"title":@"track",
-       @"starttime":@(0.0),
-       @"date":[NSDate date],
-       @"fileURL":fileURL,
-       @"type":@(JWMixerNodeTypePlayer)
-       } mutableCopy];
-    
-    return result;
-}
-
--(NSMutableArray*)newTrackObjectSet {
-    NSMutableArray *result = nil;
-    NSURL *fileURL = [self fileURLWithFileName:JWSampleFileNameAndExtension inPath:nil];
-
-    NSMutableDictionary * fileReference =
-    [@{@"duration":@(0),
-       @"startinset":@(0.0),
-       @"endinset":@(0.0),
-       } mutableCopy];
-    result =[@[
-               [@{@"key":[[NSUUID UUID] UUIDString],
-                  @"title":@"track",
-                  @"starttime":@(0.0),
-                  @"referencefile": fileReference,
-                  @"date":[NSDate date],
-                  @"fileURL":fileURL,
-                  @"type":@(JWMixerNodeTypePlayer)
-                  } mutableCopy],
-               [@{@"key":[[NSUUID UUID] UUIDString],
-                  @"title":@"track",
-                  @"starttime":@(0.0),
-                  @"date":[NSDate date],
-                  @"type":@(JWMixerNodeTypePlayerRecorder)
-                  } mutableCopy]
-               ] mutableCopy];
-    
-    return result;
-}
-
--(NSMutableDictionary*)newMixObject {
-    NSMutableDictionary *result = nil;
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"title":@"track set",
-       @"titletype":@"jamtrackMix",
-       @"trackobjectset":[self newTrackObjectSet],
-       @"date":[NSDate date],
-       } mutableCopy];
-    return result;
-}
-
--(NSMutableArray*)newMixes {
-    NSMutableArray *result = nil;
-    result =[@[
-               [self newMixObject],
-               [self newMixObject]
-               ] mutableCopy];
-    return result;
-}
-
--(NSMutableDictionary*)newJamTrackObject {
-    NSMutableDictionary *result = nil;
-    
-    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer];
-    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
-
-    NSMutableArray *trackObjects = [@[track1, track2] mutableCopy];
-    
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"titletype":@"jamtrack",
-       @"title":@"jam Track",
-       @"trackobjectset":trackObjects,
-       @"date":[NSDate date],
-       } mutableCopy];
-    return result;
-}
-
-//TODO: added audio file key becuase the key generated here is for (i think) identifying the
-//jam track object
--(NSMutableDictionary*)newJamTrackObjectWithFileURL:(NSURL*)fileURL audioFileKey:(NSString *)key {
-    NSMutableDictionary *result = nil;
-    
-    
-    id track1 = [self newTrackObjectOfType:JWMixerNodeTypePlayer andFileURL:fileURL withAudioFileKey:key];
-    id track2 = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder];
-    
-    NSMutableArray *trackObjects = [@[track1, track2] mutableCopy];
-    
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"titletype":@"jamtrack",
-       @"title":@"jam Track",
-       @"trackobjectset":trackObjects,
-       @"date":[NSDate date],
-       } mutableCopy];
-    return result;
-}
-
--(NSMutableDictionary*)newJamTrackObjectWithRecorderFileURL:(NSURL*)fileURL {
-    NSMutableDictionary *result = nil;
-    
-    id track = [self newTrackObjectOfType:JWMixerNodeTypePlayerRecorder andFileURL:nil withAudioFileKey:nil];
-    
-    NSMutableArray *trackObjects = [@[track] mutableCopy];
-    
-    result =
-    [@{@"key":[[NSUUID UUID] UUIDString],
-       @"titletype":@"jamtrack",
-       @"title":@"jam Track",
-       @"trackobjectset":trackObjects,
-       @"date":[NSDate date],
-       } mutableCopy];
-    return result;
-}
-
--(NSMutableArray*)newJamTracks {
-    NSMutableArray *result = nil;
-    NSMutableArray *jamTracks = [NSMutableArray new];
-    NSURL *fileURL;
-    NSMutableDictionary *track1;
-    NSMutableDictionary *track2;
-    
-    // JAMTRACK 1
-    NSMutableDictionary *jamTrack1 = [self newJamTrackObject];
-    jamTrack1[@"title"] = @"Brendans mix The killers";
-
-    track1 = jamTrack1[@"trackobjectset"][0];
-    fileURL = [self fileURLWithFileName:@"TheKillersTrimmedMP3-30.m4a" inPath:@[]];
-    track1[@"fileURL"] = fileURL;
-
-    track2 = jamTrack1[@"trackobjectset"][1];
-    fileURL = [self fileURLWithFileName:@"clipRecording_killers1.caf" inPath:@[]];
-    track2[@"fileURL"] = fileURL;
-    
-    
-    // JAMTRACK 2
-    NSMutableDictionary *jamTrack2 = [self newJamTrackObject];
-    jamTrack2[@"title"] = @"Brendans mix Aminor1";
-
-    track1 = jamTrack2[@"trackobjectset"][0];
-    fileURL = [self fileURLWithFileName:@"AminorBackingtrackTrimmedMP3-45.m4a" inPath:@[]];
-    track1[@"fileURL"] = fileURL;
-
-    track2 = jamTrack2[@"trackobjectset"][1];
-    fileURL = [self fileURLWithFileName:@"clipRecording_aminor1.caf" inPath:@[]];
-    track2[@"fileURL"] = fileURL;
-
-    
-    [jamTracks insertObject:jamTrack2 atIndex:0];
-    [jamTracks insertObject:jamTrack1 atIndex:0];
-    
-    result = jamTracks;
-
-    return result;
-}
-
--(NSMutableArray*)newProvidedJamTracks {
-    NSMutableArray *result = nil;
-    result =[@[
-               [self newJamTrackObject],
-               [self newJamTrackObject]
-               ] mutableCopy];
-    return result;
-}
-
--(NSMutableArray*)newDownloadedJamTracks {
-    
-    NSMutableArray *result = [NSMutableArray new];
-    for (id fileInfo in [[JWFileController sharedInstance] downloadedJamTrackFiles]) {
-        NSLog(@"%s %@",__func__,[fileInfo[@"furl"] lastPathComponent]);
-        
-        NSURL *fileURL = [self fileURLWithFileFlatFileURL:fileInfo[@"furl"]];
-        
-        //TODO: not sure if the key parameter is needed here
-        [result addObject:[self newJamTrackObjectWithFileURL:fileURL audioFileKey:nil]];
-    }
-
-    return result;
-}
-
-
-
--(NSMutableArray*)newHomeMenuLists {
-    NSMutableArray *result =
-    [@[
-       [@{
-          
-          //will be used for settings and files user sets
-          @"title":@"Settings And Files",
-          @"type":@(JWHomeSectionTypeOther),
-          } mutableCopy],
-       
-       //Will be supplied by an s3 bucket, Not used
-//       [@{
-//          @"title":@"Provided JamTracks",
-//          @"type":@(JWHomeSectionTypePreloaded),
-//          @"trackobjectset":[self newProvidedJamTracks],
-//          } mutableCopy],
-       [@{
-          
-          //Will be used when user downloads somone elses jam track
-          @"title":@"Downloaded JamTracks",
-          @"type":@(JWHomeSectionTypeDownloaded),
-          @"trackobjectset":[self newDownloadedJamTracks],
-          } mutableCopy],
-       
-       //source audio will be determined by the tab the user is currently in
-//       [@{
-//          @"title":@"Source Audio",
-//          @"type":@(JWHomeSectionTypeYoutube)
-//          } mutableCopy],
-       [@{
-          
-          //Will be used to give user their saved/unfinished jam sessions
-          @"title":@"Jam Sessions",
-          @"type":@(JWHomeSectionTypeAudioFiles),
-          @"trackobjectset":[self newJamTracks],
-          } mutableCopy],
-       
-       //Will not be used, the user will be prompted to sign in when they need to
-//       [@{
-//          
-//          @"title":@"User",
-//          @"type":@(JWHomeSectionTypeUser)
-//          } mutableCopy],
-       ] mutableCopy
-     ];
-    
-    return result;
-}
 
 
 //[@{
@@ -912,75 +1024,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
     return [NSIndexPath indexPathForRow:index inSection:sectionIndex];
 }
 
-// returns a jamTrack that matches key
--(id)jamTrackObjectWithKey:(NSString*)key {
-    
-    id result;
-    for (id objectSection in _homeControllerSections) {
-        
-        id jamTracks = objectSection[@"trackobjectset"];
-        for (id jamTrack in jamTracks) {
-            if ([key isEqualToString:jamTrack[@"key"]]) {
-                result = jamTrack;
-                break;
-            }
-        }
-        if (result)
-            break;
-    }
-    return result;
-}
-
-// returns a jamTrack that contains a tracknode that matches key
--(id)jamTrackObjectContainingNodeKey:(NSString*)key {
-    
-    id result;
-    for (id objectSection in _homeControllerSections) {
-        
-        id jamTracks = objectSection[@"trackobjectset"];
-        for (id jamTrack in jamTracks) {
-            id trackNodes = jamTrack[@"trackobjectset"];
-            for (id trackNode in trackNodes) {
-                if ([key isEqualToString:trackNode[@"key"]]) {
-                    result = jamTrack; // // jamtrack containing node key
-                    break;
-                }
-            }
-            if (result)
-                break;
-        }
-        if (result)
-            break;
-    }
-    
-    return result;
-}
-
-
-// returns a trackNode
--(id)jamTrackNodeObjectForKey:(NSString*)key {
-    
-    id result;
-    for (id objectSection in _homeControllerSections) {
-        
-        id jamTracks = objectSection[@"trackobjectset"];
-        for (id jamTrack in jamTracks) {
-            id trackNodes = jamTrack[@"trackobjectset"];
-            for (id trackNode in trackNodes) {
-                if ([key isEqualToString:trackNode[@"key"]]) {
-                    result = trackNode; // jamtrack node
-                    break;
-                }
-            }
-            if (result)
-                break;
-        }
-        if (result)
-            break;
-    }
-    return result;
-}
-
 
 // return tableview indexPath
 
@@ -1020,38 +1063,6 @@ JWTrackSetsProtocol,JWYTSearchTypingDelegate,JWSourceAudioListsDelegate,UITextFi
 }
 
 
--(NSString*)preferredTitleForObject:(id)object {
-    NSString *result;
-    id userTitleValue = object[@"usertitle"];
-    id titleValue = object[@"title"];
-    
-    if (userTitleValue) {
-        result = userTitleValue;
-    } else {
-        if (titleValue)
-            result = titleValue;
-        else
-            result = @"";
-    }
-    
-    return result;
-}
-
-
-// return the section array of jamtracks that contain this jam track
-
--(NSMutableArray*)jamTracksWithJamTrackKey:(NSString*)key {
-    
-    NSMutableArray * result;
-    NSIndexPath *itemIndexPath = [self indexPathOfJamTrackCacheItem:key];
-    
-    if (itemIndexPath) {
-        id objectSection = _homeControllerSections[itemIndexPath.section];
-        result = objectSection[@"trackobjectset"];
-    }
-    
-    return result;
-}
 
 
 #pragma mark - Youtube search delegate JWYTSearchTypingDelegate
