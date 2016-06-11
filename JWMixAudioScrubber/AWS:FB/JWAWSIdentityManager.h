@@ -21,7 +21,7 @@
 + (instancetype)sharedInstance;
 
 - (NSString *)identityId;
-
+-(NSString *)profileName;
 
 - (void)FBLogin;
 -(void)facebookLogout;

@@ -43,7 +43,7 @@
     dispatch_once(&onceToken, ^{
         _defaultManager = [JWFileManager new];
         [_defaultManager readHomeMenuLists];
-        [_defaultManager serializeInJamTracks];
+        [_defaultManager serializeOutJamTrackSessions];
     });
     return _defaultManager;
 }
@@ -53,7 +53,7 @@
 -(instancetype)init {
     if (self = [super init]) {
         [self initdb];
-        _testTrackDocumentURLs = [NSMutableDictionary new];
+        //_testTrackDocumentURLs = [[NSMutableDictionary alloc] init];
         _coordination = [JWJamSessionCoordinator new];
         if (_imageRetrievalQueue == nil)
             _imageRetrievalQueue =
@@ -90,12 +90,16 @@
     NSLog(@"%@",[self documentsDirectoryPath]);
     NSError *error;
     NSURL *fileURL = nil;
+    NSURL *toURL = nil;
+    
     
     fileURL = [[NSBundle mainBundle] URLForResource:@"TheKillersTrimmedMP3-30" withExtension:@".m4a"];
     [[NSFileManager defaultManager] copyItemAtURL:fileURL
-                                            toURL:[self fileURLWithFileName:[fileURL lastPathComponent]] error:&error];
+                                            toURL:(toURL = [self fileURLWithFileName:[fileURL lastPathComponent]]) error:&error];
     
-    _testTrackDocumentURLs[@"killersMP3"] = fileURL;
+    if (!_testTrackDocumentURLs) {
+        _testTrackDocumentURLs = [NSMutableDictionary dictionaryWithObject:toURL forKey:@"killersMP3"];
+    }
     
     
     //not used, dont like this backing track or what i recorded
@@ -115,16 +119,16 @@
     
     fileURL = [[NSBundle mainBundle] URLForResource:@"clipRecording_killers1" withExtension:@".caf"];
     [[NSFileManager defaultManager] copyItemAtURL:fileURL
-                                            toURL:[self fileURLWithFileName:[fileURL lastPathComponent]]
+                                            toURL:(toURL = [self fileURLWithFileName:[fileURL lastPathComponent]])
                                             error:&error];
-    _testTrackDocumentURLs[@"killersrecording1"] = fileURL;
+    _testTrackDocumentURLs[@"killersrecording1"] = toURL;
     
     
     fileURL = [[NSBundle mainBundle] URLForResource:@"clipRecording_killers2" withExtension:@".caf"];
     [[NSFileManager defaultManager] copyItemAtURL:fileURL
-                                            toURL:[self fileURLWithFileName:[fileURL lastPathComponent]]
+                                            toURL:(toURL = [self fileURLWithFileName:[fileURL lastPathComponent]])
                                             error:&error];
-    _testTrackDocumentURLs[@"killersrecording2"] = fileURL;
+    _testTrackDocumentURLs[@"killersrecording2"] = toURL;
     
 }
 
@@ -328,8 +332,8 @@
           
           //Will be used to give user their saved/unfinished jam sessions
           @"title":@"Jam Sessions",
-          @"type":@(JWSectionTypeHome),
-          @"trackobjectset":[_coordination newTestJamSession],
+          @"type":@(JWHomeSectionTypeSessions),
+          @"sessionset":[_coordination newTestJamSession],
           } mutableCopy],
 
        
@@ -343,8 +347,8 @@
           
           //Will be used when user downloads somone elses jam track
           @"title":@"Downloaded Jam Tracks",
-          @"type":@(JWSectionTypeHome),
-          @"trackobjectset":[_coordination newTestJamSession],
+          @"type":@(JWHomeSectionTypeDownloadedTracks),
+          @"sessionset":[_coordination newTestJamSession],
           } mutableCopy],
 
        //This could be turned into a right nav button since the '+' will probably go away in the tab bar implementation
@@ -394,10 +398,12 @@
 
 -(void)readHomeMenuLists {
     _homeObjects = [[NSMutableArray alloc] initWithContentsOfURL:[self fileURLWithFileName:@"homeObjects"]];
-    NSLog(@"home Controller URL: %@", [self fileURLWithFileName:@"homeObjects"]);
-    [self serializeInJamTracks];
+    NSLog(@"home Controller URL: %@", [[self fileURLWithFileName:@"homeObjects"] absoluteString]);
+    [self serializeInJamTrackSessions];
+    //[self serializeInJamTracks];
     //    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
     NSLog(@"%s HOMEOBJECTS [%ld]",__func__,(unsigned long)[_homeObjects count]);
+    NSLog(@"=============Initialization Chunk ends here =================\n\n");
 }
 
 
@@ -417,11 +423,19 @@
 
 
 -(void)saveHomeMenuLists {
-    [self serializeOutJamTracks];
+    [self serializeOutJamTrackSessions];
+    //[self serializeOutJamTracks];
     //    NSLog(@"%s homeObjects %@",__func__,[_homeControllerSections description]);
     [_homeObjects writeToURL:[self fileURLWithFileName:@"homeObjects"] atomically:YES];
-    [self serializeInJamTracks];
+    [self serializeInJamTrackSessions];
+    //[self serializeInJamTracks];
     NSLog(@"%s HOMEOBJECTS [%ld]",__func__,(unsigned long)[_homeObjects count]);
+}
+
+
+-(void)updateHomeObjectsAndSave:(NSMutableArray *)newHomeObjectArr {
+    _homeObjects = newHomeObjectArr;
+    [self saveHomeMenuLists];
 }
 
 
@@ -430,9 +444,8 @@
 -(void)serializeInJamTrackNode:(id)jamTrackNode {
     id fileRelativePath = jamTrackNode[@"fileRelativePath"];
     if (fileRelativePath)
-        jamTrackNode[@"fileURL"] =[self fileURLWithRelativePathName:fileRelativePath];
+        jamTrackNode[@"fileURL"] = [self fileURLWithRelativePathName:fileRelativePath];
 }
-
 
 
 -(void)serializeInJamTracks {
@@ -442,6 +455,18 @@
             id jamTrackNodes = jamTrack[@"trackobjectset"];
             for (id jamTrackNode in jamTrackNodes) {
                 [self serializeInJamTrackNode:jamTrackNode];
+            }
+        }
+    }
+}
+
+-(void)serializeInJamTrackSessions {
+    for (id section in _homeObjects) {
+        id sessionset = section[@"sessionset"];
+        for (id session in sessionset) {
+            id trackset = session[@"trackobjectset"];
+            for (id track in trackset) {
+                [self serializeInJamTrackNode:track];
             }
         }
     }
@@ -470,6 +495,18 @@
             id jamTrackNodes = jamTrack[@"trackobjectset"];
             for (id jamTrackNode in jamTrackNodes) {
                 [self serializeOutJamTrackNode:jamTrackNode];
+            }
+        }
+    }
+}
+
+-(void)serializeOutJamTrackSessions {
+    for (id section in _homeObjects) {
+        id sessionset = section[@"sessionset"];
+        for (id session in sessionset) {
+            id trackset = session[@"trackobjectset"];
+            for (id track in trackset) {
+                [self serializeOutJamTrackNode:track];
             }
         }
     }
@@ -518,15 +555,18 @@
 -(NSURL *)fileURLWithFileName:(NSString*)name inPath:(NSArray*)pathComponents{
     NSURL *result;
     NSURL *baseURL = [NSURL fileURLWithPath:[self documentsDirectoryPath]];
+    //NSLog(@"%@", [baseURL absoluteString]);
     NSString *pathString = @"";
     for (id path in pathComponents) {
         pathString = [pathString stringByAppendingPathComponent:path];
     }
     pathString = [pathString stringByAppendingPathComponent:name];
     NSURL *url = [NSURL fileURLWithPath:pathString relativeToURL:baseURL];
+    NSLog(@"%@", [url absoluteString]);
     result = url;
     return result;
 }
+
 
 -(NSString*)documentsDirectoryPath {
     NSString *result = nil;
@@ -590,6 +630,7 @@
     [self readHomeMenuLists];
     if (!_homeObjects) {
         _homeObjects = [self newHomeMenuLists];
+        [self saveHomeMenuLists];
     }
     
     return _homeObjects;

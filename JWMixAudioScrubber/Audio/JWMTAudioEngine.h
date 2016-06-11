@@ -44,7 +44,7 @@
 
 -(void)initializeAudio;
 -(void)initializeAudioConfig;
--(BOOL)addFiveSecondNodeToListForKey:(NSString *)dbKey;
+-(void)addFiveSecondNodeToListForKey:(NSString *)dbKey;
 -(void)setupAVEngine;
 -(void)stopPlayersForReset;
 
@@ -88,7 +88,7 @@
 -(NSInteger)indexOfFirstRecorderNodeWithNoAudio;
 -(NSTimeInterval)recordingTimeRecorderAtNodeIndex:(NSUInteger)prIndex;
 -(NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex;
--(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index;
+-(JWAudioNodeType)typeForNodeAtIndex:(NSUInteger)index;
 -(AVAudioPCMBuffer*)audioBufferForPlayerNodeAtIndex:(NSUInteger)index;
 -(CGFloat)progressOfAudioFileForPlayerAtIndex:(NSUInteger)index;
 -(CGFloat)durationInSecondsOfAudioFileForPlayerAtIndex:(NSUInteger)index;
@@ -126,6 +126,8 @@
 -(void) fiveSecondBufferCompletion;
 -(void) userAudioObtained;
 -(void) userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
+-(void) userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL*)rurl;
+-(void) userAudioObtainedWithComponents:(NSDictionary *)components atIndex:(NSUInteger)index;
 -(void) mixRecordingCompleted;
 // TODO: not used
 -(void) mixInCountDownFired;

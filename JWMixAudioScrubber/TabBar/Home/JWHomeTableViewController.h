@@ -8,13 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSUInteger, JWSectionType) {
-    
-    JWSectionTypeSessions = 0,
-    JWSectionTypeDownloadedTracks
-    
-};
-@interface JWHomeTableViewController : UITableViewController
+
+@interface JWHomeTableViewController : UITableViewController 
 
 @property (nonatomic) NSMutableArray *homeControllerData;
 @property (nonatomic) NSMutableDictionary *homeControllerList;

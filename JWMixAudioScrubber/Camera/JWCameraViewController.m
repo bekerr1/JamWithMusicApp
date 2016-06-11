@@ -66,6 +66,9 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSLog(@"\n");
+    NSLog(@"-------=========CAMERA VC STARTS HERE========---------");
+    NSLog(@"%s", __func__);
     // Do any additional setup after loading the view.
     
     self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
@@ -143,11 +146,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     // Because -[AVCaptureSession startRunning] is a blocking call which can take a long time. We dispatch session setup to the sessionQueue
     // so that the main queue isn't blocked, which keeps the UI responsive.
     dispatch_async( self.sessionQueue, ^{
-        
-        
-        AVCaptureDevicePosition prefferedPosition = AVCaptureDevicePositionFront;
-        
-        
+        NSLog(@"Started creating the session");
         //CREATE THE SESSION
         _captureSession = [[AVCaptureSession alloc] init];
         
@@ -172,6 +171,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
             
         }
         
+        AVCaptureDevicePosition prefferedPosition = AVCaptureDevicePositionFront;
+        
         //GET CAPTURE DEVICE FRONT CAMERA AND SET CAPUTRE DEVICE INPUT WITH DEVICE
         NSError* error;
         AVCaptureDevice* captureDevice = [JWCameraViewController deviceWithMediaType:AVMediaTypeVideo preferringPosition:prefferedPosition];
@@ -194,16 +195,16 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                     
                     // Use the status bar orientation as the initial video orientation. Subsequent orientation changes are handled by
                     // -[viewWillTransitionToSize:withTransitionCoordinator:].
-                    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
-                    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
-                    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
-                        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
-                    }
+//                    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
+//                    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
+//                    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
+//                        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
+//                    }
                     
-                    AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
-                    previewLayer.connection.videoOrientation = initialVideoOrientation;
+                    //AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
+                    //previewLayer.connection.videoOrientation = initialVideoOrientation;
                     
-                    [self.view addSubview:_storyboardVC.view];
+                    //[self.view addSubview:_storyboardVC.view];
                 } );
                 
                 
@@ -252,7 +253,11 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    NSLog(@"%s", __func__);
     [super viewWillAppear:animated];
+    
+    _buttonsContainer.hidden = YES;
+    _scrubContainer.hidden = YES;
     
     dispatch_async( self.sessionQueue, ^{
         switch ( self.setupResult )
@@ -263,11 +268,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                 
                 [self.captureSession startRunning];
                 _sessionRunning = self.captureSession.isRunning;
+                NSLog(@"Session is running");
                 dispatch_async(dispatch_get_main_queue(), ^() {
-                    
-                    [self.view bringSubviewToFront:_buttonsContainer];
-                    [self.view bringSubviewToFront:_scrubContainer];
-                    
                 });
                 
                 
@@ -303,6 +305,34 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         }
     } );
     
+    
+}
+
+
+-(void)viewDidAppear:(BOOL)animated {
+    NSLog(@"%s", __func__);
+    [super viewDidAppear:animated];
+    
+    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
+    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
+        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
+    }
+    
+    AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
+    previewLayer.connection.videoOrientation = initialVideoOrientation;
+
+    [self.view bringSubviewToFront:_buttonsContainer];
+    [self.view bringSubviewToFront:_scrubContainer];
+    _buttonsContainer.hidden = NO;
+    _scrubContainer.hidden = NO;
+
+
+}
+
+
+-(void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+    NSLog(@"%s", __func__);
     
 }
 
@@ -343,6 +373,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     if (!_previewLayer && _captureSession) {
         NSLog(@"%s", __func__);
         CALayer* rootLayer = self.view.layer;
+        NSLog(@"root layer = %@", NSStringFromCGRect(rootLayer.bounds));
         _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_captureSession];
         
         [_previewLayer setFrame:rootLayer.bounds];

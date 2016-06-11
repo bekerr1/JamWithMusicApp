@@ -31,9 +31,10 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @property (nonatomic) id <JWAudioPlayerControllerDelegate> delegate;
 @property (nonatomic) BOOL autoPlay;
 //TODO: more five second stuff
+@property (nonatomic) BOOL fiveSecondCountDown;
 @property (nonatomic) BOOL hasFiveSecondClip;
 @property (nonatomic) BOOL listenToPositionChanges;
-@property (nonatomic) NSTimer *fiveSecondTimer;
+
 @property (nonatomic) NSTimer *mixerValueFadeTimer;
 
 -(void)setTrackSet:(id)trackSet;
@@ -76,8 +77,10 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
 
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL *)rurl;
+-(void) userAudioObtainedWithComponents:(NSDictionary *)components atIndex:(NSUInteger)index;
 -(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey;
-
+-(void)startRecordCountDown:(void(^)())completion;
 -(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controllerkey;
 
 @optional

@@ -60,7 +60,7 @@ JWMixEditDelegate
 
 -(void) startupInits {
     id savedBackLightValue = [[NSUserDefaults standardUserDefaults] valueForKey:@"backlightvalue"];
-    _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.22;
+    _backLightValue = savedBackLightValue ? [savedBackLightValue floatValue] : 0.0;
     _momentDefaultTime = 1.1;
     _momentTime = _momentDefaultTime; // secs
     _momentPreviewTime = 1.25 * _momentDefaultTime; // secs
@@ -69,21 +69,24 @@ JWMixEditDelegate
     _currentPositionChange = 0.0;
     _lastPlayPosition = 0.0;
     _listenToPositionChanges = NO;
+    _fiveSecondCountDown = YES;
 }
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControls:(id)pvc mixEdit:(id)me {
     _autoPlay = NO;
     [self startupInits];
+    
     //INITIALIZE ENGINE AND COMPONENTS
     self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
-//    self.audioEngine.engineDelegate = self;
     self.audioEngine.engineEffectsDelegate = self;
 
     self.metvc = me;
     self.metvc.delegateMixEdit = self;
     self.metvc.effectsHandler = self.audioEngine;
+    
     self.sc = [[JWScrubberController alloc] initWithScrubber:(JWScrubberViewController*)svc andBackLightValue:_backLightValue];
     self.sc.delegate = self;
+    
     self.pcvc = (JWPlayerControlsViewController *)pvc;
     self.pcvc.delegate = self;
     self.pcvc = pvc;
@@ -196,7 +199,7 @@ JWMixEditDelegate
 // PLAYER NODE LIST AND PLAY IF AUTOPLAY
 
 -(void)rebuildPlayerNodeListAndPlayIfAutoplay {
-    
+    NSLog(@"%s",__func__);
     NSMutableArray *nodeList = [NSMutableArray new];
     NSString *keyToIdFiveSecondNode = nil;
     
@@ -217,7 +220,9 @@ JWMixEditDelegate
     
     _audioEngine.playerNodeList = nodeList;
     
-    _hasFiveSecondClip = [_audioEngine addFiveSecondNodeToListForKey:keyToIdFiveSecondNode];
+    if (_hasFiveSecondClip) {
+        //[_audioEngine addFiveSecondNodeToListForKey:keyToIdFiveSecondNode];
+    }
     
     [_audioEngine initializeAudioConfig];
     [_audioEngine initializeAudio];
@@ -240,22 +245,23 @@ JWMixEditDelegate
     NSURL *fileURL = item[@"fileURL"];
     
     
-    JWMixerNodeTypes  nodeType = JWMixerNodeTypeNone;
+    JWAudioNodeType  nodeType = JWAudioNodeTypeNone;
     id typeValue = item[@"type"];
     if (typeValue) {
         nodeType = [typeValue unsignedIntegerValue];
-        if (nodeType == JWMixerNodeTypePlayer) {
+        if (nodeType == JWAudioNodeTypePlayer) {
             
             playerNode =
-            [@{@"title":@"playernode1",
-               @"type":@(JWMixerNodeTypePlayer),
+            [@{@"title":@"playernode",
+               @"type":@(JWAudioNodeTypePlayer),
+               @"nodekey":item[@"key"],
                } mutableCopy];
             
-        } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        } else if (nodeType == JWAudioNodeTypeRecorder) {
             
             playerNode =
-            [@{@"title":@"playerrecordernode1",
-               @"type":@(JWMixerNodeTypePlayerRecorder),
+            [@{@"title":@"recordernode",
+               @"type":@(JWAudioNodeTypeRecorder),
                @"nodekey":item[@"key"],
                } mutableCopy];
         }
@@ -263,7 +269,7 @@ JWMixEditDelegate
 
         // Add effects array if provided to player nodes
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypePlayer || nodeType == JWAudioNodeTypeRecorder) {
             id effects = item[@"effects"];
             if (effects) {
                 playerNode[@"effects"] = effects;
@@ -279,13 +285,13 @@ JWMixEditDelegate
         if (fileURL) {
             playerNode =
             [@{@"title":@"playernode",
-               @"type":@(JWMixerNodeTypePlayer),
+               @"type":@(JWAudioNodeTypePlayer),
                @"fileURLString":[fileURL path],
                } mutableCopy];
         } else {
             playerNode =
             [@{@"title":@"player recorder node",
-               @"type":@(JWMixerNodeTypePlayerRecorder),
+               @"type":@(JWAudioNodeTypeRecorder),
                } mutableCopy];
         }
     }
@@ -365,15 +371,15 @@ JWMixEditDelegate
 }
 
 -(void)effectsCurrentSettings {
-    
+    NSLog(@"%s", __func__);
     NSUInteger index = 0;
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
     
     for (NSDictionary *item in playerNodeList) {
         
-        JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
+        JWAudioNodeType nodeType = [item[@"type"] integerValue];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypePlayer || nodeType == JWAudioNodeTypeRecorder) {
             
             NSMutableArray *effectsArray = [NSMutableArray new];
 
@@ -480,7 +486,7 @@ JWMixEditDelegate
 }
 
 -(NSUInteger)firstValidTrackIndexForSelection {
-    
+    NSLog(@"%s", __func__);
     NSUInteger resultIndex = 0;
     NSUInteger index = 0;
     
@@ -488,9 +494,9 @@ JWMixEditDelegate
     
     for (NSMutableDictionary *item in playerNodeList) {
         NSURL *fileURL = [_audioEngine playerNodeFileURLAtIndex:index];
-        JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
+        JWAudioNodeType nodeType = [item[@"type"] integerValue];
 
-        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypeRecorder) {
             if (fileURL) {
                 resultIndex = index;
                 break;
@@ -503,7 +509,7 @@ JWMixEditDelegate
 }
 
 -(void)selectValidTrack {
-    
+    NSLog(@"%s", __func__);
     NSUInteger selectedIndex = [self firstValidTrackIndexForSelection];
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
     NSString *sid = [(NSDictionary*)playerNodeList[selectedIndex] valueForKey:@"trackid"];
@@ -546,15 +552,15 @@ JWMixEditDelegate
 }
 
 -(BOOL)recordingWithoutPlayers {
-    
+    NSLog(@"%s", __func__);
     BOOL result = NO;
     NSArray *playerNodeList = [self.audioEngine playerNodeList];
     
     if ([playerNodeList count] > 0) {
         id item = playerNodeList[0];
         if (item) {
-            JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
-            if (nodeType == JWMixerNodeTypePlayerRecorder) {
+            JWAudioNodeType nodeType = [item[@"type"] integerValue];
+            if (nodeType == JWAudioNodeTypeRecorder) {
                 id fileURL = item[@"fileURLString"];
                 if (fileURL == nil)
                     result = YES;
@@ -602,6 +608,8 @@ JWMixEditDelegate
 
 -(void)record
 {
+    NSLog(@"=============Press record starts here==============");
+    NSLog(@"%s", __func__);
     if (_hasFiveSecondClip)
         self.state = JWPlayerStatePlayFiveSecondAudio;
      else
@@ -611,7 +619,7 @@ JWMixEditDelegate
 
 
 -(void)timerFireMethod:(NSTimer *)timer {
-    
+    NSLog(@"%s", __func__);
     NSLog(@"%s increase volume: %f",__func__, [_audioEngine mixerVolume]);
     
     float timerStep = 0.10; // timer interval
@@ -631,7 +639,7 @@ JWMixEditDelegate
 
 
 -(BOOL) canRecordAudio {
-    
+    NSLog(@"%s", __func__);
     return [[_audioEngine activeRecorderNodes] count] > 0 ? YES : NO;
 }
 
@@ -642,7 +650,7 @@ JWMixEditDelegate
 //    NSLog(@"state %ld to %ld",(long)fromState,(long)state);
 
 -(void)setState:(PlayerControllerState)state {
-    
+    NSLog(@"%s", __func__);
     PlayerControllerState fromState = _state;
     
     NSLog(@"state %ld to %ld",(long)fromState,(long)state);
@@ -650,6 +658,14 @@ JWMixEditDelegate
     _state = state;
     
     switch (state) {
+        
+        /*
+         
+         rewinds scrubber
+         stops all audio
+         schedules all nodes to play from beggining
+         
+        */
             
         case JWPlayerStatePlayFromBeg: {
             _editing = NO;
@@ -657,6 +673,8 @@ JWMixEditDelegate
             [_sc stopPlaying:nil rewind:YES];
             [_audioEngine stopAllActivePlayerNodes];
             [_audioEngine scheduleAllStartSeconds:0.0 duration:0.0];
+            
+            //TODO: this is a bit of a hack i think
             if (_scrubbAudioEnabled) {
                 double delayInSecs = 0.25;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -666,7 +684,10 @@ JWMixEditDelegate
         }
             // And await PLAY
             break;
-            
+        
+        /*
+         
+         */
         case JWPlayerStateScrubbAudioFromPosMoment:
             [_audioEngine stopAllActivePlayerNodes];
             [_audioEngine scheduleAllStartSeconds:_currentPositionChange duration:_momentTime];
@@ -674,7 +695,11 @@ JWMixEditDelegate
             _lastPlayPosition = _currentPositionChange;
             [_sc readyForScrub];
             break;
-
+            
+        
+        /*
+         When you play from a scurbber position moment
+        */
         case JWPlayerStateScrubbAudioPreviewMoment: {
             
             _previewMomentId = [[NSUUID UUID] UUIDString];
@@ -752,17 +777,29 @@ JWMixEditDelegate
             [_audioEngine stopAllActivePlayerNodes];
             if (_scrubbAudioEnabled)
                 _listenToPositionChanges = YES;
+            if (fromState == JWPlayerStateRecFromPos) {
+                //Save audio
+            }
             break;
             
         case JWPlayerStateRecFromPos: {
             _listenToPositionChanges = NO;
-            BOOL singleRecorder = [self recordingWithoutPlayers];
-            [_audioEngine prepareToRecord];
-            if (singleRecorder)
-                [_sc recordAt:[self trackIdForPlayerNodeAtIndex:0]];
-            else
-                [_sc playRecord:nil];
-        }
+            
+            
+            if (_fiveSecondCountDown) {
+                //Start the five second count down, then start recording
+                [_delegate startRecordCountDown:^() {
+                    [_audioEngine prepareToRecord];
+                    BOOL singleRecorder = [self recordingWithoutPlayers];
+                    if (singleRecorder) {
+                        [_sc recordAt:[self trackIdForPlayerNodeAtIndex:0]];
+                    } else {
+                        [_sc playRecord:nil];
+                    }
+
+                }];
+            }
+                    }
             break;
             
         case JWPlayerStatePlayFiveSecondAudio:
@@ -770,9 +807,7 @@ JWMixEditDelegate
             [_audioEngine setMixerVolume:0.0];
 
             // Not used yet comment for warnings
-//            self.fiveSecondTimer =
-//            [NSTimer scheduledTimerWithTimeInterval:1.0 target:[_delegate countDownTarget] selector:@selector(countdownTimerFireMethod:)
-//                                           userInfo:nil repeats:YES];
+            
             
             self.mixerValueFadeTimer =
             [NSTimer scheduledTimerWithTimeInterval:0.10 target:self selector:@selector(timerFireMethod:)
@@ -823,25 +858,42 @@ JWMixEditDelegate
 }
 
 -(void)userAudioObtained {
+    NSLog(@"%s", __func__);
     [_delegate playTillEnd];
     [_sc playedTillEnd:nil];
     [self configureScrubbers:NO];
 }
 
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
+    NSLog(@"%s", __func__);
     // Pass it up the chain
     if ([_delegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
         [_delegate userAudioObtainedAtIndex:index recordingId:rid];
 }
 
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL *)rurl {
+    NSLog(@"%s", __func__);
+    if ([_delegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingURL:)])
+        [_delegate userAudioObtainedAtIndex:index recordingURL:rurl];
+}
+
+-(void)userAudioObtainedWithComponents:(NSMutableDictionary *)components atIndex:(NSUInteger)index {
+    NSLog(@"%s", __func__);
+    
+    if ([_delegate respondsToSelector:@selector(userAudioObtainedWithComponents:atIndex:)]) {
+        [_delegate userAudioObtainedWithComponents:components atIndex:index];
+    }
+}
+
 -(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+    NSLog(@"%s", __func__);
     // Pass it up the chain
     if ([_delegate respondsToSelector:@selector(effectsChanged:inNodeWithKey:)])
         [_delegate effectsChanged:effects inNodeWithKey:nodeKey];
 }
 
 -(void)effectsChanged:(NSArray*)effects inNodeAtIndex:(NSUInteger)nodeIndex {
-
+    NSLog(@"%s", __func__);
     NSString *nodeKey = [self nodeKeyAtIndex:nodeIndex];
     
     if (nodeKey) {
@@ -920,9 +972,9 @@ JWMixEditDelegate
     NSUInteger index = 0;
     
     for (NSMutableDictionary *item in playerNodeList) {
-        JWMixerNodeTypes nodeType = [item[@"type"] integerValue];
+        JWAudioNodeType nodeType = [item[@"type"] integerValue];
         
-        if (nodeType == JWMixerNodeTypePlayer) {
+        if (nodeType == JWAudioNodeTypePlayer) {
             // PLAYER
             NSURL *fileURL = [_audioEngine playerNodeFileURLAtIndex:index];
             if (fileURL) {
@@ -934,7 +986,7 @@ JWMixEditDelegate
                 NSLog(@"%s NO file url for Player Node at index %lu",__func__,(unsigned long)index);
             }
             
-        } else if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        } else if (nodeType == JWAudioNodeTypeRecorder) {
             // PLAYER RECORDER
             //This recorder has no audio and is used to record user audio
             // While Exporting Dont show the Recorder

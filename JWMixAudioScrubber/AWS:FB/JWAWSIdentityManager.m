@@ -118,6 +118,16 @@
     }
 }
 
+-(NSString *)profileName {
+    
+    FBSDKProfile *current = [FBSDKProfile currentProfile];
+    if (current) {
+        return current.name;
+    } else {
+        return nil;
+    }
+}
+
 
 //call this after fb button call completes with a good result
 - (void)completeFBLoginWithCompletion:(AWSContinuationBlock)completion {

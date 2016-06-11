@@ -1,3 +1,107 @@
 Starts by initializing a set of directories that will be used to organize the different files.  Some retrival queues are also initialized along with a metadata dictionary. Copy resources is called inside the init method to create the test .caf's used
 
 A load call will load files with certain prefixes into different desired arrays. It goes through each directory and checks each file in the directory for a prefix. The clips and trimmed arrays are then sorted by date (earliest to latest).  Directory data is then read into these arrays.
+
+
+@interface AAPLOverlayAnimatedTransitioning : NSObject <UIViewControllerAnimatedTransitioning>
+@property (nonatomic) BOOL isPresentation;
+@property (nonatomic) BOOL isCenter;
+@end
+
+@implementation AAPLOverlayAnimatedTransitioning
+
+- (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext
+{
+    return 0.5;
+}
+
+//#define USESTANDARDANIM
+
+- (void)animateTransition:(id <UIViewControllerContextTransitioning>)transitionContext
+{
+    // Here, we perform the animations necessary for the transition
+    
+    UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+    UIView *fromView = [fromVC view];
+    UIViewController *toVC   = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+    UIView *toView = [toVC view];
+    
+    UIView *containerView = [transitionContext containerView];
+    
+    BOOL isPresentation = [self isPresentation];
+    
+#ifdef USESTANDARDANIM
+    
+    if(isPresentation)
+    {
+        [containerView addSubview:toView];
+    }
+    
+    UIViewController *animatingVC = isPresentation? toVC : fromVC;
+    UIView *animatingView = [animatingVC view];
+    
+    CGRect appearedFrame = [transitionContext finalFrameForViewController:animatingVC];
+    
+    // Our dismissed frame is the same as our appeared frame, but off the right edge of the container
+    CGRect dismissedFrame = appearedFrame;
+    dismissedFrame.origin.x += dismissedFrame.size.width;
+
+    CGRect initialFrame = isPresentation ? dismissedFrame : appearedFrame;
+    CGRect finalFrame = isPresentation ? appearedFrame : dismissedFrame;
+    
+    [animatingView setFrame:initialFrame];
+    
+    // Animate using the duration from -transitionDuration:
+    [UIView animateWithDuration:[self transitionDuration:transitionContext]
+                          delay:0
+         usingSpringWithDamping:300.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [animatingView setFrame:finalFrame];
+                     }
+                     completion:^(BOOL finished){
+                         // If we're dismissing, remove the presented view from the hierarchy
+                         if(![self isPresentation])
+                         {
+                             [fromView removeFromSuperview];
+                         }
+                         // We need to notify the view controller system that the transition has finished
+                         [transitionContext completeTransition:YES];
+                     }];
+    
+#else
+    
+    if(isPresentation)
+    {
+        if ([self isCenter] == NO) {
+            toView.hidden = NO;
+        } else {
+            toView.hidden = YES;
+        }
+        
+        [containerView addSubview:toView];
+    }
+    
+    UIViewController *animatingVC = isPresentation? toVC : fromVC;
+    UIView *animatingView = [animatingVC view];
+    
+    CGRect appearedFrame = [transitionContext finalFrameForViewController:animatingVC];
+
+    CGRect finalFrame = appearedFrame;
+    
+    [animatingView setFrame:finalFrame];
+    
+    if([self isPresentation] == NO) {
+        [fromView removeFromSuperview];
+    }
+
+    // We need to notify the view controller system that the transition has finished
+    [transitionContext completeTransition:YES];
+    
+#endif
+    
+    
+}
+
+@end

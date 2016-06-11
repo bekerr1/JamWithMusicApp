@@ -26,7 +26,8 @@
 
 +(instancetype) defaultManager;
 -(void)readHomeMenuLists;
-
+-(void)saveHomeMenuLists;
+-(void)updateHomeObjectsAndSave:(NSMutableArray *)newHomeObjectArr;
 -(void)update;
 -(void)reload;
 -(void)readFsData;
@@ -35,5 +36,8 @@
 
 -(NSMutableArray *)homeItemsList;
 -(NSURL *)testURL:(NSString *)stringID;
+
+-(NSURL *)fileURLWithFileName:(NSString*)name;
+-(NSURL *)fileURLWithFileName:(NSString*)name inPath:(NSArray*)pathComponents;
 
 @end

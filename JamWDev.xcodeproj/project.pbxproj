@@ -103,6 +103,7 @@
 		F419046F1CC5B52100937707 /* TableViewTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = F419046E1CC5B52100937707 /* TableViewTemplate.m */; };
 		F42762BE1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F42762BD1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.m */; };
 		F42762C11CCC68A300FBFC1D /* JWBlockingView.m in Sources */ = {isa = PBXBuildFile; fileRef = F42762C01CCC68A300FBFC1D /* JWBlockingView.m */; };
+		F48959441CF2DCA100A83C2D /* JWTransitionHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = F48959431CF2DCA100A83C2D /* JWTransitionHandler.m */; };
 		F48AEBFF1C6D077B0044ACE8 /* Server_Parameter_Ideas in Resources */ = {isa = PBXBuildFile; fileRef = F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */; };
 		F48AEC041C711D6A0044ACE8 /* JWCommon.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC011C711D6A0044ACE8 /* JWCommon.m */; };
 		F48AEC051C711D6A0044ACE8 /* JWCustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = F48AEC031C711D6A0044ACE8 /* JWCustomCellBackground.m */; };
@@ -112,6 +113,7 @@
 		F4912C621CE2C03D00172E5D /* JWContinueView.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C611CE2C03D00172E5D /* JWContinueView.m */; };
 		F4912C641CE5718D00172E5D /* File System Notes in Resources */ = {isa = PBXBuildFile; fileRef = F4912C631CE5718C00172E5D /* File System Notes */; };
 		F4912C671CE5B0A100172E5D /* JWJamSessionCoordinator.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C661CE5B0A100172E5D /* JWJamSessionCoordinator.m */; };
+		F4912C6A1CEA241500172E5D /* JWHTVJamSessionTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F4912C691CEA241400172E5D /* JWHTVJamSessionTableViewCell.m */; };
 		F4F2D51E1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */; };
 /* End PBXBuildFile section */
 
@@ -331,6 +333,8 @@
 		F42762BD1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWAWSDataRetrivalManager.m; path = "AWS:FB/JWAWSDataRetrivalManager.m"; sourceTree = "<group>"; };
 		F42762BF1CCC68A300FBFC1D /* JWBlockingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JWBlockingView.h; path = "AWS:FB/JWBlockingView.h"; sourceTree = "<group>"; };
 		F42762C01CCC68A300FBFC1D /* JWBlockingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JWBlockingView.m; path = "AWS:FB/JWBlockingView.m"; sourceTree = "<group>"; };
+		F48959421CF2DCA100A83C2D /* JWTransitionHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWTransitionHandler.h; sourceTree = "<group>"; };
+		F48959431CF2DCA100A83C2D /* JWTransitionHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWTransitionHandler.m; sourceTree = "<group>"; };
 		F48AEBFE1C6D077B0044ACE8 /* Server_Parameter_Ideas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Server_Parameter_Ideas; sourceTree = "<group>"; };
 		F48AEC001C711D6A0044ACE8 /* JWCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWCommon.h; sourceTree = "<group>"; };
 		F48AEC011C711D6A0044ACE8 /* JWCommon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWCommon.m; sourceTree = "<group>"; };
@@ -347,6 +351,8 @@
 		F4912C631CE5718C00172E5D /* File System Notes */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "File System Notes"; sourceTree = "<group>"; };
 		F4912C651CE5B0A100172E5D /* JWJamSessionCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWJamSessionCoordinator.h; sourceTree = "<group>"; };
 		F4912C661CE5B0A100172E5D /* JWJamSessionCoordinator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWJamSessionCoordinator.m; sourceTree = "<group>"; };
+		F4912C681CEA241400172E5D /* JWHTVJamSessionTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWHTVJamSessionTableViewCell.h; sourceTree = "<group>"; };
+		F4912C691CEA241400172E5D /* JWHTVJamSessionTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWHTVJamSessionTableViewCell.m; sourceTree = "<group>"; };
 		F4F2D51C1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JWEffectPresetsTableViewController.h; sourceTree = "<group>"; };
 		F4F2D51D1C9142EF00D0AC99 /* JWEffectPresetsTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JWEffectPresetsTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -433,13 +439,14 @@
 				5525FE941C3727430081FB23 /* DetailViewController.m */,
 				F4912C651CE5B0A100172E5D /* JWJamSessionCoordinator.h */,
 				F4912C661CE5B0A100172E5D /* JWJamSessionCoordinator.m */,
-				F41904461CC4584100937707 /* JWHomeTableViewController.h */,
-				F41904471CC4584100937707 /* JWHomeTableViewController.m */,
+				F4912C6B1CEA2F3E00172E5D /* Home Tab */,
 				F4912C5F1CE2B77F00172E5D /* Public Tab */,
 				F42762BC1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.h */,
 				F42762BD1CCC315B00FBFC1D /* JWAWSDataRetrivalManager.m */,
 				F419044C1CC4AD4A00937707 /* JWMenuTabBarController.h */,
 				F419044D1CC4AD4A00937707 /* JWMenuTabBarController.m */,
+				F48959421CF2DCA100A83C2D /* JWTransitionHandler.h */,
+				F48959431CF2DCA100A83C2D /* JWTransitionHandler.m */,
 				F42762BF1CCC68A300FBFC1D /* JWBlockingView.h */,
 				F42762C01CCC68A300FBFC1D /* JWBlockingView.m */,
 				F4912C601CE2C03C00172E5D /* JWContinueView.h */,
@@ -791,6 +798,17 @@
 			name = "Public Tab";
 			sourceTree = "<group>";
 		};
+		F4912C6B1CEA2F3E00172E5D /* Home Tab */ = {
+			isa = PBXGroup;
+			children = (
+				F41904461CC4584100937707 /* JWHomeTableViewController.h */,
+				F41904471CC4584100937707 /* JWHomeTableViewController.m */,
+				F4912C681CEA241400172E5D /* JWHTVJamSessionTableViewCell.h */,
+				F4912C691CEA241400172E5D /* JWHTVJamSessionTableViewCell.m */,
+			);
+			name = "Home Tab";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1052,6 +1070,7 @@
 				55CD126C1C3F6D71001662CF /* JWSourceAudioFilesTableViewController.m in Sources */,
 				F40D641A1C53799E000C1E8E /* CETimeCountLayer.m in Sources */,
 				5510ED791C72EFCD0042C3B5 /* JWRangeSliderViewController.m in Sources */,
+				F48959441CF2DCA100A83C2D /* JWTransitionHandler.m in Sources */,
 				F41904661CC5960700937707 /* JWUsersDBModel.m in Sources */,
 				F419046D1CC5B4D300937707 /* JWPublicTableViewController.m in Sources */,
 				F40D64261C574AC5000C1E8E /* JWClipAudioHelperViewController.m in Sources */,
@@ -1078,6 +1097,7 @@
 				F419046F1CC5B52100937707 /* TableViewTemplate.m in Sources */,
 				55CD12DD1C4A588A001662CF /* JWHeaderFooterView.m in Sources */,
 				F41904651CC5960700937707 /* JWAWSIdentityManager.m in Sources */,
+				F4912C6A1CEA241500172E5D /* JWHTVJamSessionTableViewCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

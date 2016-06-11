@@ -46,6 +46,7 @@
 @property (strong, nonatomic) id scrubber; // holds the scrubber object contained in sb container
 @property (strong, nonatomic) id playerControls; // holds the playercontrols object contained in sb container
 @property (strong, nonatomic) id mixEdit; // holds the mixed object contained in sb container
+@property (nonatomic) NSTimer *fiveSecondTimer;
 @end
 
 
@@ -57,14 +58,11 @@
 
     if (_detailItem != newDetailItem) {
         _detailItem = newDetailItem;
-        
-        if (_playerController)
-            [self configureView];
-        
     } else {
-        if (_playerController)
-            [self configureView];
     }
+    
+    if (_playerController)
+        [self configureView];
 }
 
 // Update the view.
@@ -75,12 +73,17 @@
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
     if (_detailItem) {
+        
         id hasTrackObjectSet = _detailItem[@"trackobjectset"];
         if (hasTrackObjectSet) {
             
-            self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
-
+            //Seems like these are the same?
+            //self.trackItems = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+            self.trackItems = hasTrackObjectSet;
+            
             NSLog(@"%s %@",__func__,[_trackItems description]);
+            
+            
         }
         
         if (_playerController) {
@@ -135,7 +138,8 @@
         id hasTrackObjectSet = _detailItem[@"trackobjectset"];
         if (hasTrackObjectSet) {
             
-            NSArray *items = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+            //NSArray *items = [_delegate tracks:self forJamTrackKey:_detailItem[@"key"]];
+            NSArray *items = hasTrackObjectSet;
             if (items) {
                 [self computeScrubberViewHeight:[items count]];
             }
@@ -145,10 +149,11 @@
 
 #define DEVICEVOLUMECONTROL
 
+
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    
+    NSLog(@"===============Cell Select Starts Here=========");
     NSLog(@"%s",__func__);
     [[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
     [self.navigationController setToolbarHidden:NO];
@@ -177,13 +182,14 @@
 
     [[self.navigationController navigationBar]
      setBackgroundImage:[UIImage new] forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
-    
     [[self.navigationController navigationBar] setShadowImage:[UIImage new]];
     [[self.navigationController navigationBar] setBackgroundColor:[UIColor blackColor]];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(backButtonTapped)];
+
     
     self.playerController = [JWAudioPlayerController new];
     self.playerController.delegate = self;
-    [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:YES
+    [self.playerController initializePlayerControllerWithScrubberWithAutoplayOn:NO
                                                               usingScrubberView:_scrubber
                                                                  playerControls:_playerControls mixEdit:_mixEdit
                                                                  withCompletion:^{
@@ -195,14 +201,65 @@
     _countDownLabelValue = 5;
 }
 
+//THis method determines if a five second clip is valid by analyzing the title of the jam session, if the session has a title already then it was obtained from some other source and the presence of a five second clip will be determined later on, if the title is "new jam session" then the session is a newly created jam session by clicking the middle tab
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
     [self updateAmpImage];
+    
+    
+    //Prompt the user to create a name for the track through an alert view
+    if ([_detailItem[@"title"]  isEqual: @"New Jam Session"]) {
+        
+        UIAlertController *newSessionAlert = [UIAlertController alertControllerWithTitle:@"Track Title" message:@"Give your new track a name!" preferredStyle:UIAlertControllerStyleAlert];
+        __block UITextField *newTrackField = nil;
+        
+        [newSessionAlert addTextFieldWithConfigurationHandler:^(UITextField *field) {
+            field.placeholder = @"Untitled";
+            newTrackField = field;
+        }];
+        
+        UIAlertAction *newNameAction = [UIAlertAction actionWithTitle:@"Create" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            
+            _detailItem[@"title"] = newTrackField.text;
+            [self.delegate addNewJamSessionToTop:self];
+            self.playerController.hasFiveSecondClip = NO;
+            
+        }];
+        
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+           //re-Present the tab bar controller on cancel
+            [self dismissViewControllerAnimated:YES completion:nil];
+        }];
+        
+        [newSessionAlert addAction:newNameAction];
+        [newSessionAlert addAction:cancelAction];
+        [self presentViewController:newSessionAlert animated:YES completion:^() {
+          
+            
+        }];
+        
+        
+    }
+    
+    
 }
 
 -(void)dealloc {
     NSLog(@"%s",__func__);
+}
+
+-(void)viewWillDisappear:(BOOL)animated {
+    NSLog(@"%s",__func__);
+    [super viewWillDisappear:animated];
+    
+    
+    
+}
+
+-(void)viewDidDisappear:(BOOL)animated {
+    
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -254,31 +311,47 @@
 
 }
 
+-(void)backButtonTapped {
+    NSLog(@"Back %s", __func__);
+    //Called from the presented view controller, ui kit asks the presenting view controller to dismiss (home tab table view controller)
+    [self dismissViewControllerAnimated:YES completion:^(){
+        
+    }];
+}
+
+#pragma mark - FIVE SECOND COUNT DOWN
+
+
+-(void)startRecordCountDown:(void (^)())completion {
+    NSLog(@"%s", __func__);
+    self.fiveSecondTimer =
+    [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(countdownTimerFireMethod:) userInfo:completion repeats:YES];
+    
+    
+}
+
 //TODO:FIve second stuff
 -(void)countdownTimerFireMethod:(NSTimer *)timer {
-    
+    NSLog(@"%s", __func__);
     //NSLog(@"%s count %d volume: %f",__func__, _countDownLabelValue,[_audioEngine mixerVolume]);
     
     _countDownLabelValue--;
-    
-    if (_countDownLabelValue < 3) {
-        
-    }
     
     if (_countDownLabelValue > 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self presentCountDownValue];
         });
     } else {
-        
-        // five second was not completing
-        [_playerController.fiveSecondTimer invalidate];
-        
+        self.countDownLabel.hidden = YES;
+        void (^completion)() = timer.userInfo;
+        completion();
+        [self.fiveSecondTimer invalidate];
     }
 }
 
 -(void)presentCountDownValue {
-    
+    NSLog(@"CountDown at: %lu inside %s", _countDownLabelValue, __func__);
+    self.countDownLabel.hidden = NO;
     self.countDownLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)_countDownLabelValue];
     
     CATransform3D scaleTrans = CATransform3DMakeScale(3.2, 3.2, 1.0);
@@ -298,6 +371,8 @@
 }
 
 
+
+
 #pragma mark - TOOLBAR BUTTON ACTIONS
 
 - (IBAction)buttonPressed:(UIBarButtonItem *)sender {
@@ -313,10 +388,10 @@
 
     } else  if (sender == _rewindButton) {
         NSLog(@"%s REWIND",__func__);
-
         [_playerController rewind];
         
     } else if (sender == _pauseButton) {
+        NSLog(@"%s PAUSE", __func__);
         _playing = NO;
         [self toolbar2WithPlay:_playing];
         [_playerController pause];
@@ -335,14 +410,15 @@
     [self setToolbarItems:@[_rewindButton, _fixedSpace, !playbutton ? _playButton : _pauseButton, _fixedSpace2, _forwardButton,_flexSpace1,_effectsButton,_exportButton] animated:YES];
 }
 
-#pragma mark -
+#pragma mark - delegate??
 
 - (IBAction)saveAction:(id)sender {
+    NSLog(@"%s", __func__);
     [_delegate save:self cachKey:_detailItem[@"key"]];
 }
 
 - (void)updateStatusForItem:(NSDictionary*)item {
-    
+    NSLog(@"%s", __func__);
     NSURL *fileURL = item[@"fileURL"];
     float delay = 0.0;
     id delayItem = item[@"starttime"];
@@ -382,7 +458,7 @@
 }
 
 -(CGSize)updateScrubberHeight:(JWAudioPlayerController *)controller {
-    
+    NSLog(@"%s", __func__);
     if (_sctv.hidden)
         return CGSizeZero;
     
@@ -424,11 +500,30 @@
 }
 
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid {
-    
+    NSLog(@"%s", __func__);
     if ( index <  [self.trackItems count]){
         id nodeItem = _trackItems[index];
         if ([_delegate respondsToSelector:@selector(userAudioObtainedInNodeWithKey:recordingId:)])
             [_delegate userAudioObtainedInNodeWithKey:nodeItem[@"key"] recordingId:rid];
+    }
+}
+
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL *)rurl {
+    NSLog(@"%s", __func__);
+    if ( index <  [self.trackItems count]){
+        id nodeItem = _trackItems[index];
+        if ([_delegate respondsToSelector:@selector(userAudioObtainedInNodeWithKey:recordingURL:)])
+            [_delegate userAudioObtainedInNodeWithKey:nodeItem[@"key"] recordingURL:rurl];
+    }
+}
+
+-(void)userAudioObtainedWithComponents:(NSMutableDictionary *)components atIndex:(NSUInteger)index {
+    NSLog(@"%s", __func__);
+    if (index < [self.trackItems count]) {
+        id nodeItem = _trackItems[index];
+        if ([_delegate respondsToSelector:@selector(userAudioObtainedWithComponents:atNodeWithKey:)]) {
+            [_delegate userAudioObtainedWithComponents:components atNodeWithKey:nodeItem[@"key"]];
+        }
     }
 }
 
@@ -442,7 +537,7 @@
 
 
 -(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controller {
-    
+    NSLog(@"%s", __func__);
     return [_delegate detailController:self titleForJamTrackKey:_detailItem[@"key"]];
 }
 

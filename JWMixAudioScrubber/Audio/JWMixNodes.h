@@ -21,8 +21,16 @@
  JWMixerNodeTypeMixerPlayerRecorder  - a player and recorder to play/Record mixer output NOT USED
  */
 
+
+typedef NS_ENUM(NSUInteger, JWHomeSectionType) {
+    
+    JWHomeSectionTypeSessions = 0,
+    JWHomeSectionTypeDownloadedTracks
+    
+};
+
 //New home section for tab bar controller
-typedef NS_ENUM(NSInteger, JWSectionType) {
+typedef NS_ENUM(NSUInteger, JWSectionType) {
     JWHomeSectionNone     =1,
     JWSectionTypeHome,
     JWSectionTypePublic,
@@ -40,7 +48,7 @@ typedef NS_ENUM(NSInteger, JWAudioNodeType) {
     JWAudioNodeTypeVideo
 };
 
-//Old ENUM that was worded wrong and has some unnessesary values (only around becuase master)
+//Old ENUM that was worded wrong and has some unnessesary values (only around becuase master and audio engine (will be gone once completly removed out of project))
 typedef NS_ENUM(NSInteger, JWMixerNodeTypes) {
     JWMixerNodeTypeNone     =1,
     JWMixerNodeTypePlayer,

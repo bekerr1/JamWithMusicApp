@@ -12,6 +12,7 @@
 @import AVFoundation;
 #import "JWAudioRecorderController.h"
 #import "JWPlayerFileInfo.h"
+#import "JWFileManager.h"
 
 @interface JWMTAudioEngine () {
     NSURL* _finalRecordingOutputURL;
@@ -61,7 +62,9 @@
     _activePlayersIndex = [NSMutableIndexSet new];
     _activeRecorderIndex = [NSMutableIndexSet new];
     _scrubberTrackIds = [@{} mutableCopy];
-    [self loadPlayerNodeData];
+    //Should have a player node list already
+//    [self readPlayerNodeList];
+//    [self loadPlayerNodeData];
 }
 
 -(void)initializeAudio {
@@ -126,175 +129,6 @@
     
 }
 
-#pragma mark - player node data
-
--(void)loadPlayerNodeData {
-    
-//    [self readPlayerNodeList];
-
-    NSLog(@"%s %@",__func__,[_playerNodeList description]);
-
-    if (_playerNodeList == nil) {
-        NSLog(@"%s no list creating new one ",__func__ );
-//        [self defaultPlayerNodeList];
-        [self defaultPlayerNodeListOnePlayerOneRecorder];
-    }
-}
-
--(void)defaultPlayerNodeList {
-    _playerNodeList =
-    [@[
-       [@{@"title":@"Player node 1",
-          @"type":@(JWMixerNodeTypePlayer),
-          @"name":@"playernode1",
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy],
-       [@{@"title":@"Player Recorder node 2",
-          @"type":@(JWMixerNodeTypePlayerRecorder),
-          @"name":@"playerrecordernode1",
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy],
-       [@{@"title":@"Mixer Player node3",
-          @"type":@(JWMixerNodeTypeMixerPlayerRecorder),
-          @"name":@"mixerplayerrecordere3",
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy]
-       ] mutableCopy];
-}
--(void)defaultPlayerNodeListPlayMix {
-    _playerNodeList =
-    [@[
-       [@{@"title":@"mixerplayernode1",
-          @"type":@(JWMixerNodeTypeMixerPlayer),
-          @"loops":@(NO),
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy]
-       ] mutableCopy];
-}
--(void)defaultPlayerNodeListTwoPlayer {
-    _playerNodeList =
-    [@[
-       [@{@"title":@"playernode1",
-          @"type":@(JWMixerNodeTypePlayer),
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy],
-       [@{@"title":@"playernode2",
-          @"type":@(JWMixerNodeTypePlayer),
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy]
-       ] mutableCopy];
-}
--(void)defaultPlayerNodeListOnePlayer {
-    _playerNodeList =
-    [@[
-       [@{@"title":@"playernode1",
-          @"type":@(JWMixerNodeTypePlayer),
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy],
-       ] mutableCopy];
-}
--(void)defaultPlayerNodeListOnePlayerOneRecorder {
-    _playerNodeList =
-    [@[
-       [@{@"title":@"playernode1",
-          @"type":@(JWMixerNodeTypePlayer),
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy],
-       [@{@"title":@"Player Recorder node 2",
-          @"type":@(JWMixerNodeTypePlayerRecorder),
-          @"name":@"playerrecordernode1",
-          @"volumevalue":@(0.50),
-          @"panvalue":@(0.50),
-          } mutableCopy],
-       ] mutableCopy];
-}
-
-//TODO:Five Second stuff, not sure if mutable.  Added this for creation of five second node
-//only needed if engine is active (so doesnt show up in table view as a valid node)
--(NSMutableDictionary *)createFiveSecondPlayerNodeWithDirectory:(NSString *)fileString fromKey:(NSString*)dbKey {
-    
-    if (dbKey == nil) {
-        NSLog(@"No Key To Create File String.");
-        return nil;
-    }
-    NSURL *validURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/fiveSecondsMP3_%@.m4a",fileString, dbKey]];
-    NSLog(@"Valid URL? %@", [validURL absoluteString]);
-    NSFileManager *quickManager = [NSFileManager defaultManager];
-    
-    if (![quickManager fileExistsAtPath:[validURL path]]) {
-        NSLog(@"No Valid URL To Create File String URL.");
-        return nil;
-    }
-    
-    
-    NSMutableDictionary *fiveSecondNode =
-    [@{
-      @"title" : @"fivesecondnode",
-      @"type" : @(JWMixerNodeTypeFiveSecondPlayer),
-      @"volumevalue" : @(0.0),
-      @"fileURLString" : [NSString stringWithFormat:@"%@/fiveSecondsMP3_%@.m4a",fileString, dbKey]
-      } mutableCopy];
-    
-    JWPlayerNode *pn = [JWPlayerNode new];
-    pn.volume = 0.4f;
-    fiveSecondNode[@"player"] = pn;
-    self.fiveSecondNode = pn;
-    
-    NSError *error;
-    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:validURL error:&error];
-    if (error)
-        NSLog(@"%@",[error description]);
-     else
-        fiveSecondNode[@"audiofile"] = audioFile;
-
-    
-    return fiveSecondNode;
-}
-
-
-//TODO: added this for five second addition to node list
--(BOOL)addFiveSecondNodeToListForKey:(NSString *)dbKey {
-    
-//    NSString *keyForFiveSecondNode = nil;
-    
-    if (dbKey) {
-        
-        NSDictionary *fiveSecondNode = nil;
-        
-        //TODO:questionable methods to determining a five second node should be establishd
-        for (NSMutableDictionary *node in _playerNodeList) {
-            NSString* fileURLString = node[@"fileURLString"];
-            
-            if (fileURLString) {
-                
-                NSRange subStringRange = [fileURLString rangeOfString:@"Documents"];
-                NSString *directoryOfPlayerNodeURL = [fileURLString substringWithRange:NSMakeRange(0, subStringRange.location + subStringRange.length)];
-                fiveSecondNode = [self createFiveSecondPlayerNodeWithDirectory:directoryOfPlayerNodeURL
-                                                                                     fromKey:dbKey];
-                if (fiveSecondNode) {
-                    node[@"fivesecondnode"] = fiveSecondNode;
-                    NSLog(@"five second node added %s", __func__);
-                    _hasFiveSecondClip = YES;
-                    return YES;
-                }
-
-                
-            }
-        }
-        
-        
-    }
-    return NO;
-}
-
 
 #pragma mark - VAB listeners
 
@@ -304,64 +138,33 @@
 {
     if ([_playerNodeList count] > index) {
         NSDictionary *playerNodeInfo = _playerNodeList[index];
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
 
         // PLAYER RECORDER
-        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypeRecorder) {
             JWAudioRecorderController *rc = playerNodeInfo[@"recorderController"];
             [rc registerController:myScrubberContoller withTrackId:trackId forPlayerRecorder:@"recorder"];
         }
         
         // PLAYER
-        else if (nodeType == JWMixerNodeTypePlayer) {
+        else if (nodeType == JWAudioNodeTypePlayer) {
             
         }
         
-        // MIXER PLAYER
-        else if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
-            id nodename = playerNodeInfo[@"name"];
-            if (nodename)
-                _scrubberTrackIds[nodename] = trackId;
-
-            // last register called uses tha controller by all
-            _scrubberBufferController = myScrubberContoller;
-        }
+        // MIXER PLAYER (not sure what mixer player is)
+//        else if (nodeType == JWMixerNodeTypeMixerPlayerRecorder) {
+//            id nodename = playerNodeInfo[@"name"];
+//            if (nodename)
+//                _scrubberTrackIds[nodename] = trackId;
+//
+//            // last register called uses tha controller by all
+//            _scrubberBufferController = myScrubberContoller;
+//        }
     }
 
     [self initBufferReceiveQueue];
 }
 
--(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller withTrackId:(NSString*)trackId
-        forPlayerRecorder:(NSString*)player
-{
-    if ([player isEqualToString:@"player1"]) {
-        
-        [self registerController:myScrubberContoller withTrackId:trackId forPlayerRecorderAtIndex:0];
-
-    } else if ([player isEqualToString:@"player2"]) {
-    } else if ([player isEqualToString:@"mixer"]) {
-        // LOCAL used mainly for mixer as it does not have a playerNode to register forPlayerRecorderAtIndex
-        // last register called uses tha controller by all
-        _scrubberBufferController = myScrubberContoller;
-        _scrubberTrackIds[player] = trackId;
-        // Is a local controller
-
-    } else if ([player isEqualToString:@"tap1"]) {
-    } else if ([player isEqualToString:@"tap2"]) {
-    } else if ([player isEqualToString:@"recorder"]) {
-        // THIS would be used if a recorder was implemented as a Install TAP on INPUT node
-        // Here, will set the first Player recorder playernode now
-        for (int index = 0; index < [_playerNodeList count]; index++) {
-            if ([self typeForNodeAtIndex:index] == JWMixerNodeTypePlayerRecorder) {
-                [self registerController:myScrubberContoller withTrackId:trackId forPlayerRecorderAtIndex:index];
-                _scrubberTrackIds[player] = trackId;
-                break;
-            }
-        }
-    }
-    
-    [self initBufferReceiveQueue];
-}
 
 -(void)initBufferReceiveQueue {
     
@@ -491,15 +294,28 @@
 }
 
 
--(JWMixerNodeTypes)typeForNodeAtIndex:(NSUInteger)index {
+-(JWAudioNodeType)typeForNodeAtIndex:(NSUInteger)index {
     
-    JWMixerNodeTypes result = 0;
+    JWAudioNodeType result = 0;
     if ([_playerNodeList count] > index) {
         NSDictionary *playerNodeInfo = _playerNodeList[index];
         
         id type = playerNodeInfo[@"type"];
         if (type)
             result = [(NSNumber*)type integerValue];
+    }
+    return result;
+}
+
+-(NSString *)keyForNodeAtIndex:(NSUInteger)index {
+    
+    NSString *result = 0;
+    if ([_playerNodeList count] > index) {
+        NSDictionary *playerNodeInfo = _playerNodeList[index];
+        
+        id key = playerNodeInfo[@"nodekey"];
+        if (key)
+            result = key;
     }
     return result;
 }
@@ -530,6 +346,7 @@
 
 #pragma mark - helper
 
+//TODO: should do this later and have the cache key be relative to the parent tracks
 -(void)fileURLs {
     // .caf = CoreAudioFormat
     NSString *cacheKey = [[NSUUID UUID] UUIDString];
@@ -609,7 +426,7 @@
 /*
  createPlayerNodes
  creates players for those ha t need it
- caution: player and recorderController are added to dict )non serilaizaable objects
+ caution: player and recorderController are added to dict - non serilaizaable objects
  */
 -(void)createPlayerNodes {
     
@@ -622,18 +439,20 @@
     
     for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
         
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
+        NSString *nodeKey = [self keyForNodeAtIndex:index];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer || nodeType == JWMixerNodeTypeFiveSecondPlayer) {
+        if (nodeType != JWAudioNodeTypeNone || nodeType != JWAudioNodeTypeVideo) {
         
             JWPlayerNode *pn = [JWPlayerNode new];
             pn.volume = 0.4f;
             //[mPlayerNodes addObject:pn];
             playerNodeInfo[@"player"] = pn;  
-            if (nodeType == JWMixerNodeTypePlayerRecorder) {
+            if (nodeType == JWAudioNodeTypeRecorder) {
                 
                 id recorder = playerNodeInfo[@"recorderController"];
                 if (recorder == nil) {
+                    
                     JWAudioRecorderController *rc = [[JWAudioRecorderController alloc] initWithMetering:YES];
                     playerNodeInfo[@"recorderController"] = rc;
                 }
@@ -648,11 +467,12 @@
 }
 
 -(void)teeUpAudioBuffers {
+    NSLog(@"%s", __func__);
     // Player node list drives population of audiofiles and audiobuffers
     // self.playernodes will play them they will set outside of here
     // the loop handles  _audioBufferFromFile but not _fiveSecondBuffer
     NSUInteger index = 0;
-
+    
     for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
         NSURL *fileURL = [self playerNodeFileURLAtIndex:index];
         if (fileURL) {
@@ -663,10 +483,9 @@
                 [playerNodeInfo removeObjectForKey:@"audiofile"];
                 [playerNodeInfo removeObjectForKey:@"audiobuffer"];
             } else {
-                
+                NSLog(@"%@, %lld", [audioFile.processingFormat description], audioFile.length);
                 // CREATE and READ buffer
-                AVAudioPCMBuffer *audioBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat
-                                                                              frameCapacity:(UInt32)audioFile.length];
+                AVAudioPCMBuffer *audioBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:audioFile.processingFormat frameCapacity:(UInt32)audioFile.length];
                 [audioFile readIntoBuffer:audioBuffer error:&error];
                 
                 // ASSIGN BUFFER
@@ -691,6 +510,8 @@
     
 }
 
+
+//could do this with the default initialization?
 -(void)teeUpAudioBufferFadeIn {
     
     if (_fiveSecondURL) {
@@ -710,6 +531,7 @@
     }
 }
 
+//could do this with the default initialization?
 -(void)configFiveSecondNode {
     
     for (id node in _playerNodeList) {
@@ -736,7 +558,7 @@
 
 -(void)setupAVEngine {
     
-    [self fileURLs];
+    //[self fileURLs];
     
     [self createPlayerNodes];
     [self createEngineAndAttachNodes];
@@ -804,8 +626,8 @@
     
     for (int index = 0; index < nNodes; index++) {
 
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer || nodeType == JWMixerNodeTypeFiveSecondPlayer) {
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
+        if (nodeType != JWAudioNodeTypeNone || nodeType != JWAudioNodeTypeVideo) {
             // loops, delays and volume attrs not cosidered here
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
@@ -913,7 +735,7 @@
                 insetSeconds:(NSTimeInterval)secondsIn
                     duration:(NSTimeInterval)duration
                    recording:(BOOL)recording {
-    
+    NSLog(@"%s", __func__);
     AVAudioFormat *processingFormat = [audioFile processingFormat];
     
     // PLAYNODE Config and Properties
@@ -998,7 +820,7 @@
     
     if (hasAudioToPlay) {
         
-        JWMixerNodeTypes type = [playerNodeInfo[@"type"] integerValue];
+        JWAudioNodeType type = [playerNodeInfo[@"type"] integerValue];
         
         // GET The player for this audio
         JWPlayerNode* playerNode =  playerNodeInfo[@"player"];
@@ -1059,13 +881,13 @@
             
             // SCHEDULE THE BUFFER
             //TODO: added a check on the type to make sure the right completion block is scheduled
-            if (type == JWMixerNodeTypePlayer || type == JWMixerNodeTypePlayerRecorder) {
+            if (type == JWAudioNodeTypePlayer || type == JWAudioNodeTypeRecorder) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
                                    options:AVAudioPlayerNodeBufferInterrupts
                          completionHandler:playerCompletion
                  ];
                 
-            } else if (type == JWMixerNodeTypeFiveSecondPlayer) {
+            } else if (type == JWAudioNodeTypeFiveSecondPlayer) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
                                    options:AVAudioPlayerNodeBufferInterrupts
                          completionHandler:fiveSecondCompletion
@@ -1086,22 +908,22 @@
 -(void)scheduleAllWithOptions:(NSUInteger)options insetSeconds:(NSTimeInterval)secondsIn
                      duration:(NSTimeInterval)duration
                     recording:(BOOL)recording {
-
+    NSLog(@"%s", __func__);
 //    NSLog(@"scheduleAllWithOptions %.3f secondsin, %ld nodes",secondsIn,[_playerNodeList count]);
     NSUInteger index = 0;
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
         //TODO: fivesecond
         id fiveSecondNode = playerNodeInfo[@"fivesecondnode"];
         id fsAudioFile = fiveSecondNode[@"audiofile"];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeFiveSecondPlayer) {
+        if (nodeType != JWAudioNodeTypeNone || nodeType != JWAudioNodeTypeVideo) {
             
             AVAudioFile *audioFile = [self audioFileForPlayerNodeAtIndex:index]; // AVAudioFile
             if (audioFile == nil) {
-                if (nodeType == JWMixerNodeTypePlayerRecorder)
+                if (nodeType == JWAudioNodeTypeRecorder)
                     [_activeRecorderIndex addIndex:index];
                 
                 index++;
@@ -1126,7 +948,6 @@
     
     if (recording == NO  &&  _scrubberTrackIds[@"mixer"]) {
         // install TAP on mixer to provide visualAudio
-        
         [self tapTheMixerForScrubberOnly];
     }
     
@@ -1183,7 +1004,7 @@
 
 
 -(BOOL)stopAllActivePlayerNodes {
-    //    NSLog(@"%s", __func__);
+    NSLog(@"%s", __func__);
     
     if (_isRecordingOnly) {
         
@@ -1308,6 +1129,7 @@
                                audioBuffer:(AVAudioPCMBuffer *)audioBuffer
                                    atIndex:(NSUInteger)index recording:(BOOL)recording
 {
+    NSLog(@"%s", __func__);
     // PLAYNODE Config
     BOOL loops = NO;
     NSTimeInterval secondsDelay = 0;
@@ -1393,16 +1215,16 @@
  */
 
 -(void)playAlll:(BOOL)recording {
-    
+    NSLog(@"%s", __func__);
     // recording - whether recording mix
     
     NSUInteger index = 0;
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
         
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder || nodeType == JWMixerNodeTypeMixerPlayer) {
+        if (nodeType != JWAudioNodeTypeNone || nodeType != JWAudioNodeTypeVideo) {
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
             if (audioBuffer == nil)
@@ -1450,7 +1272,7 @@
     NSInteger index = 0;
     NSUInteger nNodes = [self.playerNodeList count];
     for (index = 0; index < nNodes; index++) {
-        if (JWMixerNodeTypePlayer == [self typeForNodeAtIndex:index] ){
+        if (JWAudioNodeTypePlayer == [self typeForNodeAtIndex:index] ){
             result++;
             break;
         }
@@ -1466,7 +1288,7 @@
     NSInteger index = 0;
     NSUInteger nNodes = [self.playerNodeList count];
     for (index = 0; index < nNodes; index++) {
-        if (JWMixerNodeTypePlayerRecorder == [self typeForNodeAtIndex:index] ) {
+        if (JWAudioNodeTypeRecorder == [self typeForNodeAtIndex:index] ) {
             if ([self playerNodeFileURLAtIndex:index] == nil) {
                 result = index; // found
                 break;
@@ -1489,7 +1311,7 @@
 }
 
 -(void)prepareToRecord {
-    
+    NSLog(@"%s", __func__);
     if ([self numberOfPlayerNodes] == 0 && [self.playerNodeList count] == 1){
         
         NSInteger index = [self firstAvailableRecorderIndex];
@@ -1514,9 +1336,9 @@
     
     if (pindex < [self.playerNodeList count]) {
         NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:pindex];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:pindex];
         
-        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypeRecorder) {
             id rc = playerNodeInfo[@"recorderController"];
             if (rc)
                 result = (JWAudioRecorderController*)rc;
@@ -1532,10 +1354,10 @@
     int returnIndex = 0;
     for (NSMutableDictionary *pn in _playerNodeList) {
         
-        JWMixerNodeTypes nodeType = [pn[@"type"] integerValue];
+        JWAudioNodeType nodeType = [pn[@"type"] integerValue];
         NSString *fileString = pn[@"fileURLString"];
         
-        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypeRecorder) {
             
             if (!fileString) {
                 //This is the top most recorder node with no fileURL
@@ -1555,14 +1377,15 @@
 - (NSURL*)recordingFileURLPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
 
     NSURL* result;
-    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    JWAudioRecorderController* rc = [self recorderForPlayerNodeAtIndex:prIndex];
     result = rc.micOutputFileURL;
     return result;
 }
 
 - (void)recordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
+    NSLog(@"%s", __func__);
     _isRecordingOnly = YES;
-    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    JWAudioRecorderController* rc = [self recorderForPlayerNodeAtIndex:prIndex];
     rc.metering = NO;
     [rc record];
 }
@@ -1575,8 +1398,8 @@
 }
 
 - (void)stopRecordOnlyWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
-
-    JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
+    NSLog(@"%s", __func__);
+    JWAudioRecorderController* rc = [self recorderForPlayerNodeAtIndex:prIndex];
     
     [rc stopRecording];
     
@@ -1587,22 +1410,38 @@
     AVAudioPCMBuffer *micOutputBuffer =
     [[AVAudioPCMBuffer alloc] initWithPCMFormat:micOutputFile.processingFormat
                                   frameCapacity:(UInt32)micOutputFile.length];
+
+    NSLog(@"%@, %lld", [micOutputFile.processingFormat description], micOutputFile.length);
     NSAssert([micOutputFile readIntoBuffer:micOutputBuffer error:&error],
              @"error reading into new buffer, %@",[error localizedDescription]);
     
     // USER AUDIO obtained read into a buffer teedUP and ready to play
     NSMutableDictionary *playerNodeInfo = _playerNodeList[prIndex];
-    playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] path];
+    playerNodeInfo [@"fileURLString"] = [[rc micOutputFileURL] absoluteString];
     playerNodeInfo [@"audiobuffer"] = micOutputBuffer;
     playerNodeInfo [@"audiofile"] = micOutputFile;
     
     self.needMakeConnections = YES;  // need to make engine connections as this has now become a player
     
     [_activeRecorderIndex removeIndex:prIndex];
+    
+    Float64 mSampleRate = micOutputFile.processingFormat.streamDescription->mSampleRate;
+    Float64 duration =  (1.0 / mSampleRate) * micOutputFile.processingFormat.streamDescription->mFramesPerPacket;
+    CGFloat fileLenInSecs = duration * micOutputFile.length;
+    NSLog(@"duration = %f", fileLenInSecs);
+    
+    NSMutableDictionary *userAudioObtainedComponents = [NSMutableDictionary new];
+    userAudioObtainedComponents[@"fileURL"] = [[JWFileManager defaultManager] fileURLWithFileName:[NSString stringWithFormat:@"clipRecording_%@.caf", rc.recordingId]];
+    userAudioObtainedComponents[@"duration"] = [NSNumber numberWithFloat:fileLenInSecs];
 
     dispatch_sync(dispatch_get_main_queue(), ^() {
-        if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
-            [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+        //if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingURL:)])
+        //    [_engineDelegate userAudioObtainedAtIndex:prIndex recordingURL:rc.micOutputFileURL];
+        //if ([_engineDelegate respondsToSelector:@selector(userAudioObtainedAtIndex:recordingId:)])
+        //    [_engineDelegate userAudioObtainedAtIndex:prIndex recordingId:rc.recordingId];
+        if([_engineDelegate respondsToSelector:@selector(userAudioObtainedWithComponents:atIndex:)]) {
+            [_engineDelegate userAudioObtainedWithComponents:userAudioObtainedComponents atIndex:0];
+        }
         if ([_engineDelegate respondsToSelector:@selector(userAudioObtained)])
             [_engineDelegate userAudioObtained];
         if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
@@ -1610,6 +1449,7 @@
     });
     
 }
+
 
 
 
@@ -1648,6 +1488,7 @@
                                    atRecorderIndex:(NSUInteger)prIndex
                                               fade:(BOOL)fade
 {
+    NSLog(@"%s", __func__);
     // PLAYNODE Config
     BOOL loops = NO;
     NSTimeInterval secondsDelay = 0;
@@ -1799,7 +1640,7 @@
  */
 
 -(void)playAllRecordingFromBeginnigAtIndex:(NSUInteger)prIndex fadeIn:(BOOL)fade{
-    
+    NSLog(@"%s", __func__);
     NSUInteger index = 0;  // index to playerNodeList
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
@@ -1807,9 +1648,9 @@
         if (index == prIndex)
             continue;  // skip the one recording
 
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypePlayer || nodeType == JWAudioNodeTypeRecorder) {
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
             if (audioBuffer == nil)
@@ -1861,6 +1702,7 @@
                                      atIndex:(NSUInteger)index
                              atRecorderIndex:(NSUInteger)prIndex
 {
+    NSLog(@"%s", __func__);
     // PLAYNODE Config
     BOOL loops = NO;
     NSTimeInterval secondsDelay = 0;
@@ -1954,7 +1796,7 @@
  */
 
 - (void)recordWithPlayerRecorderAtNodeIndex:(NSUInteger)prIndex {
-    
+    NSLog(@"%s", __func__);
     NSUInteger index = 0;
     
     for (NSDictionary *playerNodeInfo in _playerNodeList) {
@@ -1962,9 +1804,9 @@
         if (index == prIndex)
             continue;  // skip the one recording
         
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:index];
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
         
-        if (nodeType == JWMixerNodeTypePlayer || nodeType == JWMixerNodeTypePlayerRecorder ) {
+        if (nodeType == JWAudioNodeTypePlayer || nodeType == JWAudioNodeTypeRecorder ) {
             
             AVAudioPCMBuffer *audioBuffer = [self audioBufferForPlayerNodeAtIndex:index];
             if (audioBuffer == nil)
@@ -1998,7 +1840,7 @@
 #pragma mark -
 
 -(void)tapTheMixerForScrubberOnly {
-    
+    NSLog(@"%s", __func__);
     // install TAP on mixer to provide visualAudio
     AVAudioMixerNode* mainMixer = [self.audioEngine mainMixerNode];
     
@@ -2025,6 +1867,7 @@
  */
 
 - (void)recordAtCurrentPositionWithRecorderAtNodeIndex:(NSUInteger)prIndex {
+    NSLog(@"%s", __func__);
     JWAudioRecorderController* rc  =[self recorderForPlayerNodeAtIndex:prIndex];
     [rc record];
 }
@@ -2035,7 +1878,7 @@
  */
 
 -(void)prepareToPlayMix {
-    
+    NSLog(@"%s", __func__);
 //    [self makeEngineConnections];
     
     for (JWPlayerNode* pn in self.activePlayerNodes)
@@ -2058,6 +1901,7 @@
 }
 
 -(void)playMix {
+    NSLog(@"%s", __func__);
     // hopefully prepareToPlayMix was called
     [self playAlll:NO];  // NO not recording
 }
@@ -2090,7 +1934,7 @@
     
     // RESET _playerNodeList for play back of mixer output
     
-    [self defaultPlayerNodeListPlayMix];
+    //[self defaultPlayerNodeListPlayMix];
     // ONE node
     
     // Update the file URL with _finalRecordingOutputURL
@@ -2296,4 +2140,203 @@
 //===========================================================================
 
 
+#pragma mark - player node data
+//Dont really need any of this anymore
+//-(void)loadPlayerNodeData {
+//
+////    [self readPlayerNodeList];
+//
+//    NSLog(@"%s %@",__func__,[_playerNodeList description]);
+//
+//    if (_playerNodeList == nil) {
+//        NSLog(@"%s no list creating new one ",__func__ );
+////        [self defaultPlayerNodeList];
+//        [self defaultPlayerNodeListOnePlayerOneRecorder];
+//    }
+//}
+//
+//-(void)defaultPlayerNodeList {
+//    _playerNodeList =
+//    [@[
+//       [@{@"title":@"Player node 1",
+//          @"type":@(JWMixerNodeTypePlayer),
+//          @"name":@"playernode1",
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy],
+//       [@{@"title":@"Player Recorder node 2",
+//          @"type":@(JWMixerNodeTypePlayerRecorder),
+//          @"name":@"playerrecordernode1",
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy],
+//       [@{@"title":@"Mixer Player node3",
+//          @"type":@(JWMixerNodeTypeMixerPlayerRecorder),
+//          @"name":@"mixerplayerrecordere3",
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy]
+//       ] mutableCopy];
+//}
+//-(void)defaultPlayerNodeListPlayMix {
+//    _playerNodeList =
+//    [@[
+//       [@{@"title":@"mixerplayernode1",
+//          @"type":@(JWMixerNodeTypeMixerPlayer),
+//          @"loops":@(NO),
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy]
+//       ] mutableCopy];
+//}
+//-(void)defaultPlayerNodeListTwoPlayer {
+//    _playerNodeList =
+//    [@[
+//       [@{@"title":@"playernode1",
+//          @"type":@(JWMixerNodeTypePlayer),
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy],
+//       [@{@"title":@"playernode2",
+//          @"type":@(JWMixerNodeTypePlayer),
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy]
+//       ] mutableCopy];
+//}
+//-(void)defaultPlayerNodeListOnePlayer {
+//    _playerNodeList =
+//    [@[
+//       [@{@"title":@"playernode1",
+//          @"type":@(JWMixerNodeTypePlayer),
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy],
+//       ] mutableCopy];
+//}
+//-(void)defaultPlayerNodeListOnePlayerOneRecorder {
+//    _playerNodeList =
+//    [@[
+//       [@{@"title":@"playernode1",
+//          @"type":@(JWMixerNodeTypePlayer),
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy],
+//       [@{@"title":@"Player Recorder node 2",
+//          @"type":@(JWMixerNodeTypePlayerRecorder),
+//          @"name":@"playerrecordernode1",
+//          @"volumevalue":@(0.50),
+//          @"panvalue":@(0.50),
+//          } mutableCopy],
+//       ] mutableCopy];
+//}
 
+//TODO:Five Second stuff, not sure if mutable.  Added this for creation of five second node
+//only needed if engine is active (so doesnt show up in table view as a valid node)
+//Now in jam track coordinator
+//-(NSMutableDictionary *)createFiveSecondPlayerNodeWithDirectory:(NSString *)fileString fromKey:(NSString*)dbKey {
+//
+//    if (dbKey == nil) {
+//        NSLog(@"No Key To Create File String.");
+//        return nil;
+//    }
+//    NSURL *validURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/fiveSecondsMP3_%@.m4a",fileString, dbKey]];
+//    NSLog(@"Valid URL? %@", [validURL absoluteString]);
+//    NSFileManager *quickManager = [NSFileManager defaultManager];
+//
+//    if (![quickManager fileExistsAtPath:[validURL path]]) {
+//        NSLog(@"No Valid URL To Create File String URL.");
+//        return nil;
+//    }
+//
+//
+//    NSMutableDictionary *fiveSecondNode =
+//    [@{
+//      @"title" : @"fivesecondnode",
+//      @"type" : @(JWMixerNodeTypeFiveSecondPlayer),
+//      @"volumevalue" : @(0.0),
+//      @"fileURLString" : [NSString stringWithFormat:@"%@/fiveSecondsMP3_%@.m4a",fileString, dbKey]
+//      } mutableCopy];
+//
+//    JWPlayerNode *pn = [JWPlayerNode new];
+//    pn.volume = 0.4f;
+//    fiveSecondNode[@"player"] = pn;
+//    self.fiveSecondNode = pn;
+//
+//    NSError *error;
+//    AVAudioFile *audioFile = [[AVAudioFile alloc] initForReading:validURL error:&error];
+//    if (error)
+//        NSLog(@"%@",[error description]);
+//     else
+//        fiveSecondNode[@"audiofile"] = audioFile;
+//
+//
+//    return fiveSecondNode;
+//}
+//
+
+
+//TODO: added this for five second addition to node list
+//Will do this in coordinator under condition of five second node
+//-(void)addFiveSecondNodeToListForKey:(NSString *)dbKey {
+//
+////    NSString *keyForFiveSecondNode = nil;
+//
+//    if (dbKey) {
+//
+//        NSDictionary *fiveSecondNode = nil;
+//
+//        //TODO:questionable methods to determining a five second node should be establishd
+//        for (NSMutableDictionary *node in _playerNodeList) {
+//            NSString* fileURLString = node[@"fileURLString"];
+//
+//            if (fileURLString) {
+//                NSLog(@"%@", fileURLString);
+//                NSRange subStringRange = [fileURLString rangeOfString:@"Documents"];
+//                NSString *directoryOfPlayerNodeURL = [fileURLString substringWithRange:NSMakeRange(0, subStringRange.location + subStringRange.length)];
+//                fiveSecondNode = [self createFiveSecondPlayerNodeWithDirectory:directoryOfPlayerNodeURL
+//                                                                                     fromKey:dbKey];
+//                if (fiveSecondNode) {
+//                    node[@"fivesecondnode"] = fiveSecondNode;
+//                    NSLog(@"five second node added %s", __func__);
+//                    _hasFiveSecondClip = YES;
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+
+//Shouldnt be used anymore, uses conventions not used
+//-(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller withTrackId:(NSString*)trackId
+//        forPlayerRecorder:(NSString*)player
+//{
+//    if ([player isEqualToString:@"player1"]) {
+//
+//        [self registerController:myScrubberContoller withTrackId:trackId forPlayerRecorderAtIndex:0];
+//
+//    } else if ([player isEqualToString:@"player2"]) {
+//    } else if ([player isEqualToString:@"mixer"]) {
+//        // LOCAL used mainly for mixer as it does not have a playerNode to register forPlayerRecorderAtIndex
+//        // last register called uses tha controller by all
+//        _scrubberBufferController = myScrubberContoller;
+//        _scrubberTrackIds[player] = trackId;
+//        // Is a local controller
+//
+//    } else if ([player isEqualToString:@"tap1"]) {
+//    } else if ([player isEqualToString:@"tap2"]) {
+//    } else if ([player isEqualToString:@"recorder"]) {
+//        // THIS would be used if a recorder was implemented as a Install TAP on INPUT node
+//        // Here, will set the first Player recorder playernode now
+//        for (int index = 0; index < [_playerNodeList count]; index++) {
+//            if ([self typeForNodeAtIndex:index] == JWMixerNodeTypePlayerRecorder) {
+//                [self registerController:myScrubberContoller withTrackId:trackId forPlayerRecorderAtIndex:index];
+//                _scrubberTrackIds[player] = trackId;
+//                break;
+//            }
+//        }
+//    }
+//
+//    [self initBufferReceiveQueue];
+//}

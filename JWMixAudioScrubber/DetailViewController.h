@@ -9,16 +9,16 @@
 #import <UIKit/UIKit.h>
 
 
-typedef NS_ENUM(NSInteger, JWHomeSectionType) {
-    JWHomeSectionTypeNone     =1,
-    JWHomeSectionTypeOther,
-    JWHomeSectionTypeDownloaded,
-    JWHomeSectionTypePreloaded,
-    JWHomeSectionTypeYoutube,
-    JWHomeSectionTypeMyTracks,
-    JWHomeSectionTypeAudioFiles,
-    JWHomeSectionTypeUser
-};
+//typedef NS_ENUM(NSInteger, JWHomeSectionType) {
+//    JWHomeSectionTypeNone     =1,
+//    JWHomeSectionTypeOther,
+//    JWHomeSectionTypeDownloaded,
+//    JWHomeSectionTypePreloaded,
+//    JWHomeSectionTypeYoutube,
+//    JWHomeSectionTypeMyTracks,
+//    JWHomeSectionTypeAudioFiles,
+//    JWHomeSectionTypeUser
+//};
 
 @protocol JWDetailDelegate;
 
@@ -26,6 +26,7 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
 @interface DetailViewController : UIViewController
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) id <JWDetailDelegate> delegate;
+@property (nonatomic) BOOL newRecording;
 -(void)stopPlaying;
 @end
 
@@ -37,14 +38,21 @@ typedef NS_ENUM(NSInteger, JWHomeSectionType) {
 -(NSString*)detailController:(DetailViewController*)controller titleForTrackAtIndex:(NSUInteger)index
            inJamTrackWithKey:(NSString*)key;
 
+
 -(void)save:(DetailViewController*)controller cachKey:(NSString*)key;
 -(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingId:(NSString*)rid;
+-(void)userAudioObtainedInNodeWithKey:(NSString*)nodeKey recordingURL:(NSURL*)rurl;
+-(void)userAudioObtainedWithComponents:(NSDictionary*)components atNodeWithKey:(NSString *)key;
 -(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey;
 @optional
 // METhods used by test apps when detail changed items like scrubber color
 -(void)itemChanged:(DetailViewController*)controller;
 -(void)itemChanged:(DetailViewController*)controller cachKey:(NSString*)key;
 -(void)addTrack:(DetailViewController*)controller cachKey:(NSString*)key;
+
+//New-Used
+-(void)addNewJamSessionToTop:(DetailViewController *)controller;
+
 -(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key;
 @end
 
