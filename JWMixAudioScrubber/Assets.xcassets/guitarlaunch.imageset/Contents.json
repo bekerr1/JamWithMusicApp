@@ -2,22 +2,36 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "guitar7launchH-1.png",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "filename" : "guitar7launchH.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "filename" : "guitar7launchH-2.png",
+      "scale" : "3x"
+    },
+    {
+      "idiom" : "iphone",
+      "filename" : "jamwithcoverlarge326ppi-1.jpg",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "iphone",
+      "filename" : "jamwithcoverlarge326ppi.jpg",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "iphone",
       "scale" : "3x"
     }
   ],
   "info" : {
     "version" : 1,
     "author" : "xcode"
+  },
+  "properties" : {
+    "template-rendering-intent" : "original"
   }
 }

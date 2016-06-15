@@ -172,6 +172,49 @@
     
 }
 
+-(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key {
+    
+    NSLog(@"%s",__func__);
+    
+    id result;
+    id homeObjects = [[JWFileManager defaultManager] homeItemsList];
+    NSIndexPath *itemIndexPath = [_coordinator indexPathOfJamTrackCacheItem:key fromSource:homeObjects];
+    
+    if (itemIndexPath) {
+        id objectSection = homeObjects[itemIndexPath.section];
+        
+        NSArray *jamTracks = objectSection[@"sessionset"];
+        
+        if (jamTracks) {
+            if (itemIndexPath.row < [jamTracks count]) {
+                id jamTrack = jamTracks[itemIndexPath.row];
+                id trackNodes = jamTrack[@"trackobjectset"];
+                
+                id playerRecorder = [_coordinator newTrackNodeOfType:JWAudioNodeTypeRecorder andFileURL:nil withAudioFileKey:nil];
+                
+                [trackNodes addObject:playerRecorder];
+                NSLog(@"%s TRACK ADDED \n%@",__func__,[jamTrack description]);
+                
+                [[JWFileManager defaultManager] updateHomeObjectsAndSave:homeObjects];
+                
+                result = jamTrack;
+                //Dont know if this has to be done since the table reloads on viewwillappear (this was done in master)
+                //                NSUInteger nBaseRows = 1; // for JWHomeSectionTypeAudioFiles
+                //                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:nBaseRows+itemIndexPath.row inSection:itemIndexPath.section];
+                //
+                //                dispatch_async(dispatch_get_main_queue(), ^{
+                //                    [self.tableView beginUpdates];
+                //                    [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                //                    [self.tableView endUpdates];
+                //                });
+            }
+        }
+    }
+    
+    return result;
+}
+
+
 
 -(UIStatusBarStyle)preferredStatusBarStyle {
     return UIStatusBarStyleLightContent;

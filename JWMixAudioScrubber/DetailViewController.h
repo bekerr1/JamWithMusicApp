@@ -52,7 +52,6 @@
 
 //New-Used
 -(void)addNewJamSessionToTop:(DetailViewController *)controller;
-
 -(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key;
 @end
 

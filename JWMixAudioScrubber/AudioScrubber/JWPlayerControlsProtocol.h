@@ -28,5 +28,6 @@ typedef NS_ENUM(NSInteger, PlayerControllerState) {
 -(void)rewind;
 -(void)pause;
 -(void)record;
+-(void)dismissCamera;
 
 @end

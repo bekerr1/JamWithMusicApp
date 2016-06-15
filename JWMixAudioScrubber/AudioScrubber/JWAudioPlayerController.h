@@ -56,6 +56,7 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(BOOL) stopEditingSelectedTrackSave;
 -(BOOL) stopEditingSelectedTrackCancel;
 -(void) stop;
+-(void)stopKill;
 -(void)addEffectToEngineNodelist:(NSString *)effect;
 
 -(NSDictionary*)defaultWhiteColors;
@@ -63,6 +64,8 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)configureScrubbers:(BOOL)tap;
 
 -(void)effectsCurrentSettings;
+-(void)pauseDetailSession;
+-(void)resumeDetailSession;
 
 @end
 
@@ -75,7 +78,7 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)noTrackSelected:(JWAudioPlayerController *)controller;
 -(void)trackSelected:(JWAudioPlayerController *)controller;
 -(void)playerController:(JWAudioPlayerController *)controller didLongPressForTrackAtIndex:(NSUInteger)index;
-
+-(void)userDismissCamera;
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL *)rurl;
 -(void) userAudioObtainedWithComponents:(NSDictionary *)components atIndex:(NSUInteger)index;

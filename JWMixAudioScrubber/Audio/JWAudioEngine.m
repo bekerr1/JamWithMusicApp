@@ -23,6 +23,11 @@
     }
 }
 
+-(BOOL)engineRunning {
+    
+    return self.audioEngine.isRunning;
+}
+
 -(void)dealloc {
     NSLog(@"%s",__func__);
 }

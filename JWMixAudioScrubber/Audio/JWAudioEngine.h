@@ -20,6 +20,7 @@
 - (void)createEngineAndAttachNodes;
 - (void)makeEngineConnections;
 - (void)startEngine;
+-(BOOL)engineRunning;
 - (void)stopPlayersForInterruption;
 // helper
 - (void)logAudioFormat:(AVAudioFormat*)audio;

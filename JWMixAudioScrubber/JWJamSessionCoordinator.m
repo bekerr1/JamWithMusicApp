@@ -14,7 +14,6 @@ This class will handle all of the jam session code that is inside the master vie
  
 */
 #import "JWJamSessionCoordinator.h"
-#import "JWMixNodes.h"
 #import "JWFileManager.h"
 
 @interface JWJamSessionCoordinator()
@@ -196,6 +195,7 @@ This class will handle all of the jam session code that is inside the master vie
     NSString *track1Key = [[NSUUID UUID] UUIDString];
     NSMutableDictionary *track1 = [self newTrackNodeOfType:JWAudioNodeTypePlayer andFileURL:[[JWFileManager defaultManager] testURL:@"killersMP3"] withAudioFileKey:track1Key];
     track1[@"title"] = @"player";
+    track1[@"duration"] = @(45);
     NSMutableDictionary *track2 = [self newTrackNodeOfType:JWAudioNodeTypeRecorder andFileURL:[[JWFileManager defaultManager] testURL:@"killersrecording1"] withAudioFileKey:track1Key];
     track2[@"title"] = @"player";
     
@@ -438,6 +438,33 @@ Instrument
     }
     return result;
 }
+
+
+-(NSIndexPath*)indexPathOfJamTrackCacheItem:(NSString*)key fromSource:(id)source {
+    NSUInteger sectionIndex = 0;
+    NSUInteger index = 0;
+    BOOL found = NO;
+    
+    for (id objectSection in source) {
+        id sessionSetInSection = objectSection[@"sessionset"];
+        index = 0; // new section
+        for (id session in sessionSetInSection) {
+            
+            if ([key isEqualToString:session[@"key"]]) {
+                found=YES;
+                break;
+            }
+            index++;
+        }
+        if (found)
+            break;
+        
+        sectionIndex++;
+    }
+    
+    return [NSIndexPath indexPathForRow:index inSection:sectionIndex];
+}
+
 
 
 

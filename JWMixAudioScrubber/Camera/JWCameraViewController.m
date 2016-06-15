@@ -187,24 +187,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                 [_captureSession addInput:captureDeviceInput];
                 
                 dispatch_async( dispatch_get_main_queue(), ^{
-                    // Why are we dispatching this to the main queue?
-                    // Because AVCaptureVideoPreviewLayer is the backing layer for AAPLPreviewView and UIView
-                    // can only be manipulated on the main thread.
-                    // Note: As an exception to the above rule, it is not necessary to serialize video orientation changes
-                    // on the AVCaptureVideoPreviewLayer’s connection with other session manipulation.
-                    
-                    // Use the status bar orientation as the initial video orientation. Subsequent orientation changes are handled by
-                    // -[viewWillTransitionToSize:withTransitionCoordinator:].
-//                    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
-//                    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
-//                    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
-//                        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
-//                    }
-                    
-                    //AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
-                    //previewLayer.connection.videoOrientation = initialVideoOrientation;
-                    
-                    //[self.view addSubview:_storyboardVC.view];
+                 
                 } );
                 
                 
@@ -338,8 +321,26 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 #pragma mark - DISMISS
 
+-(void)userDismissCamera {
+    NSLog(@"%s", __func__);
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+-(void)viewWillDisappear:(BOOL)animated {
+    
+    NSLog(@"%s", __func__);
+    
+    
+    [super viewWillDisappear:animated];
+}
+
+
 - (void)viewDidDisappear:(BOOL)animated
 {
+    //Handle dissapear stuff (the preview layer seems to be getting stuck?)
+    NSLog(@"%s", __func__);
+    
+    [_previewLayer removeFromSuperlayer];
     dispatch_async( self.sessionQueue, ^{
         if ( self.setupResult == AVCamSetupResultSuccess ) {
             [self.captureSession stopRunning];
@@ -380,14 +381,10 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         [_previewLayer setBackgroundColor:[[UIColor clearColor] CGColor]];
         
         [_previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
-        //[_previewLayer setAffineTransform:CGAffineTransformMakeScale(1.35, 1.35)];
         
         [rootLayer setMasksToBounds:YES];
         [rootLayer insertSublayer:_previewLayer atIndex:0];
-        //[rootLayer insertSublayer:_rewind.layer atIndex:1];
         
-        //[self.view addSubview:_buttonViewContainer];
-        //_buttonViewContainer.hidden = YES;
     }
     return _previewLayer;
 }
@@ -428,25 +425,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 
 
-#pragma mark - FILE MANAGER
-
--(NSString*)documentsDirectoryPath {
-    NSString *result = nil;
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    result = [searchPaths objectAtIndex:0];
-    return result;
-}
-
-
-/*
- #pragma mark - Navigation
- 
- // In a storyboard-based application, you will often want to do a little preparation before navigation
- - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
- // Get the new view controller using [segue destinationJWCameraViewController].
- // Pass the selected object to the new view controller.
- }
- */
 
 
 #pragma mark - AudioPlayerController delegate

@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "JWMixNodes.h"
 
 @interface JWJamSessionCoordinator : NSObject
 
@@ -22,7 +23,9 @@
 -(NSString *)durationOfFirstTrackFromSession:(NSDictionary *)session;
 -(NSMutableArray *)audioURLsForSession:(NSDictionary *)session;
 -(NSMutableArray *)newTestJamSession;
+-(NSMutableDictionary*)newTrackNodeOfType:(JWAudioNodeType)mixNodeType andFileURL:(NSURL*)fileURL withAudioFileKey:(NSString *)key;
 -(NSMutableDictionary*)newJamTrackObjectWithRecorderFileURL:(NSURL*)fileURL;
 -(NSMutableDictionary *)createFiveSecondPlayerNodeWithDirectory:(NSString *)fileString fromKey:(NSString*)dbKey;
+-(NSIndexPath*)indexPathOfJamTrackCacheItem:(NSString*)key fromSource:(id)source;
 
 @end

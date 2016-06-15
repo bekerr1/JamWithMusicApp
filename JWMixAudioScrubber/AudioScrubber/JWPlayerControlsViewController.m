@@ -102,5 +102,20 @@
     [_delegate rewind];
 }
 
+- (IBAction)cameraBackButtonAction:(JWUITransportButton *)sender {
+    [_delegate dismissCamera];
+    
+}
 
 @end
+
+
+
+
+
+
+
+
+
+
+

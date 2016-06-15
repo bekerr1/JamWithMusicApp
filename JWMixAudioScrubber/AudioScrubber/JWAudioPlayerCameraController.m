@@ -7,6 +7,7 @@
 //
 
 #import "JWAudioPlayerCameraController.h"
+#import "JWFileManager.h"
 
 @interface JWAudioPlayerCameraController() <AVCaptureFileOutputRecordingDelegate>
 
@@ -268,13 +269,6 @@
     
 }
 
--(NSString*)documentsDirectoryPath {
-    NSString *result = nil;
-    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    result = [searchPaths objectAtIndex:0];
-    return result;
-}
-
 
 //Start recording video feed,call super record
 //super records audio and starts scrubber
@@ -285,7 +279,7 @@
     self.videoCameraPlayerNodeIndex = [self.audioEngine indexOfFirstRecorderNodeWithNoAudio];
     
     NSString *movieFileName = @"moviefile";
-    NSString *documentsPath = [[[self documentsDirectoryPath] stringByAppendingPathComponent:movieFileName] stringByAppendingPathExtension:@"mov"];
+    NSString *documentsPath = [[[[JWFileManager defaultManager] documentsDirectoryPath] stringByAppendingPathComponent:movieFileName] stringByAppendingPathExtension:@"mov"];
     NSURL *movieURL = [NSURL fileURLWithPath:documentsPath];
     
     NSLog(@"Movie File URL = %@", [movieURL absoluteString]);
@@ -337,7 +331,14 @@
 
 
 
+#pragma mark - PLAYER CONTROLS PROTOCOL
 
+-(void)dismissCamera {
+
+    [self.delegate userDismissCamera];
+    [self.audioEngine startEngine];
+    
+}
 
 
 

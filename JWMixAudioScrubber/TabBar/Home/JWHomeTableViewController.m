@@ -162,7 +162,8 @@
     
     
     //[cell.trackCount setText:[NSString stringWithFormat:@"%@", sessionAt[@"trackcount"]]];
-    [cell.trackCount setText:[NSString stringWithFormat:@"%@", [self trackStringFromCount:[sessionAt[@"trackcount"] integerValue]]]];
+    NSArray *tracks = sessionAt[@"trackobjectset"];
+    [cell.trackCount setText:[NSString stringWithFormat:@"%@", [self trackStringFromCount:[tracks count]]]];
     
     //[cell.buttonImage setImage:_scrubberBlueImage forState:UIControlStateNormal];
     [cell setAudioURLsForThisCell:[_coordinator audioURLsForSession:sessionAt]];
@@ -228,18 +229,16 @@
         index = 0; // new section
         for (id session in sessionSetInSection) {
             
-            id tracks = session[@"trackobjectset"];
-            for (id track in tracks) {
-                if ([key isEqualToString:track[@"key"]]) {
-                    found=YES;
-                    break;
-                }
-                index++;
+            if ([key isEqualToString:session[@"key"]]) {
+                found=YES;
+                break;
             }
+            index++;
         }
-        sectionIndex++;
         if (found)
             break;
+        
+        sectionIndex++;
     }
     
     return [NSIndexPath indexPathForRow:index inSection:sectionIndex];
@@ -261,7 +260,8 @@
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.
     //all rows in table should not be editable and are sorted by date (for now)...
-    return NO;
+    //all rows should be editable tho
+    return YES;
 }
 
 
@@ -278,15 +278,14 @@
             
             if (objectSet) {
                 // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
-                id trackObjects = objectSection[@"trackobjectset"];
-                if (trackObjects) {
-                    [trackObjects removeObjectAtIndex:indexPath.row];
-                    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
-                }
+                
+                [objectSet removeObjectAtIndex:indexPath.row];
+                [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+                
             }
         }
         
-        [[JWFileManager defaultManager] saveHomeMenuLists];
+        [[JWFileManager defaultManager] updateHomeObjectsAndSave:_homeControllerData];
         
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
@@ -297,175 +296,7 @@
 }
 
 
-// Override to support rearranging the table view.
-//TODO: do this later...
-//- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-//    
-//    NSLog(@"%s",__func__);
-//    
-//    
-//    id moveObject ;
-//    NSUInteger fromIndex = 0;
-//    
-//    NSIndexPath *indexPath = fromIndexPath;
-//    
-//    if (indexPath.section < [_homeControllerData count]) {
-//        
-//        id objectSection = _homeControllerSections[indexPath.section];
-//        
-//        BOOL isTrackItem = YES;;
-//        NSUInteger virtualRow = indexPath.row;
-//        NSUInteger count = [self baseRowsForSection:indexPath.section];
-//        if (indexPath.row < count)
-//            isTrackItem = NO;  // baserow
-//        else
-//            virtualRow -= count;
-//        
-//        if (isTrackItem) {
-//            // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
-//            id trackObjects = objectSection[@"trackobjectset"];
-//            if (trackObjects) {
-//                if (virtualRow < [trackObjects count]) {
-//                    
-//                    moveObject = trackObjects[virtualRow];
-//                    fromIndex = virtualRow;
-//                }
-//            }
-//        }
-//    }
-//    
-//    if (moveObject) {
-//        
-//        NSIndexPath *indexPath = toIndexPath;
-//        if (indexPath.section < [_homeControllerSections count]) {
-//            
-//            
-//            BOOL isTrackItem = YES;;
-//            NSUInteger virtualRow = indexPath.row;
-//            NSUInteger count = [self baseRowsForSection:indexPath.section];
-//            if (indexPath.row < count)
-//                isTrackItem = NO;  // baserow
-//            else
-//                virtualRow -= count;
-//            
-//            
-//            if (isTrackItem) {
-//                // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
-//                
-//                id objectSection = _homeControllerSections[indexPath.section];
-//                
-//                id trackObjects = objectSection[@"trackobjectset"];
-//                if (trackObjects) {
-//                    if (virtualRow < [trackObjects count]) {
-//                        
-//                        [trackObjects removeObjectAtIndex:fromIndex];
-//                        
-//                        [trackObjects insertObject:moveObject atIndex:virtualRow];
-//                        
-//                        [tableView beginUpdates];
-//                        [tableView reloadSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section]  withRowAnimation:UITableViewRowAnimationAutomatic];
-//                        
-//                        //                        [tableView reloadRowsAtIndexPaths:@[fromIndexPath, toIndexPath]
-//                        //                                         withRowAnimation:UITableViewRowAnimationAutomatic];
-//                        
-//                        [tableView endUpdates];
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    
-//    //        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
-//    
-//    
-//    
-//    
-//    //    id moveObject = [_objectCollections[fromIndexPath.section] objectAtIndex:fromIndexPath.row];
-//    //
-//    //    [_objectCollections[fromIndexPath.section]  removeObjectAtIndex:fromIndexPath.row];
-//    //    [_objectCollections[toIndexPath.section]  insertObject:moveObject atIndex:toIndexPath.row];
-//    
-//    //    if ([_objectCollections[fromIndexPath.section] count] == 0) {
-//    //        [_objectCollections removeObjectAtIndex:fromIndexPath.section];
-//    //
-//    //        //NSUInteger reloadSection = toIndexPath.section;
-//    //        //        if (fromIndexPath.section < toIndexPath.section) {
-//    //        //            reloadSection--;
-//    //        //        }
-//    //        [tableView beginUpdates];
-//    //        [tableView deleteSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
-//    //        //        [tableView reloadSections:[NSIndexSet indexSetWithIndex:reloadSection]  withRowAnimation:UITableViewRowAnimationAutomatic];
-//    //        [tableView endUpdates];
-//    //    }
-//    
-//    //    [tableView reloadSectionIndexTitles];
-//    
-//    //    [self saveUserOrderedList];
-//}
 
-
-// Override to support conditional rearranging of the table view.
-//TODO: do this later too...
-//- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-//    
-//    return NO; // neess more work
-//    
-//    // Return NO if you do not want the item to be re-orderable.
-//    BOOL result = NO;
-//    
-//    NSUInteger section = indexPath.section;
-//    NSUInteger count = 0;
-//    // Compute base rows for section
-//    if (section < [_homeControllerSections count]) {
-//        JWHomeSectionType sectionType = [self typeForSection:section];
-//        if (sectionType == JWHomeSectionTypeAudioFiles) {
-//            count ++;
-//        } else if (sectionType == JWHomeSectionTypeYoutube) {
-//            count ++;
-//            count ++;
-//        } else if (sectionType == JWHomeSectionTypeOther) {
-//            count ++;
-//        }
-//    }
-//    
-//    if (indexPath.row < count) {
-//        // baserow
-//    } else {
-//        result = YES;
-//    }
-//    return result;
-//}
-//TODO: do this later too lol...
-//-(NSIndexPath *)tableView:(UITableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)sourceIndexPath toProposedIndexPath:(NSIndexPath *)proposedDestinationIndexPath {
-//    
-//    //    NSLog(@"%s",__func__);
-//    // Allow the proposed destination.
-//    
-//    NSUInteger section = sourceIndexPath.section;
-//    NSUInteger count = 0;
-//    // Compute base rows for section
-//    if (section < [_homeControllerSections count]) {
-//        JWHomeSectionType sectionType = [self typeForSection:section];
-//        if (sectionType == JWHomeSectionTypeAudioFiles) {
-//            count ++;
-//        } else if (sectionType == JWHomeSectionTypeYoutube) {
-//            count ++;
-//            count ++;
-//        } else if (sectionType == JWHomeSectionTypeOther) {
-//            count ++;
-//        }
-//    }
-//    
-//    if (sourceIndexPath.section == proposedDestinationIndexPath.section)
-//    {
-//        
-//    } else {
-//        proposedDestinationIndexPath = sourceIndexPath;
-//    }
-//    
-//    return proposedDestinationIndexPath;
-//}
-//
 
 #pragma mark - SEGUE
 
@@ -482,30 +313,7 @@
         [controller setDetailItem:[self objectSelected]];
         
     }
-    //Probably wount be showing audio files in this controller
-//    else if ([[segue identifier] isEqualToString:@"JWShowAudioFiles"]) {
-//        
-//        JWTrackSetsViewController *controller = (JWTrackSetsViewController *)[segue destinationViewController];
-//        controller.delegate = self;
-//        
-//        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-//        if (indexPath.section < [_homeControllerSections count]) {
-//            
-//            id objectSection = _homeControllerSections[indexPath.section];
-//            
-//            JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
-//            
-//            id trackObjectSet;
-//            if (sectionType == JWHomeSectionTypeAudioFiles)
-//                trackObjectSet = objectSection[@"trackobjectset"];
-//            
-//            if (trackObjectSet) {
-//                [controller setTrackSet:trackObjectSet];
-//                self.selectedIndexPath = indexPath;
-//            }
-//        }
-//        
-//    }
+
     //Will be clipping
     else if ([segue.identifier isEqualToString:@"JWClipAudio"]) {
         
@@ -949,6 +757,48 @@
 }
 
 
+-(id)addTrackNode:(id)controller toJamTrackWithKey:(NSString*)key {
+
+    NSLog(@"%s",__func__);
+
+    id result;
+    NSIndexPath *itemIndexPath = [_coordinator indexPathOfJamTrackCacheItem:key fromSource:_homeControllerData];
+
+    if (itemIndexPath) {
+        id objectSection = _homeControllerData[itemIndexPath.section];
+
+        NSArray *jamTracks = objectSection[@"sessionset"];
+
+        if (jamTracks) {
+            if (itemIndexPath.row < [jamTracks count]) {
+                id jamTrack = jamTracks[itemIndexPath.row];
+                id trackNodes = jamTrack[@"trackobjectset"];
+
+                id playerRecorder = [_coordinator newTrackNodeOfType:JWAudioNodeTypeRecorder andFileURL:nil withAudioFileKey:nil];
+
+                [trackNodes addObject:playerRecorder];
+                NSLog(@"%s TRACK ADDED \n%@",__func__,[jamTrack description]);
+
+                [[JWFileManager defaultManager] updateHomeObjectsAndSave:_homeControllerData];
+
+                result = jamTrack;
+//Dont know if this has to be done since the table reloads on viewwillappear (this was done in master)
+//                NSUInteger nBaseRows = 1; // for JWHomeSectionTypeAudioFiles
+//                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:nBaseRows+itemIndexPath.row inSection:itemIndexPath.section];
+//
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [self.tableView beginUpdates];
+//                    [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+//                    [self.tableView endUpdates];
+//                });
+            }
+        }
+    }
+
+    return result;
+}
+
+
 
 
 //not used
@@ -1016,3 +866,202 @@
 
 
 @end
+
+
+
+
+
+
+// Override to support rearranging the table view.
+//TODO: do this later...
+//- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
+//
+//    NSLog(@"%s",__func__);
+//
+//
+//    id moveObject ;
+//    NSUInteger fromIndex = 0;
+//
+//    NSIndexPath *indexPath = fromIndexPath;
+//
+//    if (indexPath.section < [_homeControllerData count]) {
+//
+//        id objectSection = _homeControllerSections[indexPath.section];
+//
+//        BOOL isTrackItem = YES;;
+//        NSUInteger virtualRow = indexPath.row;
+//        NSUInteger count = [self baseRowsForSection:indexPath.section];
+//        if (indexPath.row < count)
+//            isTrackItem = NO;  // baserow
+//        else
+//            virtualRow -= count;
+//
+//        if (isTrackItem) {
+//            // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
+//            id trackObjects = objectSection[@"trackobjectset"];
+//            if (trackObjects) {
+//                if (virtualRow < [trackObjects count]) {
+//
+//                    moveObject = trackObjects[virtualRow];
+//                    fromIndex = virtualRow;
+//                }
+//            }
+//        }
+//    }
+//
+//    if (moveObject) {
+//
+//        NSIndexPath *indexPath = toIndexPath;
+//        if (indexPath.section < [_homeControllerSections count]) {
+//
+//
+//            BOOL isTrackItem = YES;;
+//            NSUInteger virtualRow = indexPath.row;
+//            NSUInteger count = [self baseRowsForSection:indexPath.section];
+//            if (indexPath.row < count)
+//                isTrackItem = NO;  // baserow
+//            else
+//                virtualRow -= count;
+//
+//
+//            if (isTrackItem) {
+//                // IS  ATRACK CELL not a controll cell index 0 AUDIOFILES and SEARCH
+//
+//                id objectSection = _homeControllerSections[indexPath.section];
+//
+//                id trackObjects = objectSection[@"trackobjectset"];
+//                if (trackObjects) {
+//                    if (virtualRow < [trackObjects count]) {
+//
+//                        [trackObjects removeObjectAtIndex:fromIndex];
+//
+//                        [trackObjects insertObject:moveObject atIndex:virtualRow];
+//
+//                        [tableView beginUpdates];
+//                        [tableView reloadSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section]  withRowAnimation:UITableViewRowAnimationAutomatic];
+//
+//                        //                        [tableView reloadRowsAtIndexPaths:@[fromIndexPath, toIndexPath]
+//                        //                                         withRowAnimation:UITableViewRowAnimationAutomatic];
+//
+//                        [tableView endUpdates];
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    //        self indexPathOfJamTrackCacheItem:<#(NSString *)#>
+//
+//
+//
+//
+//    //    id moveObject = [_objectCollections[fromIndexPath.section] objectAtIndex:fromIndexPath.row];
+//    //
+//    //    [_objectCollections[fromIndexPath.section]  removeObjectAtIndex:fromIndexPath.row];
+//    //    [_objectCollections[toIndexPath.section]  insertObject:moveObject atIndex:toIndexPath.row];
+//
+//    //    if ([_objectCollections[fromIndexPath.section] count] == 0) {
+//    //        [_objectCollections removeObjectAtIndex:fromIndexPath.section];
+//    //
+//    //        //NSUInteger reloadSection = toIndexPath.section;
+//    //        //        if (fromIndexPath.section < toIndexPath.section) {
+//    //        //            reloadSection--;
+//    //        //        }
+//    //        [tableView beginUpdates];
+//    //        [tableView deleteSections:[NSIndexSet indexSetWithIndex:fromIndexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
+//    //        //        [tableView reloadSections:[NSIndexSet indexSetWithIndex:reloadSection]  withRowAnimation:UITableViewRowAnimationAutomatic];
+//    //        [tableView endUpdates];
+//    //    }
+//
+//    //    [tableView reloadSectionIndexTitles];
+//
+//    //    [self saveUserOrderedList];
+//}
+
+
+// Override to support conditional rearranging of the table view.
+//TODO: do this later too...
+//- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+//
+//    return NO; // neess more work
+//
+//    // Return NO if you do not want the item to be re-orderable.
+//    BOOL result = NO;
+//
+//    NSUInteger section = indexPath.section;
+//    NSUInteger count = 0;
+//    // Compute base rows for section
+//    if (section < [_homeControllerSections count]) {
+//        JWHomeSectionType sectionType = [self typeForSection:section];
+//        if (sectionType == JWHomeSectionTypeAudioFiles) {
+//            count ++;
+//        } else if (sectionType == JWHomeSectionTypeYoutube) {
+//            count ++;
+//            count ++;
+//        } else if (sectionType == JWHomeSectionTypeOther) {
+//            count ++;
+//        }
+//    }
+//
+//    if (indexPath.row < count) {
+//        // baserow
+//    } else {
+//        result = YES;
+//    }
+//    return result;
+//}
+//TODO: do this later too lol...
+//-(NSIndexPath *)tableView:(UITableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)sourceIndexPath toProposedIndexPath:(NSIndexPath *)proposedDestinationIndexPath {
+//
+//    //    NSLog(@"%s",__func__);
+//    // Allow the proposed destination.
+//
+//    NSUInteger section = sourceIndexPath.section;
+//    NSUInteger count = 0;
+//    // Compute base rows for section
+//    if (section < [_homeControllerSections count]) {
+//        JWHomeSectionType sectionType = [self typeForSection:section];
+//        if (sectionType == JWHomeSectionTypeAudioFiles) {
+//            count ++;
+//        } else if (sectionType == JWHomeSectionTypeYoutube) {
+//            count ++;
+//            count ++;
+//        } else if (sectionType == JWHomeSectionTypeOther) {
+//            count ++;
+//        }
+//    }
+//
+//    if (sourceIndexPath.section == proposedDestinationIndexPath.section)
+//    {
+//
+//    } else {
+//        proposedDestinationIndexPath = sourceIndexPath;
+//    }
+//
+//    return proposedDestinationIndexPath;
+//}
+//
+//Probably wount be showing audio files in this controller
+//    else if ([[segue identifier] isEqualToString:@"JWShowAudioFiles"]) {
+//
+//        JWTrackSetsViewController *controller = (JWTrackSetsViewController *)[segue destinationViewController];
+//        controller.delegate = self;
+//
+//        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+//        if (indexPath.section < [_homeControllerSections count]) {
+//
+//            id objectSection = _homeControllerSections[indexPath.section];
+//
+//            JWHomeSectionType sectionType = [self typeForSectionObject:objectSection];
+//
+//            id trackObjectSet;
+//            if (sectionType == JWHomeSectionTypeAudioFiles)
+//                trackObjectSet = objectSection[@"trackobjectset"];
+//
+//            if (trackObjectSet) {
+//                [controller setTrackSet:trackObjectSet];
+//                self.selectedIndexPath = indexPath;
+//            }
+//        }
+//
+//    }

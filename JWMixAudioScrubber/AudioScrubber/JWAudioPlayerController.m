@@ -167,6 +167,36 @@ JWMixEditDelegate
     self.sc = nil;
 }
 
+-(void)stopKillEngine {
+    
+    NSLog(@"%s",__func__);
+    [self stop];
+    self.audioEngine = nil;
+}
+
+-(void)pauseDetailSession {
+    
+    if ([_audioEngine engineRunning]) {
+        NSLog(@"About to initialize another engine while this one is running.");
+        [self stopKillEngine];
+    }
+}
+
+-(void)resumeDetailSession {
+    
+    if (!_audioEngine) {
+        NSLog(@"Audio Engine was killed because camera came up.  Need to restart.");
+        
+        self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
+        self.audioEngine.engineEffectsDelegate = self;
+        self.metvc.effectsHandler = self.audioEngine;
+        
+        [self rebuildPlayerNodeListAndPlayIfAutoplay];
+        
+        
+    }
+}
+
 
 -(void)appWillBackground:(id)noti {
     NSLog(@"%s",__func__);
@@ -576,7 +606,12 @@ JWMixEditDelegate
     [self play];
 }
 
-#pragma mark - BUTTON PRESSED PROTOCOL
+#pragma mark - PLAYER CONTROLS PROTOCOL
+
+-(void)dismissCamera {
+    
+    
+}
 
 -(void)play
 {

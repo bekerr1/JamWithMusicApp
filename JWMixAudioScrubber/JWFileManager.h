@@ -40,4 +40,6 @@
 -(NSURL *)fileURLWithFileName:(NSString*)name;
 -(NSURL *)fileURLWithFileName:(NSString*)name inPath:(NSArray*)pathComponents;
 
+-(NSString*)documentsDirectoryPath;
+
 @end

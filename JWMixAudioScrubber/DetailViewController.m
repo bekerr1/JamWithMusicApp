@@ -17,6 +17,7 @@
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate,UIDocumentInteractionControllerDelegate> {
     BOOL _playing;  // used to set toolbar items play state in effects mode
+    BOOL _paused;
     NSUInteger selectedAmpImageIndex; // the currently selected amp image index
     NSUInteger _countDownLabelValue;
 }
@@ -198,7 +199,8 @@
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSelectAmpImage:) name:@"DidSelectAmpImage" object:nil];
     
-    _countDownLabelValue = 5;
+    _countDownLabelValue = 6;
+    _paused = NO;
 }
 
 //THis method determines if a five second clip is valid by analyzing the title of the jam session, if the session has a title already then it was obtained from some other source and the presence of a five second clip will be determined later on, if the title is "new jam session" then the session is a newly created jam session by clicking the middle tab
@@ -206,43 +208,22 @@
     [super viewWillAppear:animated];
     selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
     [self updateAmpImage];
+    [self checkForNewSession];
     
     
-    //Prompt the user to create a name for the track through an alert view
-    if ([_detailItem[@"title"]  isEqual: @"New Jam Session"]) {
-        
-        UIAlertController *newSessionAlert = [UIAlertController alertControllerWithTitle:@"Track Title" message:@"Give your new track a name!" preferredStyle:UIAlertControllerStyleAlert];
-        __block UITextField *newTrackField = nil;
-        
-        [newSessionAlert addTextFieldWithConfigurationHandler:^(UITextField *field) {
-            field.placeholder = @"Untitled";
-            newTrackField = field;
-        }];
-        
-        UIAlertAction *newNameAction = [UIAlertAction actionWithTitle:@"Create" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            
-            _detailItem[@"title"] = newTrackField.text;
-            [self.delegate addNewJamSessionToTop:self];
-            self.playerController.hasFiveSecondClip = NO;
-            
-        }];
-        
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-           //re-Present the tab bar controller on cancel
-            [self dismissViewControllerAnimated:YES completion:nil];
-        }];
-        
-        [newSessionAlert addAction:newNameAction];
-        [newSessionAlert addAction:cancelAction];
-        [self presentViewController:newSessionAlert animated:YES completion:^() {
-          
-            
-        }];
-        
-        
+    
+    
+}
+
+
+-(void)viewDidLayoutSubviews {
+    NSLog(@"%s",__func__);
+    
+    if (_paused) {
+        [_playerController resumeDetailSession];
+        _paused = NO;
     }
-    
-    
+
 }
 
 -(void)dealloc {
@@ -305,6 +286,8 @@
     } else if ([segue.identifier isEqualToString:@"cameraActionSegue"]) {
         JWCameraViewController *destin = (JWCameraViewController *)segue.destinationViewController;
         [destin setApccTrackSet:_trackItems];
+        [_playerController pauseDetailSession];
+        _paused = YES;
         //NSArray *childVC = destin.childViewControllers;
         
     }
@@ -313,6 +296,9 @@
 
 -(void)backButtonTapped {
     NSLog(@"Back %s", __func__);
+    //cut everything
+    [_playerController stopKill];
+    
     //Called from the presented view controller, ui kit asks the presenting view controller to dismiss (home tab table view controller)
     [self dismissViewControllerAnimated:YES completion:^(){
         
@@ -375,6 +361,12 @@
 
 #pragma mark - TOOLBAR BUTTON ACTIONS
 
+//Doesnt hit this action becuase a segue is triggered taht probably voids this method
+- (IBAction)revealCameraButton:(UIBarButtonItem *)sender {
+    
+    [_playerController pauseDetailSession];
+}
+
 - (IBAction)buttonPressed:(UIBarButtonItem *)sender {
     
     if (sender == _playButton) {
@@ -417,6 +409,7 @@
     [_delegate save:self cachKey:_detailItem[@"key"]];
 }
 
+
 - (void)updateStatusForItem:(NSDictionary*)item {
     NSLog(@"%s", __func__);
     NSURL *fileURL = item[@"fileURL"];
@@ -431,6 +424,7 @@
                                   [item description]]
      ];
 }
+
 
 -(void)computeScrubberViewHeight:(NSUInteger)numberOfTracks{
     CGFloat tracksz = 60.0f;
@@ -542,6 +536,46 @@
 }
 
 #pragma mark - ActionSheets and ALert
+
+
+-(void)checkForNewSession {
+    
+    //Prompt the user to create a name for the track through an alert view
+    if ([_detailItem[@"title"]  isEqual: @"New Jam Session"]) {
+        
+        UIAlertController *newSessionAlert = [UIAlertController alertControllerWithTitle:@"Track Title" message:@"Give your new track a name!" preferredStyle:UIAlertControllerStyleAlert];
+        __block UITextField *newTrackField = nil;
+        
+        [newSessionAlert addTextFieldWithConfigurationHandler:^(UITextField *field) {
+            field.placeholder = @"Untitled";
+            newTrackField = field;
+        }];
+        
+        UIAlertAction *newNameAction = [UIAlertAction actionWithTitle:@"Create" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            
+            _detailItem[@"title"] = newTrackField.text;
+            [self.delegate addNewJamSessionToTop:self];
+            self.playerController.hasFiveSecondClip = NO;
+            
+        }];
+        
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            //re-Present the tab bar controller on cancel
+            [self dismissViewControllerAnimated:YES completion:nil];
+        }];
+        
+        [newSessionAlert addAction:newNameAction];
+        [newSessionAlert addAction:cancelAction];
+        [self presentViewController:newSessionAlert animated:YES completion:^() {
+            
+            
+        }];
+        
+        
+    }
+    
+}
+
 
 -(void)editingButtons{
     if (self.editing) {
@@ -756,8 +790,6 @@
             [self configureView];
         }
 
-        // [_delegate addTrack:self cachKey:_detailItem[@"key"]];
-        // NSLog(@"%s ADD NODE not implemented",__func__);
     }];
     
     if (self.mixeditContainerView.hidden == YES) {
