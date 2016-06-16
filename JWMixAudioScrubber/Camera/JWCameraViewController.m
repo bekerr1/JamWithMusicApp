@@ -66,12 +66,16 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     NSLog(@"\n");
     NSLog(@"-------=========CAMERA VC STARTS HERE========---------");
     NSLog(@"%s", __func__);
     // Do any additional setup after loading the view.
     
-    self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
+    //self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
+    
+    self.sessionQueue = dispatch_queue_create("session queue",
+                          dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INITIATED, 0));
     
     self.setupResult = AVCamSetupResultSuccess;
     
@@ -79,8 +83,9 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     self.apcc.delegate = self;
     [self.apcc initializePlayerControllerWithScrubber:_scrubberVC playerControles:_playerControlsVC withCompletion:^{
         [self.apcc setTrackSet:_apccTrackSet];
+        
+        
     }];
-    
     
     
     // Check video authorization status. Video access is required and audio access is optional.
@@ -121,9 +126,11 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     }
     
     
-    [self setupCaptureSession];
+    //[self setupCaptureSession];
     //[self previewLayer];
     //[self useFrontCamera];
+    
+   
     
 }
 
@@ -239,6 +246,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s", __func__);
     [super viewWillAppear:animated];
     
+    [self setupCaptureSession];
     _buttonsContainer.hidden = YES;
     _scrubContainer.hidden = YES;
     
@@ -323,7 +331,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 -(void)userDismissCamera {
     NSLog(@"%s", __func__);
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self dismissViewControllerAnimated:NO completion:nil];
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
