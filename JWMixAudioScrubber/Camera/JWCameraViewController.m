@@ -85,10 +85,29 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         
         [self.apcc setTrackSet:_apccTrackSet];
         
-        
     }];
     
+    [self authorizeCamera];
     
+    //[self setupCaptureSession];
+    //[self previewLayer];
+    //[self useFrontCamera];
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+
+
+#pragma mark - INITIALIze
+
+
+-(void)authorizeCamera {
+   
     // Check video authorization status. Video access is required and audio access is optional.
     // If audio access is denied, audio is not recorded during movie recording.
     switch ( [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo] )
@@ -126,26 +145,11 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
             break;
         }
     }
-    
-    
-    //[self setupCaptureSession];
-    //[self previewLayer];
-    //[self useFrontCamera];
-    
+
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-
-
-
-#pragma mark - INITIALIze
 
 -(void)setupCaptureSession {
-    
     
     // Setup the capture session.
     // In general it is not safe to mutate an AVCaptureSession or any of its inputs, outputs, or connections from multiple threads at the same time.
@@ -237,31 +241,13 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         
     });
     
-    
-    
-    
-}
-
-#pragma mark - SHOW
-
-- (void)viewWillAppear:(BOOL)animated
-{
-    NSLog(@"%s", __func__);
-    [super viewWillAppear:animated];
-    
-    _buttonsContainer.hidden = YES;
-    _scrubContainer.hidden = YES;
 }
 
 
--(void)viewDidAppear:(BOOL)animated {
-    NSLog(@"%s", __func__);
-    [super viewDidAppear:animated];
-    
-    
-    [self setupCaptureSession];
-    
+-(void)processCaptureSessionSetupResult {
+
     dispatch_async( self.sessionQueue, ^{
+        
         switch ( self.setupResult )
         {
             case AVCamSetupResultSuccess:
@@ -292,13 +278,13 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                         _scrubContainer.alpha = 0;
                         _buttonsContainer.hidden = NO;
                         _scrubContainer.hidden = NO;
-
+                        
                         [UIView animateWithDuration:1.0 animations:^{
                             _buttonsContainer.alpha = 1.0;
                             _scrubContainer.alpha = 1.0;
                         }];
                     });
-
+                    
                 });
                 
                 
@@ -333,10 +319,30 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
             }
         }
     } );
-
     
+}
 
 
+
+#pragma mark - SHOW
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    NSLog(@"%s", __func__);
+    [super viewWillAppear:animated];
+    
+    _buttonsContainer.hidden = YES;
+    _scrubContainer.hidden = YES;
+}
+
+
+-(void)viewDidAppear:(BOOL)animated {
+    NSLog(@"%s", __func__);
+    [super viewDidAppear:animated];
+    
+    [self setupCaptureSession];
+    
+    [self processCaptureSessionSetupResult];
 }
 
 
