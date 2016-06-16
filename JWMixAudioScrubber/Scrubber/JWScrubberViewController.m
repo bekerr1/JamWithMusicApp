@@ -2647,8 +2647,30 @@ typedef NS_ENUM(NSInteger, ScrubberEditType) {
 
 -(void)modifyTrack:(NSUInteger)track volume:(CGFloat)volumeValue {
     _outputValue = volumeValue;
-    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
-                                                        object:self userInfo:@{@"volume":@(volumeValue)}];
+    
+    NSNotification *volNoti =
+    [NSNotification notificationWithName:[NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
+                                  object:self
+                                userInfo:@{@"volume":@(volumeValue)}];
+    
+    [[NSNotificationQueue defaultQueue] enqueueNotification: volNoti
+                                               postingStyle:NSPostWhenIdle
+                                                    coalesceMask:NSNotificationCoalescingOnName
+                                                   forModes:nil
+     ];
+    
+    
+//    [[NSNotificationQueue defaultQueue] enqueueNotification:
+//     [NSNotification notificationWithName:[NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
+//                                   object:self userInfo:@{@"volume":@(volumeValue)}]
+//                                               postingStyle:NSPostASAP];
+    
+    
+    
+    
+    
+//    [[NSNotificationCenter defaultCenter] postNotificationName:[NSString stringWithFormat:@"track%lunotification",(unsigned long)track]
+//                                                        object:self userInfo:@{@"volume":@(volumeValue)}];
 }
 
 -(void)modifyTrack:(NSUInteger)track colors:(NSDictionary*)trackColors
