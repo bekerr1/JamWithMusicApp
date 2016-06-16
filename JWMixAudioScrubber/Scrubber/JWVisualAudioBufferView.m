@@ -18,8 +18,17 @@
  CGColorRef _colorBottomNoAvg;
     CGFloat _panValue;  // -1.0  1.0
     CGFloat _outputValue;  // volume  0.0 - 1.0
+    
+    NSOperationQueue * _notiQueue;
+
 }
+@property (nonatomic,strong) id notiObserver;
+
 @end
+
+
+
+#define USE_NOTIQUEUE
 
 
 @implementation JWVisualAudioBufferView
@@ -33,15 +42,28 @@
         self.layoutOptions = VABLayoutOptionNone;
         _panValue = 0.0;
         _outputValue = 1.0;
+        
+#ifdef USE_NOTIQUEUE
+        _notiQueue = [[NSOperationQueue alloc] init];
+        _notiQueue.qualityOfService = NSOperationQualityOfServiceUserInitiated;
+#endif
+
     }
     return self;
 }
 
 -(void) dealloc {
+    
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+
 //    NSLog(@"%s",__func__);
     if (_notifString)
     {
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:_notifString object:nil];
+#ifdef USE_NOTIQUEUE
+        [center removeObserver:self.notiObserver];
+#else
+        [center removeObserver:self name:_notifString object:nil];
+#endif
     }
 }
 
@@ -70,17 +92,44 @@
 }
 
 -(void)setNotifString:(NSString *)notifString {
+    
+#ifdef USE_NOTIQUEUE
+
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+
+    if (_notifString)
+    {
+        [center removeObserver:self.notiObserver];
+    }
+    
+    _notifString = notifString;
+    
+    self.notiObserver = [center addObserverForName:_notifString object:nil
+                                                     queue:_notiQueue usingBlock:^(NSNotification *note) {
+                                                         dispatch_async(dispatch_get_main_queue(), ^{
+                                                             [self notif:note];
+                                                         });
+
+                                                     }];
+    
+#else 
     if (_notifString)
     {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:_notifString object:nil];
     }
-
+    
     _notifString = notifString;
-
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notif:) name:_notifString object:nil];
+
+#endif
+    
 }
 
 -(void)notif:(NSNotification*)noti {
+    
+    //NSLog(@"%s",__func__);
+    
     id obj;
     obj = noti.userInfo[@"alpha"];
     if (obj) {
