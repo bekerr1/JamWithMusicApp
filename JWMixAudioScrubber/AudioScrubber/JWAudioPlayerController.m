@@ -220,7 +220,7 @@ JWMixEditDelegate
     _trackItems = trackSet;
     if (_trackItems) {
         
-        _state = JWPlayerStateSetToBeg;
+        self.state = JWPlayerStateSetToBeg;
         
         [self rebuildPlayerNodeListAndPlayIfAutoplay];
     }

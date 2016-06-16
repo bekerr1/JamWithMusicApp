@@ -21,15 +21,13 @@
       "scale" : "3x"
     },
     {
-      "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "appicon2JWSimple.png",
+      "size" : "60x60",
       "scale" : "2x"
     },
     {
-      "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "appicon2JWSimple-1.png",
+      "size" : "60x60",
       "scale" : "3x"
     },
     {
@@ -58,9 +56,8 @@
       "scale" : "1x"
     },
     {
-      "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "appicon2JWSimple-2.png",
+      "size" : "76x76",
       "scale" : "2x"
     },
     {

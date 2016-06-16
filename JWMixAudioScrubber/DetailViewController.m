@@ -210,7 +210,16 @@
     [self updateAmpImage];
     [self checkForNewSession];
     
-    
+    if (_paused) {
+        [_playerController resumeDetailSession];
+        _paused = NO;
+    }
+
+}
+
+-(void)viewDidAppear:(BOOL)animated {
+    NSLog(@"%s",__func__);
+    [super viewDidAppear:animated];
     
     
 }
@@ -219,11 +228,7 @@
 -(void)viewDidLayoutSubviews {
     NSLog(@"%s",__func__);
     
-    if (_paused) {
-        [_playerController resumeDetailSession];
-        _paused = NO;
-    }
-
+    
 }
 
 -(void)dealloc {

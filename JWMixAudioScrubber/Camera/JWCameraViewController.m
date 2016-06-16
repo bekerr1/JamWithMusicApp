@@ -71,13 +71,17 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s", __func__);
     // Do any additional setup after loading the view.
     
-    self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
+    //self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
+    
+    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
+    self.sessionQueue = dispatch_queue_create( "session queue", queue);
     
     self.setupResult = AVCamSetupResultSuccess;
     
     self.apcc = [[JWAudioPlayerCameraController alloc] init];
     self.apcc.delegate = self;
     [self.apcc initializePlayerControllerWithScrubber:_scrubberVC playerControles:_playerControlsVC withCompletion:^{
+        [self setupCaptureSession];
         [self.apcc setTrackSet:_apccTrackSet];
     }];
     
@@ -121,7 +125,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     }
     
     
-    [self setupCaptureSession];
+    
     //[self previewLayer];
     //[self useFrontCamera];
     
@@ -187,8 +191,13 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                 [_captureSession addInput:captureDeviceInput];
                 
                 dispatch_async( dispatch_get_main_queue(), ^{
-                 
+                    
+                    
+                    
+                    
+                    
                 } );
+
                 
                 
             } else {
@@ -253,6 +262,15 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                 _sessionRunning = self.captureSession.isRunning;
                 NSLog(@"Session is running");
                 dispatch_async(dispatch_get_main_queue(), ^() {
+                    
+                    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
+                    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
+                    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
+                        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
+                    }
+                    
+                    AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
+                    previewLayer.connection.videoOrientation = initialVideoOrientation;
                 });
                 
                 
@@ -296,21 +314,18 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s", __func__);
     [super viewDidAppear:animated];
     
-    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
-    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
-    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
-        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
-    }
-    
-    AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
-    previewLayer.connection.videoOrientation = initialVideoOrientation;
-
     [self.view bringSubviewToFront:_buttonsContainer];
     [self.view bringSubviewToFront:_scrubContainer];
     _buttonsContainer.hidden = NO;
     _scrubContainer.hidden = NO;
 
 
+}
+
+
+-(void)viewDidLayoutSubviews {
+    NSLog(@"%s", __func__);
+    
 }
 
 
@@ -375,6 +390,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         NSLog(@"%s", __func__);
         CALayer* rootLayer = self.view.layer;
         NSLog(@"root layer = %@", NSStringFromCGRect(rootLayer.bounds));
+        
         _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_captureSession];
         
         [_previewLayer setFrame:rootLayer.bounds];

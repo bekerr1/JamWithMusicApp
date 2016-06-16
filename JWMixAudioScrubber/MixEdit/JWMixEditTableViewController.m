@@ -85,7 +85,11 @@
 {
     
     self.playerNodeList = [self.effectsHandler configPlayerNodeList];
-    self.playerNodeSelected = self.playerNodeList[_selectedNodeIndex];
+    
+    if (!self.playerNodeSelected) {
+        self.playerNodeSelected = self.playerNodeList[_selectedNodeIndex];
+    }
+    
     
 }
 

@@ -833,7 +833,7 @@
 
         // Final Player completion
         void (^playerCompletion)(void) = ^{
-//            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
             dispatch_sync(dispatch_get_main_queue(), ^() {
                 if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
                     [_engineDelegate completedPlayingAtPlayerIndex:index];

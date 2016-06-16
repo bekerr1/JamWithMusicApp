@@ -132,7 +132,7 @@
 
 - (void)configureScrubbers:(BOOL)tap {
     
-    self.listenToPositionChanges = NO;
+    //self.listenToPositionChanges = NO;
     
     BOOL recordAudio = NO;
     BOOL recordMix = NO;
@@ -336,7 +336,7 @@
 -(void)dismissCamera {
 
     [self.delegate userDismissCamera];
-    [self.audioEngine startEngine];
+    //[self.audioEngine startEngine];
     
 }
 
