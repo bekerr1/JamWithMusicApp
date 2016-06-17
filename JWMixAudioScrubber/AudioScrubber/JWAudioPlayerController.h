@@ -22,10 +22,10 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @interface JWAudioPlayerController : NSObject <JWPlayerControlsProtocol, JWMTAudioEngineDelgegate>
 
 @property (nonatomic) JWScrubberController *sc;
-@property (strong, nonatomic) JWMTEffectsAudioEngine *audioEngine;
+@property (nonatomic) JWMTEffectsAudioEngine *audioEngine;
 @property (nonatomic) JWPlayerControlsViewController* pcvc;
-@property (strong, nonatomic) id trackItem;
-@property (strong, nonatomic) id trackItems;
+@property (nonatomic) id trackItem;
+@property (nonatomic) id trackItems;
 @property (nonatomic, readonly) PlayerControllerState state;
 @property (nonatomic, readonly) NSUInteger numberOfTracks;
 
