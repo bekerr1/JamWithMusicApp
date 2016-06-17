@@ -51,6 +51,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 @property (nonatomic) JWScrubberController *sc1;
 @property (nonatomic) JWAudioPlayerCameraController *apcc;
 
+// TODO: These buttons are not needed here i think
 @property (nonatomic) JWUITransportButton *rewind;
 @property (nonatomic) JWUITransportButton *playPause;
 @property (nonatomic) JWUITransportButton *record;
@@ -70,12 +71,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"\n");
     NSLog(@"-------=========CAMERA VC STARTS HERE========---------");
     NSLog(@"%s", __func__);
-    // Do any additional setup after loading the view.
-    
-    //self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
-    
-//    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
-//    self.sessionQueue = dispatch_queue_create( "session queue", queue);
     
     self.sessionQueue = dispatch_queue_create("session queue",
                                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INITIATED, 0));
@@ -97,6 +92,13 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+
+// Do any additional setup after loading the view.
+//self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
+
+//    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
+//    self.sessionQueue = dispatch_queue_create( "session queue", queue);
 
 
 
