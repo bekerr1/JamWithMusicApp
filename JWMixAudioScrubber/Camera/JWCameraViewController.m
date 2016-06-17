@@ -64,7 +64,9 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 //The view you want to present
 
 - (void)viewDidLoad {
+    
     [super viewDidLoad];
+    
     NSLog(@"\n");
     NSLog(@"-------=========CAMERA VC STARTS HERE========---------");
     NSLog(@"%s", __func__);
@@ -147,12 +149,12 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 -(void)setupCaptureSession {
     
-    
     // Setup the capture session.
     // In general it is not safe to mutate an AVCaptureSession or any of its inputs, outputs, or connections from multiple threads at the same time.
     // Why not do all of this on the main queue?
     // Because -[AVCaptureSession startRunning] is a blocking call which can take a long time. We dispatch session setup to the sessionQueue
     // so that the main queue isn't blocked, which keeps the UI responsive.
+    
     dispatch_async( self.sessionQueue, ^{
         NSLog(@"Started creating the session");
         //CREATE THE SESSION
@@ -160,6 +162,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         
         //CONFIGURE THE SESSION INSIDE HERE
         [self.captureSession beginConfiguration];
+        
         
         if ([_captureSession canSetSessionPreset:AVCaptureSessionPresetMedium]) {
             _captureSession.sessionPreset = AVCaptureSessionPresetMedium;
@@ -197,12 +200,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                 dispatch_async( dispatch_get_main_queue(), ^{
                     
                     
-                    
-                    
-                    
                 } );
-
-                
                 
             } else {
                 NSLog(@"Capture Device Not Added");
@@ -234,14 +232,12 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
             self.setupResult = AVCamSetupResultSessionConfigurationFailed;
         }
         
+        
         [self.captureSession commitConfiguration];
         
         [self.apcc setVideoSettings:self.jwVideoSettings];
         
     });
-    
-    
-    
     
 }
 
@@ -380,10 +376,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
-    
     NSLog(@"%s", __func__);
-    
-    
     [super viewWillDisappear:animated];
 }
 
@@ -427,11 +420,12 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     if (!_previewLayer && _captureSession) {
         NSLog(@"%s", __func__);
         CALayer* rootLayer = self.view.layer;
+        
         NSLog(@"root layer = %@", NSStringFromCGRect(rootLayer.bounds));
         
         _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_captureSession];
         
-        _previewLayer.opacity = 0.0;
+        [_previewLayer setOpacity:0.0];
         [_previewLayer setFrame:rootLayer.bounds];
         [_previewLayer setBackgroundColor:[[UIColor clearColor] CGColor]];
         [_previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
@@ -476,8 +470,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 //    [self.videoDataMovie startRecordingToOutputFileURL:movieURL recordingDelegate:self];
 //    
 //}
-
-
 
 
 
@@ -547,6 +539,23 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s not implemented",__func__);
     return nil;
 }
+
+-(void)startRecordCountDown:(void(^)())completion {
+    NSLog(@"%s not implemented",__func__);
+    
+}
+
+-(void)userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL *)rurl {
+    NSLog(@"%s not implemented",__func__);
+    
+}
+
+-(void)userAudioObtainedWithComponents:(NSDictionary *)components atIndex:(NSUInteger)index {
+    NSLog(@"%s not implemented",__func__);
+    
+}
+
+
 
 
 @end

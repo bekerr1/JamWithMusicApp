@@ -81,7 +81,7 @@ typedef void (^JWPlayerCompletionHandler)(void);
 -(void)userDismissCamera;
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingId:(NSString*)rid;
 -(void)userAudioObtainedAtIndex:(NSUInteger)index recordingURL:(NSURL *)rurl;
--(void) userAudioObtainedWithComponents:(NSDictionary *)components atIndex:(NSUInteger)index;
+-(void)userAudioObtainedWithComponents:(NSDictionary *)components atIndex:(NSUInteger)index;
 -(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey;
 -(void)startRecordCountDown:(void(^)())completion;
 -(NSString*)playerControllerTitleForTrackSet:(JWAudioPlayerController*)controllerkey;
