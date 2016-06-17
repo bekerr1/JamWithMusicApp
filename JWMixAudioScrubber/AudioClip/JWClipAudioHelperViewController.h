@@ -12,7 +12,7 @@
 
 @interface JWClipAudioHelperViewController : UIViewController
 
-@property (nonatomic) id <AudioHelperDelegate> delegate;
+@property (nonatomic,weak) id <AudioHelperDelegate> delegate;
 
 @end
 

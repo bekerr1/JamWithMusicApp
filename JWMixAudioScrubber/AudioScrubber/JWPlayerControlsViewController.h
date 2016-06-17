@@ -13,8 +13,10 @@
 @protocol JWPlayerControlsProtocol;
 
 @interface JWPlayerControlsViewController : UIViewController
+
+@property (nonatomic,weak) id <JWPlayerControlsProtocol> delegate;
+
 @property (strong, nonatomic) IBOutlet UIImageView *ampImageView;
-@property (nonatomic,assign) id <JWPlayerControlsProtocol> delegate;
 @property (strong, nonatomic) IBOutlet JWUITransportButton *rewindButton;
 @property (strong, nonatomic) IBOutlet JWUITransportButton *playButton;
 @property (strong, nonatomic) IBOutlet JWUITransportButton *recordButton;

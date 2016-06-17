@@ -14,7 +14,7 @@ typedef void (^JWClipExportAudioCompletionHandler)(NSString *key);
 
 
 @interface JWClipAudioController : NSObject
-@property (nonatomic,assign) id <JWClipAudioDelegate> delegate;
+@property (nonatomic,weak) id <JWClipAudioDelegate> delegate;
 @property (nonatomic) NSURL* sourceMP3FileURL;
 @property (nonatomic,readonly) NSURL* trimmedFileURL;
 @property (nonatomic,readonly) NSURL* fiveSecondFileURL;

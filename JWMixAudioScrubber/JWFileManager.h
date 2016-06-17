@@ -18,11 +18,11 @@
 @property (nonatomic,readonly) NSArray *trimmedFiles;
 @property (nonatomic,readonly) NSArray *sourceFiles;
 
-@property (strong, nonatomic) NSMutableDictionary *linksDirector;
-@property (strong, nonatomic) NSMutableDictionary *mp3FilesInfo;
-@property (strong, nonatomic) NSMutableDictionary *mp3FilesDescriptions;
+@property (nonatomic) NSMutableDictionary *linksDirector;
+@property (nonatomic) NSMutableDictionary *mp3FilesInfo;
+@property (nonatomic) NSMutableDictionary *mp3FilesDescriptions;
 @property (nonatomic) NSMutableDictionary *testTrackDocumentURLs;
-@property (strong, nonatomic) NSMutableArray *userOrderList;  // dbkey
+@property (nonatomic) NSMutableArray *userOrderList;  // dbkey
 
 +(instancetype) defaultManager;
 -(void)readHomeMenuLists;

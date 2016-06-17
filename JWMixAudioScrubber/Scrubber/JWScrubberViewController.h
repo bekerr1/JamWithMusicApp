@@ -13,7 +13,7 @@
 
 @interface JWScrubberViewController : UIViewController
 
-@property (nonatomic,assign) id <ScrubberDelegate> delegate;
+@property (nonatomic,weak) id <ScrubberDelegate> delegate;
 @property (nonatomic) NSString *playHeadValueStr;
 @property (nonatomic) NSString *formatValueStr;
 @property (nonatomic) NSString *remainingValueStr;
@@ -72,7 +72,7 @@
 - (void)pulseBackLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
 - (void)pulseLight:(CGFloat)pulseStartValue endValue:(CGFloat)endValue duration:(CGFloat)duration;
 - (void)adjustWhiteBacklightValue:(CGFloat)value;
--(void)setBackgroundToClear;
+- (void)setBackgroundToClear;
 - (void)editTrack:(NSUInteger)track startInset:(CGFloat)startInset;
 - (void)editTrack:(NSUInteger)track endInset:(CGFloat)endInset;
 - (void)editTrack:(NSUInteger)track startTime:(CGFloat)startTime;

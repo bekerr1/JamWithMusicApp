@@ -11,12 +11,8 @@
 
 @protocol JWGradientOffSetDelegate;
 
-
-
-
 @interface JWCustomCellBackground : UIView
-
-@property (nonatomic) id <JWGradientOffSetDelegate> delegate;
+@property (nonatomic,weak) id <JWGradientOffSetDelegate> delegate;
 @property (nonatomic) JWCommon *com;
 
 -(void)adjustGOffsetVolume:(UISlider *)sender;

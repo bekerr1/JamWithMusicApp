@@ -22,7 +22,7 @@ typedef NS_ENUM(NSInteger, JWIlligalRegisterAction) {
 
 @interface JWContinueView : UIView <UITextFieldDelegate>
 
-@property (nonatomic) id <ContinueViewDelegate> delegate;
+@property (nonatomic,weak) id <ContinueViewDelegate> delegate;
 
 
 @end

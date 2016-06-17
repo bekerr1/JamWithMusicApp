@@ -12,7 +12,7 @@
 
 @interface JWAudioEngine : NSObject
 @property (nonatomic) AVAudioEngine* audioEngine;
-@property (weak) id <JWAudioEngineDelegate> delegate;
+@property (nonatomic,weak) id <JWAudioEngineDelegate> delegate;
 
 @property (nonatomic) AVAudioPlayerNode* primaryPlayerNode;  // a primary player for all subclasses to use
 
@@ -20,7 +20,7 @@
 - (void)createEngineAndAttachNodes;
 - (void)makeEngineConnections;
 - (void)startEngine;
--(BOOL)engineRunning;
+- (BOOL)engineRunning;
 - (void)stopPlayersForInterruption;
 // helper
 - (void)logAudioFormat:(AVAudioFormat*)audio;

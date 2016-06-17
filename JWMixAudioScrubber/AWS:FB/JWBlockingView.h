@@ -18,6 +18,6 @@
 @interface JWBlockingView : UIView
 
 @property (nonatomic) UILabel *pageStatement;
-@property (nonatomic) id <BlockingViewDelegate> delegate;
+@property (nonatomic,weak) id <BlockingViewDelegate> delegate;
 
 @end

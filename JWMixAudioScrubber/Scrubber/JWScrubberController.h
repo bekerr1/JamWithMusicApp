@@ -41,7 +41,8 @@ typedef void (^JWScrubberControllerCompletionHandler)(void);
 -(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController;
 -(instancetype)initWithScrubber:(JWScrubberViewController*)scrubberViewController andBackLightValue:(float)backLightValue;
 
-@property (weak,nonatomic) id <JWScrubberControllerDelegate> delegate;
+@property (nonatomic,weak) id <JWScrubberControllerDelegate> delegate;
+
 @property (nonatomic) NSUInteger numberOfTracks;
 @property (nonatomic) CGSize scrubberControllerSize;
 @property (nonatomic) NSArray *trackLocations;

@@ -34,10 +34,10 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 @property (nonatomic,readonly) NSArray *trimmedFiles;
 @property (nonatomic,readonly) NSArray *sourceFiles;
 
-@property (strong, nonatomic) NSMutableDictionary *linksDirector;
-@property (strong, nonatomic) NSMutableDictionary *mp3FilesInfo;
-@property (strong, nonatomic) NSMutableDictionary *mp3FilesDescriptions;
-@property (strong, nonatomic) NSMutableArray *userOrderList;  // dbkey
+@property (nonatomic) NSMutableDictionary *linksDirector;
+@property (nonatomic) NSMutableDictionary *mp3FilesInfo;
+@property (nonatomic) NSMutableDictionary *mp3FilesDescriptions;
+@property (nonatomic) NSMutableArray *userOrderList;  // dbkey
 
 -(NSURL *)fileURLForCacheItem:(NSString*)dbkey;
 
@@ -45,6 +45,5 @@ typedef void (^JWFileImageCompletionHandler)(UIImage *image); //  block (^JWClip
 
 -(NSString*)audioFileFormatStringForFile:(NSURL*)fileURL;
 -(NSString*)audioFileProcessingFormatStringForFile:(NSURL*)fileURL;
-
 
 @end

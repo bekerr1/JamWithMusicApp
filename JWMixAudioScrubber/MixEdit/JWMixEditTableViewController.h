@@ -14,8 +14,8 @@
 
 @interface JWMixEditTableViewController : UITableViewController 
 
-@property (weak) id <JWMixEditDelegate> delegateMixEdit;
-@property (weak) id <JWEffectsHandler> effectsHandler;
+@property (nonatomic,weak) id <JWMixEditDelegate> delegateMixEdit;
+@property (nonatomic,weak) id <JWEffectsHandler> effectsHandler;
 @property (nonatomic) NSUInteger selectedNodeIndex;
 -(void)refresh;
 @end

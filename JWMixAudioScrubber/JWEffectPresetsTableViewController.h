@@ -17,7 +17,7 @@
 @property (nonatomic) NSMutableArray *userDefinedPresets;
 @property (nonatomic) NSMutableArray *presetsGrouping;
 @property (nonatomic) NSUInteger selectedPresetIndex;
-@property (nonatomic) id <JWPresetProtocol> delegate;
+@property (nonatomic,weak) id <JWPresetProtocol> delegate;
 
 @end
 

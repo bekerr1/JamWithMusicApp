@@ -29,7 +29,8 @@
 @interface JWAudioRecorderController : NSObject <JWEffectsModifyingProtocol>
 
 -(instancetype)initWithMetering:(BOOL)metering;
-@property (nonatomic)NSURL* micOutputFileURL;
+
+@property (nonatomic) NSURL* micOutputFileURL;
 @property (nonatomic) BOOL metering;
 @property (nonatomic, readonly) BOOL hasRecorded;
 @property (nonatomic, readonly) BOOL recording;

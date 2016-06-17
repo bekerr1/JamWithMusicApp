@@ -11,7 +11,7 @@
 @protocol JWTrackSetsProtocol;
 
 @interface JWTrackSetsViewController : UITableViewController
-@property (weak, nonatomic) id <JWTrackSetsProtocol> delegate;
+@property (nonatomic,weak) id <JWTrackSetsProtocol> delegate;
 -(void)setTrackSet:(id)trackSet;
 @end
 

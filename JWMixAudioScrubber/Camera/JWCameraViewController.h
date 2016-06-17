@@ -14,7 +14,7 @@
 
 @interface JWCameraViewController : UIViewController 
 
-@property (nonatomic) id <JWCameraDelegate> delegate;
+@property (nonatomic,weak) id <JWCameraDelegate> delegate;
 @property (nonatomic) id scrubberObject;
 @property (nonatomic) NSArray *apccTrackSet;
 

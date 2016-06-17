@@ -14,7 +14,7 @@
 
 @interface JWYoutubeMP3ConvertController : NSObject
 
-@property (nonatomic, assign) id <JWYoutubeMP3ConvertDelegate> delegate;
+@property (nonatomic, weak) id <JWYoutubeMP3ConvertDelegate> delegate;
 @property (nonatomic) NSString* dbkey;  // used by YoutubeMP3 to save the file correctly
 
 -(instancetype)initWithWebview:(UIWebView*)webView andDelegate:(id <JWYoutubeMP3ConvertDelegate>) delegate;

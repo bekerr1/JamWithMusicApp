@@ -17,7 +17,7 @@ NSURLSessionTaskDelegate,
 NSURLSessionDataDelegate,
 NSURLConnectionDelegate, NSURLConnectionDataDelegate>
 
-@property (nonatomic, assign) id <JWURLManipDelegate> delegate;
+@property (nonatomic, weak) id <JWURLManipDelegate> delegate;
 @property (nonatomic) NSMutableData* mp3Data;
 @property (nonatomic) NSMutableData* accumulatedWebData;
 @property (nonatomic) NSURL* audioConverterURL;
