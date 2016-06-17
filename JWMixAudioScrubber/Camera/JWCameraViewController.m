@@ -365,7 +365,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 -(void)viewDidLayoutSubviews {
     NSLog(@"%s", __func__);
-    
 }
 
 

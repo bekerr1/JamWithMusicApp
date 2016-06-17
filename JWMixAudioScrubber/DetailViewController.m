@@ -220,8 +220,6 @@
 -(void)viewDidAppear:(BOOL)animated {
     NSLog(@"%s",__func__);
     [super viewDidAppear:animated];
-    
-    
 }
 
 
@@ -238,14 +236,10 @@
 -(void)viewWillDisappear:(BOOL)animated {
     NSLog(@"%s",__func__);
     [super viewWillDisappear:animated];
-    
-    
-    
 }
 
 -(void)viewDidDisappear:(BOOL)animated {
-    
-    
+    [super viewDidDisappear:animated];
 }
 
 - (void)didReceiveMemoryWarning {
