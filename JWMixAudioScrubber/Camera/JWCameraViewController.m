@@ -28,29 +28,29 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 @interface JWCameraViewController () <JWAudioPlayerControllerDelegate>
 @property (nonatomic,assign) AVCamSetupResult setupResult;
-@property (nonatomic,strong) AVCaptureSession *captureSession;
-@property (nonatomic,strong) AVCaptureVideoPreviewLayer *previewLayer;
-@property (nonatomic,strong) AVCaptureMovieFileOutput *videoDataMovie;
-@property (nonatomic,strong) dispatch_queue_t sessionQueue;
-@property (nonatomic,strong) NSMutableDictionary *jwVideoSettings;
-
-//@property (nonatomic) UIViewController *storyboardVC;
+@property (nonatomic) AVCaptureSession *captureSession;
+@property (nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
+@property (nonatomic) AVCaptureMovieFileOutput *videoDataMovie;
+@property (nonatomic) dispatch_queue_t sessionQueue;
+@property (nonatomic) NSMutableDictionary *jwVideoSettings;
 
 @property (nonatomic) IBOutlet UIView *buttonsContainer;
 @property (nonatomic) IBOutlet UIView *scrubContainer;
 @property (nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
 
-@property (nonatomic,strong) id scrubberVC;
-@property (nonatomic,strong) id playerControlsVC;
+@property (nonatomic) id scrubberVC;
+@property (nonatomic) id playerControlsVC;
 
-//@property (nonatomic,strong) JWScrubberController *sc1;
+@property (nonatomic) JWAudioPlayerCameraController *apcc;
 
-@property (nonatomic,strong) JWAudioPlayerCameraController *apcc;
-
+// Cleaning up unused properties
 // TODO: These buttons are not needed here i think
 @property (nonatomic) JWUITransportButton *rewind;
 @property (nonatomic) JWUITransportButton *playPause;
 @property (nonatomic) JWUITransportButton *record;
+
+//@property (nonatomic) UIViewController *storyboardVC;
+//@property (nonatomic,strong) JWScrubberController *sc1;
 
 @end
 
