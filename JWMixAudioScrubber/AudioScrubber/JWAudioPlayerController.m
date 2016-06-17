@@ -52,6 +52,7 @@ JWMixEditDelegate
 
 -(instancetype)init {
     if (self = [super init]) {
+        _allowScrubbing = YES;
     }
     return self;
 }
@@ -64,7 +65,12 @@ JWMixEditDelegate
     _momentDefaultTime = 1.1;
     _momentTime = _momentDefaultTime; // secs
     _momentPreviewTime = 1.25 * _momentDefaultTime; // secs
-    _scrubbAudioEnabled = YES;
+    
+    if (_allowScrubbing)
+        _scrubbAudioEnabled = YES;
+    else
+        _scrubbAudioEnabled = NO;
+    
     _scrubbAudioContinuesPlaying = NO;
     _currentPositionChange = 0.0;
     _lastPlayPosition = 0.0;
@@ -175,12 +181,22 @@ JWMixEditDelegate
     self.audioEngine = nil;
 }
 
+
+//#define CAMERA_KILLSENGINE
+
 -(void)pauseDetailSession {
     
     if ([_audioEngine engineRunning]) {
+        
+#ifdef CAMERA_KILLSENGINE
         NSLog(@"About to initialize another engine while this one is running.");
         _shouldSchedule = NO;
         [self stopKillEngine];
+#else
+        _listenToPositionChanges = NO;
+        [_sc stopPlaying:nil rewind:NO];
+        [_audioEngine stopAllActivePlayerNodes];
+#endif
     }
 }
 

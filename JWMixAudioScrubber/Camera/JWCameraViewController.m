@@ -55,9 +55,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 @property (nonatomic) JWUITransportButton *playPause;
 @property (nonatomic) JWUITransportButton *record;
 
-
-
 @end
+
 
 @implementation JWCameraViewController
 
@@ -73,19 +72,36 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     
     //self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
     
-    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
-    self.sessionQueue = dispatch_queue_create( "session queue", queue);
+//    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
+//    self.sessionQueue = dispatch_queue_create( "session queue", queue);
+    
+    self.sessionQueue = dispatch_queue_create("session queue",
+                                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INITIATED, 0));
     
     self.setupResult = AVCamSetupResultSuccess;
     
     self.apcc = [[JWAudioPlayerCameraController alloc] init];
     self.apcc.delegate = self;
+    
     [self.apcc initializePlayerControllerWithScrubber:_scrubberVC playerControles:_playerControlsVC withCompletion:^{
-        [self setupCaptureSession];
         [self.apcc setTrackSet:_apccTrackSet];
     }];
     
     
+    [self authorizeCamera];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+
+
+#pragma mark - INITIALIze
+
+-(void)authorizeCamera {
     
     // Check video authorization status. Video access is required and audio access is optional.
     // If audio access is denied, audio is not recorded during movie recording.
@@ -103,10 +119,13 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
             // asking the user for audio access if video access is denied.
             // Note that audio access will be implicitly requested when we create an AVCaptureDeviceInput for audio during session setup.
             dispatch_suspend( self.sessionQueue );
+            
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^( BOOL granted ) {
+                
                 _cameraAuthorized = granted;
                 
                 if (_cameraAuthorized) {
+                    
                     dispatch_resume( self.sessionQueue );
                 } else {
                     self.setupResult = AVCamSetupResultCameraNotAuthorized;
@@ -124,22 +143,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         }
     }
     
-    
-    
-    //[self previewLayer];
-    //[self useFrontCamera];
-    
 }
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-
-
-
-#pragma mark - INITIALIze
 
 -(void)setupCaptureSession {
     
@@ -241,41 +245,65 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     
 }
 
-#pragma mark - SHOW
 
-- (void)viewWillAppear:(BOOL)animated
-{
-    NSLog(@"%s", __func__);
-    [super viewWillAppear:animated];
-    
-    _buttonsContainer.hidden = YES;
-    _scrubContainer.hidden = YES;
+-(void)processCaptureSessionSetupResult {
     
     dispatch_async( self.sessionQueue, ^{
+        
         switch ( self.setupResult )
         {
             case AVCamSetupResultSuccess:
             {
+                
+                UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
+                
+                AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
+                if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
+                    initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
+                }
+                
+                AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
+                previewLayer.connection.videoOrientation = initialVideoOrientation;
+                
+                
+                CABasicAnimation* fadeAnim = [CABasicAnimation animationWithKeyPath:@"opacity"];
+                fadeAnim.fromValue = [NSNumber numberWithFloat:0.0];
+                fadeAnim.toValue = [NSNumber numberWithFloat:1.0];
+                fadeAnim.duration = 0.25;
+                [previewLayer addAnimation:fadeAnim forKey:@"opacity"];
+                // Change the actual data value in the layer to the final value.
+                previewLayer.opacity = 1.0;
+                
                 // Only setup observers and start the session running if setup succeeded.
                 
                 [self.captureSession startRunning];
+                
                 _sessionRunning = self.captureSession.isRunning;
                 NSLog(@"Session is running");
                 dispatch_async(dispatch_get_main_queue(), ^() {
                     
-                    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
-                    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
-                    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
-                        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
-                    }
+                    [self.view bringSubviewToFront:_buttonsContainer];
+                    [self.view bringSubviewToFront:_scrubContainer];
                     
-                    AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
-                    previewLayer.connection.videoOrientation = initialVideoOrientation;
+                    double delayInSecs = 0.50;
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        
+                        _buttonsContainer.alpha = 0;
+                        _scrubContainer.alpha = 0;
+                        _buttonsContainer.hidden = NO;
+                        _scrubContainer.hidden = NO;
+                        
+                        [UIView animateWithDuration:1.0 animations:^{
+                            _buttonsContainer.alpha = 1.0;
+                            _scrubContainer.alpha = 1.0;
+                        }];
+                    });
+                    
                 });
-                
+            }
                 
                 break;
-            }
+                
             case AVCamSetupResultCameraNotAuthorized:
             {
                 dispatch_async( dispatch_get_main_queue(), ^{
@@ -291,7 +319,9 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                     [self presentViewController:alertController animated:YES completion:nil];
                 } );
                 break;
+                
             }
+                
             case AVCamSetupResultSessionConfigurationFailed:
             {
                 dispatch_async( dispatch_get_main_queue(), ^{
@@ -301,12 +331,23 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                     [alertController addAction:cancelAction];
                     [self presentViewController:alertController animated:YES completion:nil];
                 } );
-                break;
             }
+                break;
         }
     } );
     
+}
+
+
+#pragma mark - SHOW
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    NSLog(@"%s", __func__);
+    [super viewWillAppear:animated];
     
+    _buttonsContainer.hidden = YES;
+    _scrubContainer.hidden = YES;
 }
 
 
@@ -314,18 +355,15 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s", __func__);
     [super viewDidAppear:animated];
     
-    [self.view bringSubviewToFront:_buttonsContainer];
-    [self.view bringSubviewToFront:_scrubContainer];
-    _buttonsContainer.hidden = NO;
-    _scrubContainer.hidden = NO;
-
+    [self setupCaptureSession];
+    
+    [self processCaptureSessionSetupResult];
 
 }
 
 
 -(void)viewDidLayoutSubviews {
     NSLog(@"%s", __func__);
-    
 }
 
 
@@ -338,7 +376,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 -(void)userDismissCamera {
     NSLog(@"%s", __func__);
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self dismissViewControllerAnimated:NO completion:nil];
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -394,9 +432,9 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         
         _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_captureSession];
         
+        _previewLayer.opacity = 0.0;
         [_previewLayer setFrame:rootLayer.bounds];
         [_previewLayer setBackgroundColor:[[UIColor clearColor] CGColor]];
-        
         [_previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
         
         [rootLayer setMasksToBounds:YES];
