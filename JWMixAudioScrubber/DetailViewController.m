@@ -42,11 +42,11 @@
 @property (strong, nonatomic) IBOutlet UIView *mixeditContainerView;
 @property (strong, nonatomic) IBOutlet UILabel *countDownLabel;
 @property (nonatomic) NSMutableString *statusString;
-@property (strong, nonatomic) NSArray *trackItems; // the track items being used by this detail
-@property (strong, nonatomic) UIColor *restoreColor;
-@property (strong, nonatomic) id scrubber; // holds the scrubber object contained in sb container
-@property (strong, nonatomic) id playerControls; // holds the playercontrols object contained in sb container
-@property (strong, nonatomic) id mixEdit; // holds the mixed object contained in sb container
+@property (nonatomic) NSArray *trackItems; // the track items being used by this detail
+@property (nonatomic) UIColor *restoreColor;
+@property (nonatomic) id scrubber; // holds the scrubber object contained in sb container
+@property (nonatomic) id playerControls; // holds the playercontrols object contained in sb container
+@property (nonatomic) id mixEdit; // holds the mixed object contained in sb container
 @property (nonatomic) NSTimer *fiveSecondTimer;
 @end
 
