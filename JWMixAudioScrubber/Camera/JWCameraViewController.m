@@ -55,9 +55,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 @property (nonatomic) JWUITransportButton *playPause;
 @property (nonatomic) JWUITransportButton *record;
 
-
-
 @end
+
 
 @implementation JWCameraViewController
 
@@ -73,23 +72,23 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     
     //self.sessionQueue = dispatch_queue_create( "session queue", DISPATCH_QUEUE_SERIAL );
     
-    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
-    self.sessionQueue = dispatch_queue_create( "session queue", queue);
+//    dispatch_queue_attr_t queue = dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INITIATED, 0);
+//    self.sessionQueue = dispatch_queue_create( "session queue", queue);
+    
+    self.sessionQueue = dispatch_queue_create("session queue",
+                                              dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL,QOS_CLASS_USER_INITIATED, 0));
     
     self.setupResult = AVCamSetupResultSuccess;
     
     self.apcc = [[JWAudioPlayerCameraController alloc] init];
     self.apcc.delegate = self;
+    
     [self.apcc initializePlayerControllerWithScrubber:_scrubberVC playerControles:_playerControlsVC withCompletion:^{
         [self.apcc setTrackSet:_apccTrackSet];
     }];
     
+    
     [self authorizeCamera];
-    
-    //[self setupCaptureSession];
-    //[self previewLayer];
-    //[self useFrontCamera];
-    
 }
 
 - (void)didReceiveMemoryWarning {
