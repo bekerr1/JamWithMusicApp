@@ -26,30 +26,26 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     AVCamSetupResultSessionConfigurationFailed
 };
 
-@interface JWCameraViewController ()
-<JWAudioPlayerControllerDelegate>
-{
-    
-    BOOL _cameraAuthorized;
-    BOOL _sessionRunning;
-}
+@interface JWCameraViewController () <JWAudioPlayerControllerDelegate>
+@property (nonatomic,assign) AVCamSetupResult setupResult;
+@property (nonatomic,strong) AVCaptureSession *captureSession;
+@property (nonatomic,strong) AVCaptureVideoPreviewLayer *previewLayer;
+@property (nonatomic,strong) AVCaptureMovieFileOutput *videoDataMovie;
+@property (nonatomic,strong) dispatch_queue_t sessionQueue;
+@property (nonatomic,strong) NSMutableDictionary *jwVideoSettings;
 
-@property (nonatomic) AVCamSetupResult setupResult;
-@property (nonatomic) AVCaptureSession *captureSession;
-@property (nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
-@property (nonatomic) AVCaptureMovieFileOutput *videoDataMovie;
-@property (nonatomic) dispatch_queue_t sessionQueue;
-@property (nonatomic) NSMutableDictionary *jwVideoSettings;
+//@property (nonatomic) UIViewController *storyboardVC;
 
-@property (nonatomic) UIViewController *storyboardVC;
-@property (strong, nonatomic) IBOutlet UIView *buttonsContainer;
-@property (strong, nonatomic) IBOutlet UIView *scrubContainer;
-@property (nonatomic) id scrubberVC;
-@property (nonatomic) id playerControlsVC;
-@property (strong, nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
+@property (nonatomic) IBOutlet UIView *buttonsContainer;
+@property (nonatomic) IBOutlet UIView *scrubContainer;
+@property (nonatomic) IBOutlet NSLayoutConstraint *layoutConstraintScrubberHeight;
 
-@property (nonatomic) JWScrubberController *sc1;
-@property (nonatomic) JWAudioPlayerCameraController *apcc;
+@property (nonatomic,strong) id scrubberVC;
+@property (nonatomic,strong) id playerControlsVC;
+
+//@property (nonatomic,strong) JWScrubberController *sc1;
+
+@property (nonatomic,strong) JWAudioPlayerCameraController *apcc;
 
 // TODO: These buttons are not needed here i think
 @property (nonatomic) JWUITransportButton *rewind;
@@ -84,8 +80,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         [self.apcc setTrackSet:_apccTrackSet];
     }];
     
-    
-    [self authorizeCamera];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -105,17 +99,26 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 #pragma mark - INITIALIze
 
--(void)authorizeCamera {
+// Returns whether to continue camera processing
+
+-(BOOL)authorizeCamera {
+    
+    BOOL  result = YES;
     
     // Check video authorization status. Video access is required and audio access is optional.
     // If audio access is denied, audio is not recorded during movie recording.
     switch ( [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo] )
     {
         case AVAuthorizationStatusAuthorized:
-        {
             // The user has previously granted access to the camera.
             break;
-        }
+            
+        case AVAuthorizationStatusDenied:
+            // The user has previously denied access.
+            self.setupResult = AVCamSetupResultCameraNotAuthorized;
+            result = NO;
+            break;
+            
         case AVAuthorizationStatusNotDetermined:
         {
             // The user has not yet been presented with the option to grant video access.
@@ -126,27 +129,24 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
             
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^( BOOL granted ) {
                 
-                _cameraAuthorized = granted;
-                
-                if (_cameraAuthorized) {
-                    
+                if (granted) {
                     dispatch_resume( self.sessionQueue );
                 } else {
                     self.setupResult = AVCamSetupResultCameraNotAuthorized;
                 }
-                
             }];
-            break;
+            
         }
+            break;
+            
         default:
-        {
-            // The user has previously denied access.
-            _cameraAuthorized = NO;
             self.setupResult = AVCamSetupResultCameraNotAuthorized;
+            result = NO;
             break;
-        }
     }
     
+    
+    return result;
 }
 
 -(void)setupCaptureSession {
@@ -162,80 +162,90 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         //CREATE THE SESSION
         _captureSession = [[AVCaptureSession alloc] init];
         
-        //CONFIGURE THE SESSION INSIDE HERE
         [self.captureSession beginConfiguration];
+
+
+        int status = 0;
         
-        
+        //CONFIGURE THE SESSION
         if ([_captureSession canSetSessionPreset:AVCaptureSessionPresetMedium]) {
             _captureSession.sessionPreset = AVCaptureSessionPresetMedium;
+            
         } else {
             // Handle the failure.
             NSLog(@"Invalid Preset: %@", AVCaptureSessionPresetMedium);
             self.setupResult = AVCamSetupResultSessionConfigurationFailed;
+            status = 1;
         }
         
-        //REMOVE EXISTING DEVICE INPUTS FIRST
-        NSArray *currentInputs = [self.captureSession inputs];
-        if ([currentInputs count] > 0) {
-            NSLog(@"Removing %lu inputs.", (unsigned long)[currentInputs count]);
-            for (AVCaptureInput *input in currentInputs) {
-                [self.captureSession removeInput:input];
+        if (!status) {
+            //REMOVE EXISTING DEVICE INPUTS FIRST
+            NSArray *currentInputs = [self.captureSession inputs];
+            if ([currentInputs count] > 0) {
+                NSLog(@"Removing %lu inputs.", (unsigned long)[currentInputs count]);
+                for (AVCaptureInput *input in currentInputs) {
+                    [self.captureSession removeInput:input];
+                }
             }
-            
         }
         
-        AVCaptureDevicePosition prefferedPosition = AVCaptureDevicePositionFront;
-        
-        //GET CAPTURE DEVICE FRONT CAMERA AND SET CAPUTRE DEVICE INPUT WITH DEVICE
-        NSError* error;
-        AVCaptureDevice* captureDevice = [JWCameraViewController deviceWithMediaType:AVMediaTypeVideo preferringPosition:prefferedPosition];
-        
-        if (captureDevice) {
+        if (!status) {
             
-            self.jwVideoSettings[@"inputdevice"] = [NSNumber numberWithInteger:prefferedPosition];
-            AVCaptureDeviceInput* captureDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:captureDevice error:&error];
+            AVCaptureDevicePosition prefferedPosition = AVCaptureDevicePositionFront;
+            //GET CAPTURE DEVICE FRONT CAMERA AND SET CAPUTRE DEVICE INPUT WITH DEVICE
+            NSError* error;
+            AVCaptureDevice* captureDevice = [JWCameraViewController deviceWithMediaType:AVMediaTypeVideo preferringPosition:prefferedPosition];
             
-            //ADD CAPTURE INPUT TO SESSION
-            if ([_captureSession canAddInput:captureDeviceInput] && !error) {
-                [_captureSession addInput:captureDeviceInput];
+            if (captureDevice) {
                 
-                dispatch_async( dispatch_get_main_queue(), ^{
+                self.jwVideoSettings[@"inputdevice"] = [NSNumber numberWithInteger:prefferedPosition];
+                AVCaptureDeviceInput* captureDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:captureDevice error:&error];
+                
+                //ADD CAPTURE INPUT TO SESSION
+                if ([_captureSession canAddInput:captureDeviceInput] && !error) {
+                    [_captureSession addInput:captureDeviceInput];
                     
+                    dispatch_async( dispatch_get_main_queue(), ^{
+                        
+                    } );
                     
-                } );
+                } else {
+                    NSLog(@"Capture Device Not Added");
+                    self.setupResult = AVCamSetupResultSessionConfigurationFailed;
+                    status = 2;
+                }
                 
             } else {
-                NSLog(@"Capture Device Not Added");
+                NSLog(@"Could not obtain a capture device");
                 self.setupResult = AVCamSetupResultSessionConfigurationFailed;
+                status = 3;
             }
-            
-
-        } else {
-            NSLog(@"Could not obtain a capture device");
-            self.setupResult = AVCamSetupResultSessionConfigurationFailed;
         }
         
         
-        
-        //ADD CAPTURE OUTPUT TO SESSION
-        AVCaptureMovieFileOutput *videoData = [[AVCaptureMovieFileOutput alloc] init];
-        if ([_captureSession canAddOutput:videoData]) {
-            [_captureSession addOutput:videoData];
-            
-            AVCaptureConnection *connection = [videoData connectionWithMediaType:AVMediaTypeVideo];
-            if ( connection.isVideoStabilizationSupported ) {
-                connection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModeAuto;
-                self.jwVideoSettings[@"videostabilizationmode"] = [NSNumber numberWithInteger:AVCaptureVideoStabilizationModeAuto];
+        if (!status) {
+            //ADD CAPTURE OUTPUT TO SESSION
+            AVCaptureMovieFileOutput *videoData = [[AVCaptureMovieFileOutput alloc] init];
+            if ([_captureSession canAddOutput:videoData]) {
+                [_captureSession addOutput:videoData];
+                
+                AVCaptureConnection *connection = [videoData connectionWithMediaType:AVMediaTypeVideo];
+                if ( connection.isVideoStabilizationSupported ) {
+                    connection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModeAuto;
+                    self.jwVideoSettings[@"videostabilizationmode"] = [NSNumber numberWithInteger:AVCaptureVideoStabilizationModeAuto];
+                }
+                self.videoDataMovie = videoData;
+                [self.apcc setVideoMovie:self.videoDataMovie];
+            } else {
+                NSLog(@"Video Data Output Not Added.");
+                self.setupResult = AVCamSetupResultSessionConfigurationFailed;
+                status = 3;
             }
-            self.videoDataMovie = videoData;
-            [self.apcc setVideoMovie:self.videoDataMovie];
-        } else {
-            NSLog(@"Video Data Output Not Added.");
-            self.setupResult = AVCamSetupResultSessionConfigurationFailed;
         }
         
         
         [self.captureSession commitConfiguration];
+        // SESSION CONFIGURED
         
         [self.apcc setVideoSettings:self.jwVideoSettings];
         
@@ -252,38 +262,19 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         {
             case AVCamSetupResultSuccess:
             {
-                
-                UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
-                
-                AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
-                if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
-                    initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
-                }
-                
-                AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
-                previewLayer.connection.videoOrientation = initialVideoOrientation;
-                
-                
-                CABasicAnimation* fadeAnim = [CABasicAnimation animationWithKeyPath:@"opacity"];
-                fadeAnim.fromValue = [NSNumber numberWithFloat:0.0];
-                fadeAnim.toValue = [NSNumber numberWithFloat:1.0];
-                fadeAnim.duration = 0.25;
-                [previewLayer addAnimation:fadeAnim forKey:@"opacity"];
-                // Change the actual data value in the layer to the final value.
-                previewLayer.opacity = 1.0;
+                [self cameraAttachPreviewlayerAndOrientation];
                 
                 // Only setup observers and start the session running if setup succeeded.
                 
                 [self.captureSession startRunning];
                 
-                _sessionRunning = self.captureSession.isRunning;
                 NSLog(@"Session is running");
                 dispatch_async(dispatch_get_main_queue(), ^() {
                     
                     [self.view bringSubviewToFront:_buttonsContainer];
                     [self.view bringSubviewToFront:_scrubContainer];
                     
-                    double delayInSecs = 0.50;
+                    double delayInSecs = 0.250;
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSecs * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                         
                         _buttonsContainer.alpha = 0;
@@ -291,7 +282,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                         _buttonsContainer.hidden = NO;
                         _scrubContainer.hidden = NO;
                         
-                        [UIView animateWithDuration:1.0 animations:^{
+                        [UIView animateWithDuration:0.5 animations:^{
                             _buttonsContainer.alpha = 1.0;
                             _scrubContainer.alpha = 1.0;
                         }];
@@ -307,33 +298,78 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
                 dispatch_async( dispatch_get_main_queue(), ^{
                     NSString *message = NSLocalizedString( @"AVCam doesn't have permission to use the camera, please change privacy settings", @"Alert message when the user has denied access to the camera" );
                     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"AVCam" message:message preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString( @"OK", @"Alert OK button" ) style:UIAlertActionStyleCancel handler:nil];
+                    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString( @"OK", @"Alert OK button" ) style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                        [self dismissOperation];
+                    }];
+                    
                     [alertController addAction:cancelAction];
                     // Provide quick access to Settings.
                     UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:NSLocalizedString( @"Settings", @"Alert button to open Settings" ) style:UIAlertActionStyleDefault handler:^( UIAlertAction *action ) {
+
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+                        [self dismissOperation];
+
                     }];
                     [alertController addAction:settingsAction];
                     [self presentViewController:alertController animated:YES completion:nil];
                 } );
+            }
                 break;
                 
-            }
                 
             case AVCamSetupResultSessionConfigurationFailed:
             {
                 dispatch_async( dispatch_get_main_queue(), ^{
                     NSString *message = NSLocalizedString( @"Unable to capture media", @"Alert message when something goes wrong during capture session configuration" );
+                    
                     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"AVCam" message:message preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString( @"OK", @"Alert OK button" ) style:UIAlertActionStyleCancel handler:nil];
+                    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString( @"OK", @"Alert OK button" ) style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                        [self dismissOperation];
+                    }];
+
                     [alertController addAction:cancelAction];
                     [self presentViewController:alertController animated:YES completion:nil];
                 } );
             }
+                
                 break;
         }
+        
     } );
     
+}
+
+
+-(void)cameraAttachPreviewlayerAndOrientation {
+    
+    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    AVCaptureVideoOrientation initialVideoOrientation = AVCaptureVideoOrientationPortrait;
+    if ( statusBarOrientation != UIInterfaceOrientationUnknown ) {
+        initialVideoOrientation = (AVCaptureVideoOrientation)statusBarOrientation;
+    }
+    
+    AVCaptureVideoPreviewLayer *previewLayer = [self previewLayer];
+    previewLayer.connection.videoOrientation = initialVideoOrientation;
+    
+    CABasicAnimation* fadeAnim = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    fadeAnim.fromValue = [NSNumber numberWithFloat:0.0];
+    fadeAnim.toValue = [NSNumber numberWithFloat:1.0];
+    fadeAnim.duration = 0.25;
+    [previewLayer addAnimation:fadeAnim forKey:@"opacity"];
+    // Change the actual data value in the layer to the final value.
+    previewLayer.opacity = 1.0;
+    
+}
+
+
+-(void)cameraSetupAndPresentation {
+    
+    if ([self authorizeCamera]) {
+        [self setupCaptureSession];
+    }
+    
+    [self processCaptureSessionSetupResult];
 }
 
 
@@ -353,10 +389,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s", __func__);
     [super viewDidAppear:animated];
     
-    [self setupCaptureSession];
-    
-    [self processCaptureSessionSetupResult];
-
+    [self cameraSetupAndPresentation];
 }
 
 
@@ -372,9 +405,17 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 
 #pragma mark - DISMISS
 
+-(void)dismissOperation {
+    //cut everything
+    //[_apcc stopKill];
+    [self dismissViewControllerAnimated:NO completion:nil];
+}
+
+
+
 -(void)userDismissCamera {
     NSLog(@"%s", __func__);
-    [self dismissViewControllerAnimated:NO completion:nil];
+    [self dismissOperation];
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -387,15 +428,15 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 {
     //Handle dissapear stuff (the preview layer seems to be getting stuck?)
     NSLog(@"%s", __func__);
+    [super viewDidDisappear:animated];
     
     [_previewLayer removeFromSuperlayer];
+    
     dispatch_async( self.sessionQueue, ^{
         if ( self.setupResult == AVCamSetupResultSuccess ) {
             [self.captureSession stopRunning];
         }
     } );
-    
-    [super viewDidDisappear:animated];
 }
 
 - (IBAction)myUnwindAction:(UIStoryboardSegue*)unwindSegue {
@@ -434,8 +475,8 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         
         [rootLayer setMasksToBounds:YES];
         [rootLayer insertSublayer:_previewLayer atIndex:0];
-        
     }
+    
     return _previewLayer;
 }
 
@@ -556,8 +597,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     NSLog(@"%s not implemented",__func__);
     
 }
-
-
 
 
 @end
