@@ -28,7 +28,9 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @property (strong, nonatomic) id trackItems;
 @property (nonatomic, readonly) PlayerControllerState state;
 @property (nonatomic, readonly) NSUInteger numberOfTracks;
+
 @property (nonatomic,weak) id <JWAudioPlayerControllerDelegate> delegate;
+
 @property (nonatomic) BOOL autoPlay;
 //TODO: more five second stuff
 @property (nonatomic) BOOL fiveSecondCountDown;
