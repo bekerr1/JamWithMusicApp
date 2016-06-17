@@ -709,6 +709,23 @@
     [self reloadItemAtIndex:item.row inSection:item.section];
 }
 
+
+-(void)effectsChanged:(NSArray*)effects inNodeWithKey:(NSString*)nodeKey {
+
+    NSLog(@"%s %@ %@",__func__,nodeKey,[effects description]);
+
+    id nodeInJamTrack = [_coordinator jamTrackObjectWithKey:nodeKey fromSource:_homeControllerData];
+    if (nodeInJamTrack) {
+
+        NSLog(@"%s\nnodeInJamTrack %@ \n %@ %@",__func__,[nodeInJamTrack description],nodeKey,[effects description]);
+
+        nodeInJamTrack[@"effects"] = effects;
+
+        [[JWFileManager defaultManager] updateHomeObjectsAndSave:_homeControllerData];
+    }
+}
+
+
 -(void)save:(DetailViewController*)controller cachKey:(NSString*)key {
     NSLog(@"%s%@",__func__,key);
     NSIndexPath *indexPath = [self indexPathOfCacheItem:key];

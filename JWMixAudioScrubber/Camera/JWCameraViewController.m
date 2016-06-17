@@ -362,6 +362,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
         }
     } );
     
+    [self.apcc stopKill];
     [super viewDidDisappear:animated];
 }
 

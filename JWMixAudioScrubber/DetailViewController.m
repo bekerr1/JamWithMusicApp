@@ -205,6 +205,7 @@
 
 //THis method determines if a five second clip is valid by analyzing the title of the jam session, if the session has a title already then it was obtained from some other source and the presence of a five second clip will be determined later on, if the title is "new jam session" then the session is a newly created jam session by clicking the middle tab
 -(void)viewWillAppear:(BOOL)animated {
+    NSLog(@"%s", __func__);
     [super viewWillAppear:animated];
     selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
     [self updateAmpImage];

@@ -9,7 +9,7 @@
 #import "JWAudioPlayerController.h"
 
 
-@interface JWAudioPlayerCameraController : JWAudioPlayerController <JWScrubberControllerDelegate>
+@interface JWAudioPlayerCameraController : JWAudioPlayerController <JWScrubberControllerDelegate, JWMTAudioEngineDelgegate>
 
 @property (nonatomic) AVCaptureMovieFileOutput *videoMovie;
 @property (nonatomic) NSDictionary *videoSettings;

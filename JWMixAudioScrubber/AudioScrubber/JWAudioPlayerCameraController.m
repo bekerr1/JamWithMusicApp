@@ -335,8 +335,19 @@
 
 -(void)dismissCamera {
 
+    self.shouldSchedule = NO;
     [self.delegate userDismissCamera];
     //[self.audioEngine startEngine];
+    
+}
+
+
+#pragma mark - ENGINE DELEGATE
+
+-(void)completedPlayingAtPlayerIndex:(NSUInteger)index {
+    NSLog(@"subclass engine completed playing call");
+    
+    [super completedPlayingAtPlayerIndex:index];
     
 }
 

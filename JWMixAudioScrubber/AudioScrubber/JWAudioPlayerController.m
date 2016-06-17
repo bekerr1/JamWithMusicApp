@@ -15,12 +15,12 @@
 @interface JWAudioPlayerController ()
 <
 JWScrubberControllerDelegate,
-JWMTAudioEngineDelgegate,
 JWMTEffectsAudioEngineDelegate,
 JWScrubberInfoDelegate,
 JWMixEditDelegate
 >
 {
+    
     BOOL _colorizedTracks;
     BOOL _rewound;
     BOOL _listenToPositionChanges;
@@ -109,6 +109,7 @@ JWMixEditDelegate
                                               withCompletion:(JWPlayerCompletionHandler)completion
 {
     _autoPlay = autoplay;
+    _shouldSchedule = YES;
     [self startupInits];
     self.metvc = me;
     self.pcvc = (JWPlayerControlsViewController *)pvc;
@@ -178,23 +179,32 @@ JWMixEditDelegate
     
     if ([_audioEngine engineRunning]) {
         NSLog(@"About to initialize another engine while this one is running.");
+        _shouldSchedule = NO;
         [self stopKillEngine];
     }
 }
 
+-(JWMTEffectsAudioEngine *)audioEngine {
+    if (!_audioEngine) {
+        NSLog(@"Audio Engine Lazy Init");
+        _audioEngine = [[JWMTEffectsAudioEngine alloc] init];
+    }
+    return _audioEngine;
+}
+
 -(void)resumeDetailSession {
     
-    if (!_audioEngine) {
-        NSLog(@"Audio Engine was killed because camera came up.  Need to restart.");
-        
-        self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
-        self.audioEngine.engineEffectsDelegate = self;
-        self.metvc.effectsHandler = self.audioEngine;
-        
-        [self rebuildPlayerNodeListAndPlayIfAutoplay];
-        
-        
-    }
+    
+    NSLog(@"Audio Engine was killed because camera came up.  Need to restart.");
+
+    //self.audioEngine = [[JWMTEffectsAudioEngine alloc] init];
+    self.audioEngine.engineEffectsDelegate = self;
+    self.metvc.effectsHandler = self.audioEngine;
+    _shouldSchedule = YES;
+    [self rebuildPlayerNodeListAndPlayIfAutoplay];
+    
+    
+    
 }
 
 
@@ -246,7 +256,6 @@ JWMixEditDelegate
 
     
     NSLog(@"%s\nnodeList %@",__func__,[nodeList description]);
-    
     
     _audioEngine.playerNodeList = nodeList;
     
@@ -379,7 +388,7 @@ JWMixEditDelegate
 #pragma mark -
 
 -(void)addEffectToEngineNodelist:(NSString *)effect {
-    
+    //TODO: this shouldnt happen singularly in here (localized method should exist and should be called before this)
     [self.audioEngine stopAllActivePlayerNodes];
     
     NSString *selectedTrackID = _sc.selectedTrack;
@@ -396,7 +405,7 @@ JWMixEditDelegate
     
     [_metvc refresh];
     
-    //  self.state = JWPlayerStatePlayFromBeg;
+    self.state = JWPlayerStatePlayFromBeg;
     
 }
 
@@ -705,10 +714,12 @@ JWMixEditDelegate
         case JWPlayerStatePlayFromBeg: {
             _editing = NO;
             _listenToPositionChanges = NO;
-            [_sc stopPlaying:nil rewind:YES];
-            [_audioEngine stopAllActivePlayerNodes];
-            [_audioEngine scheduleAllStartSeconds:0.0 duration:0.0];
+            //[_sc stopPlaying:nil rewind:YES];
+            //[_audioEngine stopAllActivePlayerNodes];
             
+            if (_shouldSchedule) {
+                [_audioEngine scheduleAllStartSeconds:0.0 duration:0.0];
+            }
             //TODO: this is a bit of a hack i think
             if (_scrubbAudioEnabled) {
                 double delayInSecs = 0.25;
@@ -1060,7 +1071,7 @@ JWMixEditDelegate
     
     // STEP 4 REFRESH THE MIXEDIT
     
-    [_metvc refresh];
+    //[_metvc refresh];
     
     //    double delayInSecs = 0.15;
     //    //    NSLog(@"%3f",delayInSecs);

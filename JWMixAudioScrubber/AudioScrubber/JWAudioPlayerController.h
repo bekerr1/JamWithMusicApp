@@ -19,7 +19,7 @@ typedef void (^JWPlayerCompletionHandler)(void);
 
 @protocol JWAudioPlayerControllerDelegate;
 
-@interface JWAudioPlayerController : NSObject <JWPlayerControlsProtocol>
+@interface JWAudioPlayerController : NSObject <JWPlayerControlsProtocol, JWMTAudioEngineDelgegate>
 
 @property (nonatomic) JWScrubberController *sc;
 @property (strong, nonatomic) JWMTEffectsAudioEngine *audioEngine;
@@ -34,6 +34,7 @@ typedef void (^JWPlayerCompletionHandler)(void);
 @property (nonatomic) BOOL fiveSecondCountDown;
 @property (nonatomic) BOOL hasFiveSecondClip;
 @property (nonatomic) BOOL listenToPositionChanges;
+@property (nonatomic) BOOL shouldSchedule;
 
 @property (nonatomic) NSTimer *mixerValueFadeTimer;
 

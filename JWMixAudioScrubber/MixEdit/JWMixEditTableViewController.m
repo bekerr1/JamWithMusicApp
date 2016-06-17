@@ -83,12 +83,14 @@
 
 -(void)getTableViewDataSource
 {
+    NSMutableArray *nodeList = [self.effectsHandler configPlayerNodeList];
     
-    self.playerNodeList = [self.effectsHandler configPlayerNodeList];
+    //using isequaltoarray didnt work, these are player node lists so if the count is different
+    //then something happened an needs to change, else continue on
     
-    if (!self.playerNodeSelected) {
-        self.playerNodeSelected = self.playerNodeList[_selectedNodeIndex];
-    }
+    self.playerNodeList = nodeList;
+    self.playerNodeSelected = self.playerNodeList[_selectedNodeIndex];
+    
     
     
 }

@@ -831,9 +831,18 @@
         playerNode.delayStart = secondsDelay;
         playerNode.startPlayingInset = secondsIn;
 
+        if (_engineDelegate) {
+            NSLog(@"Engine delegate exists.");
+        }
         // Final Player completion
         void (^playerCompletion)(void) = ^{
             NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+//            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+//                [_engineDelegate completedPlayingAtPlayerIndex:index];
+            
+            //This dispatch call is suspect in the reason behind this block not being called when the rewind button is hit
+            //After i put this delegate call outside this block it was getting called like it hsould every time
+            //and audio is now being scheduled every time (no times where play is hit and nothing comes out)
             dispatch_sync(dispatch_get_main_queue(), ^() {
                 if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
                     [_engineDelegate completedPlayingAtPlayerIndex:index];
@@ -842,10 +851,13 @@
         //TODO: added for five second completion
         void (^fiveSecondCompletion)(void) = ^{
             NSLog(@"Five second completed for playerAtIndex %ld", (unsigned long)index);
-            dispatch_sync(dispatch_get_main_queue(), ^() {
-                if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
-                    [_engineDelegate fiveSecondBufferCompletion];
-            });
+            if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
+                [_engineDelegate fiveSecondBufferCompletion];
+            
+//            dispatch_sync(dispatch_get_main_queue(), ^() {
+//                if ([_engineDelegate respondsToSelector:@selector(fiveSecondBufferCompletion)])
+//                    [_engineDelegate fiveSecondBufferCompletion];
+//            });
         };
         
         // Option one Buffer read
@@ -863,7 +875,7 @@
             else
                 remainingFrameCount =  (AVAudioFrameCount)(fileLength - readPosition);
 
-            NSLog(@"AE TO_THE_END: rfrc %u,  %.3f scndsin %ld nds idx %lu",remainingFrameCount,secondsIn,(unsigned long)[_playerNodeList count],index);
+            //NSLog(@"AE TO_THE_END: rfrc %u,  %.3f scndsin %ld nds idx %lu",remainingFrameCount,secondsIn,(unsigned long)[_playerNodeList count],index);
         }
 
 
@@ -876,20 +888,36 @@
         NSError *error = nil;
         if ([audioFile readIntoBuffer: readBuffer error: &error]) {
             
-//            NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
-//                  fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
+            NSLog(@"AE FileLength: %lld  %.3f seconds. Buffer length %u",(long long)fileLength,
+                  fileLength / audioFile.fileFormat.sampleRate, readBuffer.frameLength );
             
+            __weak __typeof__(_engineDelegate) weakDelegate = _engineDelegate;
             // SCHEDULE THE BUFFER
             //TODO: added a check on the type to make sure the right completion block is scheduled
             if (type == JWAudioNodeTypePlayer || type == JWAudioNodeTypeRecorder) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
-                                   options:AVAudioPlayerNodeBufferInterrupts
-                         completionHandler:playerCompletion
+                                   options:nil
+                         completionHandler://playerCompletion
+                 
+                 ^{
+                             NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+                             if ([weakDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+                                 [weakDelegate completedPlayingAtPlayerIndex:index];
+                             
+                             //This dispatch call is suspect in the reason behind this block not being called when the rewind button is hit
+                             //After i put this delegate call outside this block it was getting called like it hsould every time
+                             //and audio is now being scheduled every time (no times where play is hit and nothing comes out)
+//                             dispatch_sync(dispatch_get_main_queue(), ^() {
+//                                 if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+//                                     [_engineDelegate completedPlayingAtPlayerIndex:index];
+//                             })
+                         }
+
                  ];
                 
             } else if (type == JWAudioNodeTypeFiveSecondPlayer) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
-                                   options:AVAudioPlayerNodeBufferInterrupts
+                                   options:nil
                          completionHandler:fiveSecondCompletion
                  ];
                 _scheduledFiveSecondClip = YES;
@@ -936,9 +964,9 @@
             [self scheduleAllPlayerNode:playerNodeInfo audioFile:audioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
             //[self schedulePlayerNode:playerNodeInfo audioFile:audioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
             
-            if (fiveSecondNode && fsAudioFile) {
-                [self scheduleAllPlayerNode:fiveSecondNode audioFile:fsAudioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
-            }
+//            if (fiveSecondNode && fsAudioFile) {
+//                [self scheduleAllPlayerNode:fiveSecondNode audioFile:fsAudioFile index:index insetSeconds:secondsIn duration:duration recording:recording];
+//            }
         }
         
         index++;
