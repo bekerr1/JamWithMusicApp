@@ -20,6 +20,8 @@
 
 -(void) initializePlayerControllerWithScrubber:(id)svc playerControles:(id)pvc withCompletion:(JWPlayerCompletionHandler)completion {
     
+    self.allowScrubbing = NO;
+    
     if (self.videoSettings == nil) {
         NSLog(@"Video settings not recieved.  Potential Error in Video setup. %s", __func__);
     }
