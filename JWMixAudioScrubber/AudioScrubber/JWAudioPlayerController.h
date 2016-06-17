@@ -33,8 +33,9 @@ typedef void (^JWPlayerCompletionHandler)(void);
 //TODO: more five second stuff
 @property (nonatomic) BOOL fiveSecondCountDown;
 @property (nonatomic) BOOL hasFiveSecondClip;
-@property (nonatomic) BOOL listenToPositionChanges;
+
 @property (nonatomic) BOOL shouldSchedule;
+@property (nonatomic) BOOL allowScrubbing;
 
 @property (nonatomic) NSTimer *mixerValueFadeTimer;
 
