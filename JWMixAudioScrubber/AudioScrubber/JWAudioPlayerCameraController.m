@@ -13,8 +13,8 @@
 
 @property (nonatomic) NSUInteger videoCameraPlayerNodeIndex;
 
-
 @end
+
 
 @implementation JWAudioPlayerCameraController 
 
