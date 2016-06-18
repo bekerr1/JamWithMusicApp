@@ -229,7 +229,13 @@
            }
                               onCompletion:nil];
         
-        [self.audioEngine registerController:self.sc withTrackId:trackidMixerTap forPlayerRecorder:@"mixer"];
+        if (trackidMixerTap) {
+            NSLog(@"%s %@",__func__,trackidMixerTap);
+            
+        }
+        
+        //registerController: forPlayerRecorder: String  --> needs work
+        //[self.audioEngine registerController:self.sc withTrackId:trackidMixerTap forPlayerRecorder:@"mixer"];
     }
     
     
