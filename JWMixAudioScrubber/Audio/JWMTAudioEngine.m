@@ -440,7 +440,8 @@
     for (NSMutableDictionary *playerNodeInfo in _playerNodeList) {
         
         JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
-        NSString *nodeKey = [self keyForNodeAtIndex:index];
+        
+        //NSString *nodeKey = [self keyForNodeAtIndex:index];
         
         if (nodeType != JWAudioNodeTypeNone || nodeType != JWAudioNodeTypeVideo) {
         
