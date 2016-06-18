@@ -22,6 +22,15 @@
     UIViewController *to = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     
     
+    // fix warnings
+    if (from) {
+        
+    }
+
+    if (to) {
+        
+    }
+
 }
 
 @end

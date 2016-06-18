@@ -166,14 +166,25 @@
     return [self.audioEngine mainMixerNode];
 }
 
+//typedef NS_ENUM(NSInteger, JWAudioNodeType) {
+//    JWAudioNodeTypeNone     =1,
+//    JWAudioNodeTypePlayer,
+//    JWAudioNodeTypeRecorder,
+//    JWAudioNodeTypeFiveSecondPlayer,
+//    JWAudioNodeTypeVideo
+//};
+
 -(id <JWEffectsModifyingProtocol> )recorderNodeAtIndex:(NSUInteger)pindex {
     id <JWEffectsModifyingProtocol> result;
     if (pindex < [self.playerNodeList count]) {
         NSDictionary *playerNodeInfo = self.playerNodeList[pindex];
-        JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:pindex];
+        //JWMixerNodeTypes nodeType = [self typeForNodeAtIndex:pindex];
+        //if (nodeType == JWMixerNodeTypePlayerRecorder) {
+
+        JWAudioNodeType nodeType = [self typeForNodeAtIndex:pindex];
 
         // PLAYER RECORDER
-        if (nodeType == JWMixerNodeTypePlayerRecorder) {
+        if (nodeType == JWAudioNodeTypeRecorder) {
             id rc = playerNodeInfo[@"recorderController"];
             if (rc)
                 result = (JWAudioRecorderController*)rc;
