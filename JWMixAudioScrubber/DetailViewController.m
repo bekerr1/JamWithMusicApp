@@ -15,6 +15,9 @@
 
 @import MediaPlayer;
 
+// TODO: JWAudioPlayerControllerDelegate to JWAudioPlayerCameraControllerDelegate
+// This viewcontroller should not have to implement userDismissCamera
+
 @interface DetailViewController () <JWAudioPlayerControllerDelegate,UIDocumentInteractionControllerDelegate> {
     BOOL _playing;  // used to set toolbar items play state in effects mode
     BOOL _paused;
@@ -52,6 +55,7 @@
 
 
 @implementation DetailViewController
+
 
 #pragma mark - Managing the detail item
 
@@ -116,7 +120,8 @@
         _scrubberContainerView.alpha = 0;
         _scrubberContainerView.hidden = NO;
 
-        [UIView animateWithDuration:0.10 delay:1.0 options:UIViewAnimationOptionCurveLinear animations:^{
+        
+        [UIView animateWithDuration:0.10 delay:_paused ? 0.5 : 1.0 options:UIViewAnimationOptionCurveLinear animations:^{
             _scrubberContainerView.alpha = 1.0;
         } completion:^(BOOL fini){
 
@@ -207,13 +212,16 @@
 -(void)viewWillAppear:(BOOL)animated {
     NSLog(@"%s", __func__);
     [super viewWillAppear:animated];
+    
     selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
     [self updateAmpImage];
     [self checkForNewSession];
-    
+
     if (_paused) {
-        [_playerController resumeDetailSession];
-        _paused = NO;
+        // Setup for reload
+        self.view.backgroundColor = [UIColor blackColor];
+        _scrubberContainerView.hidden = YES;
+        [_scrubberActivity startAnimating]; // configureView gets called in viewDidAppear to stopAnimating
     }
 
 }
@@ -221,6 +229,15 @@
 -(void)viewDidAppear:(BOOL)animated {
     NSLog(@"%s",__func__);
     [super viewDidAppear:animated];
+
+    if (_paused) {
+        if (_playerController) {
+            [_playerController resumeDetailSession];
+            [self configureView]; // calls setTrackSet
+        }
+        
+        _paused = NO;
+    }
 }
 
 

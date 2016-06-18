@@ -217,7 +217,9 @@ JWMixEditDelegate
     self.audioEngine.engineEffectsDelegate = self;
     self.metvc.effectsHandler = self.audioEngine;
     _shouldSchedule = YES;
-    [self rebuildPlayerNodeListAndPlayIfAutoplay];
+    
+    // REBUILD is done by the caller of resumeDetailSession
+    //[self rebuildPlayerNodeListAndPlayIfAutoplay];
     
     
     
