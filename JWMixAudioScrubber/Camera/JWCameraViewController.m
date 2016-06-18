@@ -411,8 +411,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     [self dismissViewControllerAnimated:NO completion:nil];
 }
 
-
-
 -(void)userDismissCamera {
     NSLog(@"%s", __func__);
     [self dismissOperation];
