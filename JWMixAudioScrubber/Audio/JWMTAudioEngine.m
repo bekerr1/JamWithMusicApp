@@ -835,20 +835,22 @@
         if (_engineDelegate) {
             NSLog(@"Engine delegate exists.");
         }
-        // Final Player completion
-        void (^playerCompletion)(void) = ^{
-            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
-//            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-//                [_engineDelegate completedPlayingAtPlayerIndex:index];
-            
-            //This dispatch call is suspect in the reason behind this block not being called when the rewind button is hit
-            //After i put this delegate call outside this block it was getting called like it hsould every time
-            //and audio is now being scheduled every time (no times where play is hit and nothing comes out)
-            dispatch_sync(dispatch_get_main_queue(), ^() {
-                if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
-                    [_engineDelegate completedPlayingAtPlayerIndex:index];
-            });
-        };
+        
+//        // Final Player completion
+//        void (^playerCompletion)(void) = ^{
+//            NSLog(@"Audio Completed for playerAtIndex %ld",(unsigned long)index);
+////            if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+////                [_engineDelegate completedPlayingAtPlayerIndex:index];
+//            
+//            //This dispatch call is suspect in the reason behind this block not being called when the rewind button is hit
+//            //After i put this delegate call outside this block it was getting called like it hsould every time
+//            //and audio is now being scheduled every time (no times where play is hit and nothing comes out)
+//            dispatch_sync(dispatch_get_main_queue(), ^() {
+//                if ([_engineDelegate respondsToSelector:@selector(completedPlayingAtPlayerIndex:)])
+//                    [_engineDelegate completedPlayingAtPlayerIndex:index];
+//            });
+//        };
+        
         //TODO: added for five second completion
         void (^fiveSecondCompletion)(void) = ^{
             NSLog(@"Five second completed for playerAtIndex %ld", (unsigned long)index);
@@ -897,7 +899,7 @@
             //TODO: added a check on the type to make sure the right completion block is scheduled
             if (type == JWAudioNodeTypePlayer || type == JWAudioNodeTypeRecorder) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
-                                   options:nil
+                                   options:0
                          completionHandler://playerCompletion
                  
                  ^{
@@ -918,7 +920,7 @@
                 
             } else if (type == JWAudioNodeTypeFiveSecondPlayer) {
                 [playerNode scheduleBuffer:readBuffer atTime:delayAudioTime
-                                   options:nil
+                                   options:0
                          completionHandler:fiveSecondCompletion
                  ];
                 _scheduledFiveSecondClip = YES;
@@ -945,8 +947,8 @@
         
         JWAudioNodeType nodeType = [self typeForNodeAtIndex:index];
         //TODO: fivesecond
-        id fiveSecondNode = playerNodeInfo[@"fivesecondnode"];
-        id fsAudioFile = fiveSecondNode[@"audiofile"];
+        //id fiveSecondNode = playerNodeInfo[@"fivesecondnode"];
+        //id fsAudioFile = fiveSecondNode[@"audiofile"];
         
         if (nodeType != JWAudioNodeTypeNone || nodeType != JWAudioNodeTypeVideo) {
             

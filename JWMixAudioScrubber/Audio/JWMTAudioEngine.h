@@ -44,7 +44,7 @@
 
 -(void)initializeAudio;
 -(void)initializeAudioConfig;
--(void)addFiveSecondNodeToListForKey:(NSString *)dbKey;
+//-(void)addFiveSecondNodeToListForKey:(NSString *)dbKey;
 -(void)setupAVEngine;
 -(void)stopPlayersForReset;
 
@@ -101,9 +101,9 @@
               withTrackId:(NSString*)trackId
  forPlayerRecorderAtIndex:(NSUInteger)index;
 
--(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller
-              withTrackId:(NSString*)trackId
-        forPlayerRecorder:(NSString*)player;
+//-(void)registerController:(id <JWScrubberBufferControllerDelegate> )myScrubberContoller
+//              withTrackId:(NSString*)trackId
+//        forPlayerRecorder:(NSString*)player;
 
 // others maybe not necessarily used
 -(void)changeProgressOfSeekingAudioFile:(CGFloat)progress;
