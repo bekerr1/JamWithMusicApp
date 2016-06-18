@@ -421,6 +421,7 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 -(void)viewWillDisappear:(BOOL)animated {
     NSLog(@"%s", __func__);
     [super viewWillDisappear:animated];
+    [_previewLayer removeFromSuperlayer];
 }
 
 
@@ -429,8 +430,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
     //Handle dissapear stuff (the preview layer seems to be getting stuck?)
     NSLog(@"%s", __func__);
     [super viewDidDisappear:animated];
-    
-    [_previewLayer removeFromSuperlayer];
     
     dispatch_async( self.sessionQueue, ^{
         if ( self.setupResult == AVCamSetupResultSuccess ) {
