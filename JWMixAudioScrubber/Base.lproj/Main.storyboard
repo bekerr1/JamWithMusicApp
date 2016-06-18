@@ -253,17 +253,17 @@
                         <viewControllerLayoutGuide type="bottom" id="GAO-Cl-Wes"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="svH-Pt-448">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="64" width="600" height="492"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZAt-Yo-npn">
-                                <rect key="frame" x="20" y="270" width="560" height="60"/>
+                                <rect key="frame" x="20" y="216" width="560" height="60"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="QyO-4W-3gx"/>
                                 </constraints>
                             </view>
-                            <containerView opaque="NO" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GaD-5G-Xyx">
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GaD-5G-Xyx">
                                 <rect key="frame" x="0.0" y="0.0" width="600" height="170"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="170" id="Lbe-yA-CDZ"/>
@@ -272,12 +272,12 @@
                                     <segue destination="0H5-SC-ezN" kind="embed" identifier="JWScrubberView" id="ogG-79-2RA"/>
                                 </connections>
                             </containerView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="jwjustscreensandlogos - 4" translatesAutoresizingMaskIntoConstraints="NO" id="XpK-I1-BEA">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="jwjustscreensandlogos - 4" translatesAutoresizingMaskIntoConstraints="NO" id="XpK-I1-BEA">
                                 <rect key="frame" x="0.0" y="170" width="600" height="248"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </imageView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6MV-Z9-70J" userLabel="Player Container View">
-                                <rect key="frame" x="0.0" y="482" width="600" height="74"/>
+                                <rect key="frame" x="0.0" y="418" width="600" height="74"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="74" id="tKf-h8-N69"/>
                                 </constraints>
@@ -285,17 +285,17 @@
                                     <segue destination="fig-ql-ORV" kind="embed" identifier="JWPlayerControlsView" id="Xfu-Ln-4N6"/>
                                 </connections>
                             </containerView>
-                            <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hfu-o8-ebw" userLabel="mixedit Container View">
+                            <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hfu-o8-ebw" userLabel="mixedit Container View">
                                 <rect key="frame" x="0.0" y="170" width="600" height="322"/>
                                 <connections>
                                     <segue destination="L8l-WD-inX" kind="embed" identifier="JWMixEditEmbed" id="kXU-z2-rAC"/>
                                 </connections>
                             </containerView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="zgs-S7-B1B">
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="zgs-S7-B1B">
                                 <rect key="frame" x="282" y="66" width="37" height="37"/>
                             </activityIndicatorView>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="6" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pZ6-br-cZ1">
-                                <rect key="frame" x="274" y="247" width="53" height="107"/>
+                                <rect key="frame" x="274" y="192.5" width="53" height="107"/>
                                 <color key="backgroundColor" red="0.0" green="0.25098040699958801" blue="0.50196081399917603" alpha="0.42999999999999999" colorSpace="calibratedRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="89"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -327,6 +327,7 @@
                             <constraint firstItem="pZ6-br-cZ1" firstAttribute="centerY" secondItem="svH-Pt-448" secondAttribute="centerY" id="ud8-CG-yLI"/>
                         </constraints>
                     </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems>
                         <barButtonItem systemItem="camera" id="J2B-hq-8E3">
                             <color key="tintColor" red="0.90196079019999997" green="0.90196079019999997" blue="0.90196079019999997" alpha="1" colorSpace="calibratedRGB"/>
@@ -2152,8 +2153,8 @@
                                 </view>
                                 <blurEffect style="extraLight"/>
                             </visualEffectView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9Im-JY-tOs">
-                                <rect key="frame" x="0.0" y="119" width="600" height="392"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="9Im-JY-tOs">
+                                <rect key="frame" x="0.0" y="120" width="600" height="392"/>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Converting to MP3" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="5" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eyg-K8-PXQ">
                                 <rect key="frame" x="10" y="60" width="580" height="26"/>
