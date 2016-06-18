@@ -15,8 +15,6 @@
 
 @import MediaPlayer;
 
-// TODO: JWAudioPlayerControllerDelegate to JWAudioPlayerCameraControllerDelegate
-// This viewcontroller should not have to implement userDismissCamera
 
 @interface DetailViewController () <JWAudioPlayerControllerDelegate,UIDocumentInteractionControllerDelegate> {
     BOOL _playing;  // used to set toolbar items play state in effects mode
@@ -551,6 +549,13 @@
     NSLog(@"%s", __func__);
     return [_delegate detailController:self titleForJamTrackKey:_detailItem[@"key"]];
 }
+
+-(void)userDismissCamera {
+    NSLog(@"%s Not implemented audio only", __func__);
+    
+}
+
+
 
 #pragma mark - ActionSheets and ALert
 
