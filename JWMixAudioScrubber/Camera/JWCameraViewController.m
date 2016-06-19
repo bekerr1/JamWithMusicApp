@@ -401,7 +401,19 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 -(void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
     NSLog(@"%s", __func__);
     
+    UIInterfaceOrientation statusBarOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    if ( statusBarOrientation == UIInterfaceOrientationLandscapeLeft ) {
+        NSLog(@"%s LEFT", __func__);
+        _previewLayer.connection.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+        
+    } else if ( statusBarOrientation == UIInterfaceOrientationLandscapeRight ) {
+        NSLog(@"%s RIGHT", __func__);
+        _previewLayer.connection.videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+    }
+    
 }
+
 
 #pragma mark - DISMISS
 
