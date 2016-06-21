@@ -211,15 +211,18 @@
     NSLog(@"%s", __func__);
     [super viewWillAppear:animated];
     
-    selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
-    [self updateAmpImage];
-    [self checkForNewSession];
-
+    
     if (_paused) {
         // Setup for reload
         self.view.backgroundColor = [UIColor blackColor];
         _scrubberContainerView.hidden = YES;
         [_scrubberActivity startAnimating]; // configureView gets called in viewDidAppear to stopAnimating
+        
+    } else {
+        // Only need to do this Once, not also coming back from Camera
+        selectedAmpImageIndex = [JWCurrentWorkItem sharedInstance].currentAmpImageIndex;
+        [self updateAmpImage];
+        [self checkForNewSession];
     }
 
 }
