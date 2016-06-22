@@ -159,10 +159,10 @@
     [super viewDidLoad];
     NSLog(@"===============Cell Select Starts Here=========");
     NSLog(@"%s",__func__);
-    [[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
+    
+    //[[self.navigationController toolbar] setBarStyle:UIBarStyleBlackTranslucent];
     [self.navigationController setToolbarHidden:NO];
     [self toolbar1Animated:NO];
-
     [self editingButtons];
     [self predictScrubberHeight];
     self.volumeView.backgroundColor = [UIColor clearColor];
@@ -177,18 +177,22 @@
     mpVolume.translatesAutoresizingMaskIntoConstraints = true;
     [_volumeView addSubview:mpVolume];
 #endif
-
     
     self.restoreColor = self.view.backgroundColor;
     self.view.backgroundColor = [UIColor blackColor];
     _scrubberContainerView.hidden = YES;
     [_scrubberActivity startAnimating];
 
-    [[self.navigationController navigationBar]
-     setBackgroundImage:[UIImage new] forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
-    [[self.navigationController navigationBar] setShadowImage:[UIImage new]];
-    [[self.navigationController navigationBar] setBackgroundColor:[UIColor blackColor]];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(backButtonTapped)];
+    // Setting Navigation Bar attributes messes with status bar
+    // Purpose for messing with it is to get translucency for BEAT colors to show through
+    
+//    [[self.navigationController navigationBar]
+//     setBackgroundImage:[UIImage new] forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
+//    [[self.navigationController navigationBar] setShadowImage:[UIImage new]];
+//    [[self.navigationController navigationBar] setBackgroundColor:[UIColor blackColor]];
+    
+    self.navigationItem.leftBarButtonItem =
+    [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(backButtonTapped)];
 
     
     self.playerController = [JWAudioPlayerController new];
@@ -204,6 +208,11 @@
     
     _countDownLabelValue = 6;
     _paused = NO;
+}
+
+
+-(UIStatusBarStyle)preferredStatusBarStyle {
+    return UIStatusBarStyleLightContent;
 }
 
 //THis method determines if a five second clip is valid by analyzing the title of the jam session, if the session has a title already then it was obtained from some other source and the presence of a five second clip will be determined later on, if the title is "new jam session" then the session is a newly created jam session by clicking the middle tab

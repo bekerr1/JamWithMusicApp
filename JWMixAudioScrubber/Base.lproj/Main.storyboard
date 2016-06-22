@@ -96,7 +96,6 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Sessions" id="miL-0Q-ASw"/>
-                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2Sv-bS-vWY" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -253,18 +252,18 @@
                         <viewControllerLayoutGuide type="bottom" id="GAO-Cl-Wes"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="svH-Pt-448">
-                        <rect key="frame" x="0.0" y="64" width="600" height="492"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="556"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZAt-Yo-npn">
-                                <rect key="frame" x="20" y="216" width="560" height="60"/>
+                                <rect key="frame" x="20" y="248" width="560" height="60"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="QyO-4W-3gx"/>
                                 </constraints>
                             </view>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GaD-5G-Xyx">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="170"/>
+                                <rect key="frame" x="0.0" y="64" width="600" height="170"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="170" id="Lbe-yA-CDZ"/>
                                 </constraints>
@@ -273,11 +272,11 @@
                                 </connections>
                             </containerView>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="jwjustscreensandlogos - 4" translatesAutoresizingMaskIntoConstraints="NO" id="XpK-I1-BEA">
-                                <rect key="frame" x="0.0" y="170" width="600" height="248"/>
+                                <rect key="frame" x="0.0" y="234" width="600" height="248"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </imageView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6MV-Z9-70J" userLabel="Player Container View">
-                                <rect key="frame" x="0.0" y="418" width="600" height="74"/>
+                                <rect key="frame" x="0.0" y="482" width="600" height="74"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="74" id="tKf-h8-N69"/>
                                 </constraints>
@@ -286,23 +285,23 @@
                                 </connections>
                             </containerView>
                             <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hfu-o8-ebw" userLabel="mixedit Container View">
-                                <rect key="frame" x="0.0" y="170" width="600" height="322"/>
+                                <rect key="frame" x="0.0" y="234" width="600" height="322"/>
                                 <connections>
                                     <segue destination="L8l-WD-inX" kind="embed" identifier="JWMixEditEmbed" id="kXU-z2-rAC"/>
                                 </connections>
                             </containerView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="zgs-S7-B1B">
-                                <rect key="frame" x="282" y="66" width="37" height="37"/>
+                                <rect key="frame" x="282" y="130" width="37" height="37"/>
                             </activityIndicatorView>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="6" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pZ6-br-cZ1">
-                                <rect key="frame" x="274" y="192.5" width="53" height="107"/>
+                                <rect key="frame" x="274" y="224" width="53" height="107"/>
                                 <color key="backgroundColor" red="0.0" green="0.25098040699958801" blue="0.50196081399917603" alpha="0.42999999999999999" colorSpace="calibratedRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="89"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" red="0.29803922770000002" green="0.29803922770000002" blue="0.29803922770000002" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" red="0.20000000300000001" green="0.20000000300000001" blue="0.20000000300000001" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstItem="pZ6-br-cZ1" firstAttribute="centerX" secondItem="svH-Pt-448" secondAttribute="centerX" id="1om-Z5-jWQ"/>
                             <constraint firstItem="zgs-S7-B1B" firstAttribute="centerX" secondItem="GaD-5G-Xyx" secondAttribute="centerX" id="5Rt-f7-jzz"/>
@@ -317,6 +316,7 @@
                             <constraint firstItem="XpK-I1-BEA" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" id="XsB-IP-kDm"/>
                             <constraint firstItem="hfu-o8-ebw" firstAttribute="width" secondItem="svH-Pt-448" secondAttribute="width" id="Y6n-2k-Nxa"/>
                             <constraint firstItem="ZAt-Yo-npn" firstAttribute="centerY" secondItem="svH-Pt-448" secondAttribute="centerY" id="Zba-aO-Lfg"/>
+                            <constraint firstItem="GaD-5G-Xyx" firstAttribute="top" secondItem="SYR-Wa-9uf" secondAttribute="bottom" id="c5s-Sj-QzA"/>
                             <constraint firstItem="hfu-o8-ebw" firstAttribute="top" secondItem="GaD-5G-Xyx" secondAttribute="bottom" id="dog-Gr-qdA"/>
                             <constraint firstItem="6MV-Z9-70J" firstAttribute="top" secondItem="XpK-I1-BEA" secondAttribute="bottom" id="gZR-2N-jkM"/>
                             <constraint firstItem="GAO-Cl-Wes" firstAttribute="top" secondItem="6MV-Z9-70J" secondAttribute="bottom" id="gbM-Ly-wAe"/>
@@ -326,10 +326,15 @@
                             <constraint firstItem="GaD-5G-Xyx" firstAttribute="top" secondItem="SYR-Wa-9uf" secondAttribute="bottom" id="s1v-Kg-Spw"/>
                             <constraint firstItem="pZ6-br-cZ1" firstAttribute="centerY" secondItem="svH-Pt-448" secondAttribute="centerY" id="ud8-CG-yLI"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="s1v-Kg-Spw"/>
+                            </mask>
+                        </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
                     <toolbarItems>
-                        <barButtonItem systemItem="camera" id="J2B-hq-8E3">
+                        <barButtonItem style="plain" systemItem="camera" id="J2B-hq-8E3">
                             <color key="tintColor" red="0.90196079019999997" green="0.90196079019999997" blue="0.90196079019999997" alpha="1" colorSpace="calibratedRGB"/>
                             <connections>
                                 <action selector="revealCameraButton:" destination="JEX-9P-axG" id="adw-m9-gZe"/>
@@ -384,6 +389,7 @@
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="cameraButton" destination="J2B-hq-8E3" id="3H3-SM-sWM"/>
@@ -2588,14 +2594,19 @@
         <!--Navigation Controller-->
         <scene sceneID="62u-sx-Ywf">
             <objects>
-                <navigationController storyboardIdentifier="DetailNav" automaticallyAdjustsScrollViewInsets="NO" id="oQl-8o-M4a" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="DetailNav" automaticallyAdjustsScrollViewInsets="NO" toolbarHidden="NO" id="oQl-8o-M4a" sceneMemberID="viewController">
                     <toolbarItems/>
                     <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="eZf-k3-tPc">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" barStyle="black" id="eZf-k3-tPc">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
+                    <toolbar key="toolbar" opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" id="O4L-7O-3Fk">
+                        <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="tintColor" red="1" green="1" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
+                    </toolbar>
                     <connections>
                         <segue destination="JEX-9P-axG" kind="relationship" relationship="rootViewController" id="FqV-ef-u0y"/>
                     </connections>
