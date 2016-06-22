@@ -418,7 +418,16 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 #pragma mark - DISMISS
 
 -(void)dismissOperation {
+
     //cut everything
+
+    _buttonsContainer.hidden = YES;
+    _scrubContainer.hidden = YES;
+
+    [_previewLayer removeFromSuperlayer];
+
+    self.previewLayer = nil;
+    
     //[_apcc stopKill];
     [self dismissViewControllerAnimated:NO completion:nil];
 }
@@ -431,7 +440,6 @@ typedef NS_ENUM( NSInteger, AVCamSetupResult ) {
 -(void)viewWillDisappear:(BOOL)animated {
     NSLog(@"%s", __func__);
     [super viewWillDisappear:animated];
-    [_previewLayer removeFromSuperlayer];
 }
 
 

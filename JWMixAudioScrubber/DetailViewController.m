@@ -226,6 +226,8 @@
         self.view.backgroundColor = [UIColor blackColor];
         _scrubberContainerView.hidden = YES;
         [_scrubberActivity startAnimating]; // configureView gets called in viewDidAppear to stopAnimating
+        [self.navigationController.view setHidden:NO];
+
         
     } else {
         // Only need to do this Once, not also coming back from Camera
@@ -392,6 +394,11 @@
 - (IBAction)revealCameraButton:(UIBarButtonItem *)sender {
     
     [_playerController pauseDetailSession];
+    
+    [self.navigationController.view setHidden:YES];
+    // Have the code perform the segue and nott a triggered action in storyboard
+    // The storyboard had both trigger action and call this selector
+    [self performSegueWithIdentifier:@"cameraActionSegue" sender:self];
 }
 
 - (IBAction)buttonPressed:(UIBarButtonItem *)sender {

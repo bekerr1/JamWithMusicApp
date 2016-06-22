@@ -338,7 +338,6 @@
                             <color key="tintColor" red="0.90196079019999997" green="0.90196079019999997" blue="0.90196079019999997" alpha="1" colorSpace="calibratedRGB"/>
                             <connections>
                                 <action selector="revealCameraButton:" destination="JEX-9P-axG" id="adw-m9-gZe"/>
-                                <segue destination="Fpv-Pd-Epp" kind="presentation" identifier="cameraActionSegue" animates="NO" id="FD1-wC-COY"/>
                             </connections>
                         </barButtonItem>
                         <barButtonItem systemItem="rewind" id="0gW-KY-lXU">
@@ -411,6 +410,7 @@
                         <outlet property="scrubberContainerView" destination="GaD-5G-Xyx" id="ZA2-Bd-g2o"/>
                         <outlet property="sctv" destination="GaD-5G-Xyx" id="cem-EX-VyW"/>
                         <outlet property="volumeView" destination="ZAt-Yo-npn" id="ues-AJ-SNM"/>
+                        <segue destination="Fpv-Pd-Epp" kind="presentation" identifier="cameraActionSegue" animates="NO" id="DDd-Qt-B8c"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FJe-Yq-33r" sceneMemberID="firstResponder"/>
